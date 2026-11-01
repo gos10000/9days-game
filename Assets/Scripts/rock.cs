@@ -2,7 +2,7 @@ using System.Collections;
 using System.Runtime.CompilerServices;
 using UnityEngine;
 
-public class rock : MonoBehaviour
+public class Rock : MonoBehaviour
 {
     private bool isPressed;
     public Rigidbody2D rb;
@@ -44,7 +44,6 @@ public class rock : MonoBehaviour
     {
         rb.bodyType = RigidbodyType2D.Kinematic;
         isPressed = true;
-
     }
 
     void OnMouseUp()
@@ -93,12 +92,11 @@ public class rock : MonoBehaviour
         isIgnoringLauncher = ignore;
     }
 
-    /// 把球的内部状态恢复成“挂在弹弓上待命”的样子
-    /// 位置 / 旋转由 RockReset 负责，这里只清状态
+    //恢复球的状态，位置和旋转由RockReset负责，这里只清状态
     public void ResetRock()
     {
         isPressed = false;
-        isCrashable = false;   // 回到“待命”，下次发射重新计时
+        isCrashable = false;   //回到“待命”，下次发射重新计时
 
         rb.bodyType = RigidbodyType2D.Dynamic;
         rb.linearVelocity = Vector2.zero;
@@ -107,7 +105,7 @@ public class rock : MonoBehaviour
         var joint = GetComponent<SpringJoint2D>();
         if (joint != null) joint.enabled = true;
 
-        // 回到玩家身上，重新忽略碰撞
+        //回到玩家身上，重新忽略碰撞
         SetIgnoreLauncher(true);
     }
 
