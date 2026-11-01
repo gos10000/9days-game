@@ -1,0 +1,15 @@
+# Agent 文档索引
+
+按「一个工作内容一个文件夹，两份 md」组织：
+
+| 工作内容 | 人读版 | Agent 记录 | 内容 |
+|---|---|---|---|
+| 角色 | `character/Character.md` | `character/Character_agent.md` | 角色 prefab、状态机、受击/击退、撞击事件、发射、回合 |
+| 皮肤与动画 | `skin/Skin.md` | `skin/Skin_agent.md` | 皮肤配置、切换流程、Animator 契约、序列帧/骨骼 |
+| 资源生成与调试工具 | `tooling/Tooling.md` | `tooling/Tooling_agent.md` | 菜单/batchmode、层配置、测试场景、HUD、结构校验 |
+
+约定：
+
+- 人读版：简洁、可读，覆盖使用所需的全部信息（出入参、参数表、怎么跑、怎么排错）
+- `_agent` 版：详细准确，记录决策理由、实现顺序、验证证据、坑与待办，供后续 agent 接手
+- 方案类说明在 `Docs/program/`（**由人维护，agent 不修改**）
