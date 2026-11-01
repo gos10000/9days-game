@@ -18,7 +18,7 @@ public class RockReset : MonoBehaviour
 
     private Rigidbody2D rb;
     private SpringJoint2D joint;
-    private rock rockScript;
+    private Rock rockScript;
 
     private Vector3 homePosition;
     private float homeRotationZ;
@@ -28,7 +28,7 @@ public class RockReset : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
         joint = GetComponent<SpringJoint2D>();
-        rockScript = GetComponent<rock>();
+        rockScript = GetComponent<Rock>();
 
         // 记录场景里摆放的初始状态
         homePosition = transform.position;
