@@ -32,6 +32,7 @@ namespace NineDays.EditorTools
                 AssetDatabase.LoadAssetAtPath<GameObject>(EditorAssets.SkinDefaultPath),
                 AssetDatabase.LoadAssetAtPath<GameObject>(EditorAssets.SkinAltPath));
 
+            CreateBattleConfig(EditorAssets.BattleConfigPath);
             ProjectileConfig projectileConfig = CreateProjectileConfig(EditorAssets.ProjectileConfigPath);
 
             GameObject ball = BuildTestBall(EditorAssets.TestBallPath, projectileConfig, circle);
@@ -136,6 +137,28 @@ namespace NineDays.EditorTools
             return config;
         }
 
+        private static BattleConfig CreateBattleConfig(string path)
+        {
+            BattleConfig config = AssetDatabase.LoadAssetAtPath<BattleConfig>(path);
+            if (config == null)
+            {
+                config = ScriptableObject.CreateInstance<BattleConfig>();
+                EditorAssets.EnsureFolderOfFile(path);
+                AssetDatabase.CreateAsset(config, path);
+            }
+
+            config.roundsToPlay = 9;
+            config.randomSeed = 0;
+            config.maxTurnsPerRound = 6;
+            config.turnResolveDelay = 0.6f;
+            config.roundResolveDelay = 1f;
+            config.turnResolveTimeout = 3f;
+
+            EditorUtility.SetDirty(config);
+            Debug.Log($"[PrefabFactory] 战斗配置: {path}");
+            return config;
+        }
+
         private static ProjectileConfig CreateProjectileConfig(string path)
         {
             ProjectileConfig config = AssetDatabase.LoadAssetAtPath<ProjectileConfig>(path);
@@ -154,6 +177,9 @@ namespace NineDays.EditorTools
             config.damage = 10f;
             config.destroyOnHit = true;
             config.friendlyFire = false;
+            config.gravityScale = 1f;
+            config.linearDamping = 0f;
+            if (config.traits == null) config.traits = new List<ProjectileTrait>();
 
             EditorUtility.SetDirty(config);
             Debug.Log($"[PrefabFactory] 子弹配置: {path}");
@@ -170,7 +196,8 @@ namespace NineDays.EditorTools
 
             var body = root.AddComponent<Rigidbody2D>();
             body.mass = config.mass;
-            body.gravityScale = 1f;
+            body.gravityScale = config.gravityScale;
+            body.linearDamping = config.linearDamping;
             body.interpolation = RigidbodyInterpolation2D.Interpolate;
             body.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
 
@@ -224,6 +251,8 @@ namespace NineDays.EditorTools
             var character = root.AddComponent<Character>();
             var combat = root.AddComponent<CharacterCombat>();
             var launcher = root.AddComponent<CharacterLauncher>();
+            var health = root.AddComponent<CharacterHealth>();
+            root.AddComponent<ProjectileModifierSource>();
 
             var visualGo = new GameObject("Visual");
             visualGo.transform.SetParent(root.transform, false);
@@ -270,6 +299,11 @@ namespace NineDays.EditorTools
 
             EditorAssets.SetRef(combat, "character", character);
             EditorAssets.SetRef(combat, "body", body);
+            EditorAssets.SetRef(combat, "health", health);
+
+            EditorAssets.SetRef(character, "health", health);
+            EditorAssets.SetRef(health, "character", character);
+            EditorAssets.SetRef(health, "config", config);
 
             EditorAssets.SetRef(visual, "character", character);
             EditorAssets.SetRef(visual, "config", config);

@@ -17,6 +17,9 @@ MonoBehaviour:
   initialSpeed: 15
   lifeTime: 5
   ignoreOwnerTime: 0.15
+  gravityScale: 1
+  linearDamping: 0
   damage: 10
   destroyOnHit: 1
   friendlyFire: 0
+  traits: []

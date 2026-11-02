@@ -14,6 +14,8 @@ GameObject:
   - component: {fileID: 4532481266830092108}
   - component: {fileID: 1452512206136580773}
   - component: {fileID: 6053314858678698817}
+  - component: {fileID: 1489165988929168923}
+  - component: {fileID: 8906828499522300761}
   m_Layer: 8
   m_Name: Character_Base
   m_TagString: Untagged
@@ -123,6 +125,7 @@ MonoBehaviour:
   bodyCollider: {fileID: 7911057200517619345}
   combat: {fileID: 1452512206136580773}
   visual: {fileID: 6722247406343517918}
+  health: {fileID: 1489165988929168923}
   aimPivot: {fileID: 3725625436741781430}
   groundCheck: {fileID: 6037593858107912344}
   hitPoint: {fileID: 2678527562551521389}
@@ -144,6 +147,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   character: {fileID: 4532481266830092108}
   body: {fileID: 6535803784696611552}
+  health: {fileID: 1489165988929168923}
 --- !u!114 &6053314858678698817
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -164,6 +168,34 @@ MonoBehaviour:
   minLaunchSpeed: 4
   maxLaunchSpeed: 15
   aimLineLength: 3
+--- !u!114 &1489165988929168923
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 151613472290782395}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f9ba5ab958eda9d4c98e603cddcdc0ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  character: {fileID: 4532481266830092108}
+  config: {fileID: 11400000, guid: 070eaf6d1fa37e34ca1e5dff244a934c, type: 2}
+  current: 0
+--- !u!114 &8906828499522300761
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 151613472290782395}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 729d1d4cf634381418fe41d5bce7c9a6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  modifiers: []
 --- !u!1 &2286974456691897286
 GameObject:
   m_ObjectHideFlags: 0

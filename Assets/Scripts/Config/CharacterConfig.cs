@@ -96,6 +96,10 @@ namespace NineDays
         [Tooltip("GroundCheck 处的检测半径")]
         public float groundCheckRadius = 0.12f;
 
+        [Header("血量")]
+        [Tooltip("最大生命值（战斗轮血量制）")]
+        public float maxHealth = 100f;
+
         [Header("出膛点避障")]
         [Tooltip("出膛点被障碍占住时，沿发射方向尝试平移的次数")]
         public int spawnNudgeAttempts = 8;

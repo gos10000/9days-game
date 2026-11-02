@@ -22,6 +22,7 @@ namespace NineDays.EditorTools
 
         internal const string CharacterConfigPath = DataRoot + "/Characters/CharacterConfig_Default.asset";
         internal const string ProjectileConfigPath = DataRoot + "/Projectiles/TestBallConfig.asset";
+        internal const string BattleConfigPath = DataRoot + "/Battle/BattleConfig_Default.asset";
 
         internal const string TestArenaScenePath = SceneRoot + "/TestArena.unity";
 

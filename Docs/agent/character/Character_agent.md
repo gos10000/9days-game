@@ -26,6 +26,7 @@
 |---|---|
 | `Docs/agent/character/Character.md` | 人读版：脚本功能与出入参、参数表、用法、FAQ |
 | `Docs/agent/character/Character_agent.md`（本文） | 决策、实现链路、验证记录、踩坑、待办 |
+| `Docs/agent/battle/Battle.md` / `Battle_agent.md` | 战斗轮：血量制、先手、额外行动、验收 |
 | `Docs/agent/skin/Skin.md` / `Skin_agent.md` | 皮肤与动画体系（配置、切换、Animator 契约） |
 | `Docs/agent/tooling/Tooling.md` / `Tooling_agent.md` | 资源生成、层配置、测试场景、HUD、结构校验 |
 | `Docs/agent/README.md` | 索引 |

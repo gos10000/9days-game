@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -17,10 +18,21 @@ namespace NineDays
         [SerializeField] private Team firstTeam = Team.Player1;
         [SerializeField] private bool autoStart = true;
 
+        [Tooltip("true = 结算后自动换人（旧行为）；false = 交给 BattleController 决定下一个行动者")]
+        [SerializeField] private bool autoAdvance = true;
+
         [Tooltip("结算最长等待时间，超时强制换人")]
         [SerializeField] private float resolveTimeout = 3f;
 
         private float resolveTimer;
+        private Team turnActor = Team.None;
+        private bool shotFiredThisTurn;
+        private bool hitLandedThisTurn;
+        private float damageThisTurn;
+        private bool targetDefeatedThisTurn;
+
+        /// <summary>一次行动结算完成（供 BattleController 推进）。</summary>
+        public event Action<TurnResult> TurnResolved;
 
         public Team CurrentTeam { get; private set; } = Team.None;
         public bool IsResolving { get; private set; }
@@ -37,8 +49,17 @@ namespace NineDays
             }
         }
 
-        private void OnEnable() => GameEvents.ShotFired += OnShotFired;
-        private void OnDisable() => GameEvents.ShotFired -= OnShotFired;
+        private void OnEnable()
+        {
+            GameEvents.ShotFired += OnShotFired;
+            GameEvents.CharacterHit += OnCharacterHit;
+        }
+
+        private void OnDisable()
+        {
+            GameEvents.ShotFired -= OnShotFired;
+            GameEvents.CharacterHit -= OnCharacterHit;
+        }
 
         private void Start()
         {
@@ -59,6 +80,12 @@ namespace NineDays
             IsResolving = false;
             resolveTimer = 0f;
             TurnIndex++;
+
+            turnActor = team;
+            shotFiredThisTurn = false;
+            hitLandedThisTurn = false;
+            damageThisTurn = 0f;
+            targetDefeatedThisTurn = false;
 
             for (int i = 0; i < characters.Count; i++)
             {
@@ -111,6 +138,7 @@ namespace NineDays
         {
             if (shooter == null || shooter.Team != CurrentTeam || IsResolving) return;
 
+            shotFiredThisTurn = true;
             IsResolving = true;
             resolveTimer = 0f;
 
@@ -118,14 +146,45 @@ namespace NineDays
                 if (characters[i] != null) characters[i].SetCanAct(false);
         }
 
+        private void OnCharacterHit(Character target, HitInfo info)
+        {
+            if (!IsResolving || target == null) return;
+            if (target.Team == turnActor) return;
+
+            hitLandedThisTurn = true;
+            damageThisTurn += Mathf.Max(0f, info.Damage);
+            if (target.IsDefeated) targetDefeatedThisTurn = true;
+        }
+
+        /// <summary>由 BattleController 接管时调用：停用自动开局 / 自动换人。</summary>
+        public void UseExternalDriver()
+        {
+            autoStart = false;
+            autoAdvance = false;
+        }
+
+        /// <summary>强制结束当前行动（战斗结束 / 切场景 / 调试用）。</summary>
+        public void AbortTurn()
+        {
+            if (turnActor == Team.None && CurrentTeam == Team.None) return;
+            EndTurn();
+        }
+
         private void EndTurn()
         {
-            Team finished = CurrentTeam;
+            Team finished = turnActor != Team.None ? turnActor : CurrentTeam;
+
             IsResolving = false;
             resolveTimer = 0f;
+            CurrentTeam = Team.None;
 
+            var result = new TurnResult(finished, shotFiredThisTurn, hitLandedThisTurn,
+                                        damageThisTurn, targetDefeatedThisTurn);
+
+            TurnResolved?.Invoke(result);
             GameEvents.RaiseTurnEnded(finished);
-            BeginTurn(OpponentOf(finished));
+
+            if (autoAdvance) BeginTurn(OpponentOf(finished));
         }
 
         /// <summary>结算完成：场上没有子弹，且双方都停稳。</summary>
