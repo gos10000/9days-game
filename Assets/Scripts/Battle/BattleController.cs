@@ -128,7 +128,7 @@ namespace NineDays
 
             Projectile[] projectiles = FindObjectsByType<Projectile>(FindObjectsSortMode.None);
             for (int i = 0; i < projectiles.Length; i++)
-                if (projectiles[i] != null) Destroy(projectiles[i].gameObject);
+                if (projectiles[i] != null) projectiles[i].Despawn(ExpireReason.Aborted);
 
             BeginBattle();
         }
