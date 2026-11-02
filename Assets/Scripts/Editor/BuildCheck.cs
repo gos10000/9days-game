@@ -1,6 +1,7 @@
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.SceneManagement;
 
 namespace NineDays.EditorTools
 {
@@ -16,6 +17,7 @@ namespace NineDays.EditorTools
             ValidateSkin(EditorAssets.SkinAltPath);
             ValidateBall(EditorAssets.TestBallPath);
             ValidateConfigs();
+            ValidateScenePool();
             Debug.Log("[BuildCheck] 结构校验全部通过");
         }
 
@@ -111,6 +113,17 @@ namespace NineDays.EditorTools
             Require(battleConfig != null, "战斗配置不存在");
             Require(battleConfig.roundsToPlay > 0, "战斗配置轮数必须大于 0");
             Require(battleConfig.maxTurnsPerRound >= 2, "战斗配置每轮行动上限至少为 2");
+        }
+
+        /// <summary>测试场景必须在场时检查对象池；只跑 Prefab 构建时跳过。</summary>
+        private static void ValidateScenePool()
+        {
+            Scene active = SceneManager.GetActiveScene();
+            if (active.path != EditorAssets.TestArenaScenePath) return;
+
+            ProjectilePool pool = UnityEngine.Object.FindAnyObjectByType<ProjectilePool>();
+            Require(pool != null, "TestArena 缺 ProjectilePool");
+            Require(pool.PrewarmPrefab != null, "ProjectilePool.prewarmPrefab 为空");
         }
 
         private static void Require(bool condition, string message)

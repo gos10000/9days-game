@@ -24,10 +24,14 @@ namespace NineDays
 
         private Character owner;
         private Collider2D[] ownerColliders;
+        private readonly List<Collider2D> ignoredColliders = new List<Collider2D>();
         private Vector2 lastVelocity;
         private float lifeTimer;
         private float ignoreTimer;
         private bool despawning;
+
+        internal ProjectilePool Pool { get; set; }
+        internal Projectile SourcePrefab { get; set; }
 
         public ProjectileConfig Config => config;
         public ProjectileStats Stats => stats;
@@ -104,7 +108,11 @@ namespace NineDays
             lifeTimer = 0f;
             pendingInfluence.Reset();
 
-            if (trail != null) trail.Clear();
+            if (trail != null)
+            {
+                trail.Clear();
+                trail.emitting = true;
+            }
             if (body != null) body.linearVelocity = velocity;
             lastVelocity = velocity;
 
@@ -127,7 +135,7 @@ namespace NineDays
             for (int i = 0; i < ownerColliders.Length; i++)
             {
                 if (ownerColliders[i] != null && ownerColliders[i] != bodyCollider)
-                    Physics2D.IgnoreCollision(bodyCollider, ownerColliders[i], true);
+                    IgnorePair(ownerColliders[i]);
             }
         }
 
@@ -136,10 +144,39 @@ namespace NineDays
             if (ownerColliders == null) return;
 
             for (int i = 0; i < ownerColliders.Length; i++)
+                if (ownerColliders[i] != null) RestorePair(ownerColliders[i]);
+
+            ownerColliders = null;
+        }
+
+        /// <summary>记录并忽略一对碰撞，池化回收时统一恢复。</summary>
+        private void IgnorePair(Collider2D other)
+        {
+            if (bodyCollider == null || other == null) return;
+
+            Physics2D.IgnoreCollision(bodyCollider, other, true);
+            if (!ignoredColliders.Contains(other)) ignoredColliders.Add(other);
+        }
+
+        private void RestorePair(Collider2D other)
+        {
+            if (bodyCollider != null && other != null)
+                Physics2D.IgnoreCollision(bodyCollider, other, false);
+
+            ignoredColliders.Remove(other);
+        }
+
+        /// <summary>恢复所有忽略关系，避免下一发复用池对象时仍然穿透。</summary>
+        private void RestoreAllIgnoredCollisions()
+        {
+            for (int i = 0; i < ignoredColliders.Count; i++)
             {
-                if (ownerColliders[i] != null && ownerColliders[i] != bodyCollider)
-                    Physics2D.IgnoreCollision(bodyCollider, ownerColliders[i], false);
+                Collider2D other = ignoredColliders[i];
+                if (bodyCollider != null && other != null)
+                    Physics2D.IgnoreCollision(bodyCollider, other, false);
             }
+
+            ignoredColliders.Clear();
             ownerColliders = null;
         }
 
@@ -213,8 +250,7 @@ namespace NineDays
             // 穿透：忽略这个目标并恢复碰撞前的速度，避免被碰撞反弹带偏
             if (disposition == HitDisposition.Pass && target != null)
             {
-                if (bodyCollider != null && collision.collider != null)
-                    Physics2D.IgnoreCollision(bodyCollider, collision.collider, true);
+                IgnorePair(collision.collider);
                 if (body != null) body.linearVelocity = lastVelocity;
             }
 
@@ -263,7 +299,47 @@ namespace NineDays
                 stats != null ? stats.damage : 0f);
         }
 
-        /// <summary>唯一销毁出口：特性回调 → 事件 → 销毁（对象池以后从这里接管）。</summary>
+        /// <summary>从池中取出后调用：解除“已回收”保护。</summary>
+        internal void MarkRented()
+        {
+            despawning = false;
+            IsLaunched = false;
+        }
+
+        /// <summary>归还对象池前清空所有每发状态；由 ProjectilePool 调用。</summary>
+        internal void ResetForPool()
+        {
+            RestoreAllIgnoredCollisions();
+
+            owner = null;
+            ownerColliders = null;
+            stats = null;
+            traits = null;
+
+            pendingInfluence.Reset();
+            lifeTimer = 0f;
+            ignoreTimer = 0f;
+            lastVelocity = Vector2.zero;
+
+            IsLaunched = false;
+            despawning = true;
+            SourcePrefab = null;
+
+            if (body != null)
+            {
+                body.linearVelocity = Vector2.zero;
+                body.angularVelocity = 0f;
+                body.Sleep();
+            }
+
+            if (trail != null)
+            {
+                trail.Clear();
+                trail.emitting = false;
+            }
+        }
+
+        /// <summary>唯一销毁出口：特性回调 → 事件 → 入池（池不存在时销毁）。</summary>
         public void Despawn(ExpireReason reason)
         {
             if (despawning) return;
@@ -278,6 +354,8 @@ namespace NineDays
             }
 
             GameEvents.RaiseProjectileExpired(this, reason);
+
+            if (Pool != null && Pool.Return(this)) return;
 
             if (Application.isPlaying) Destroy(gameObject);
             else DestroyImmediate(gameObject);

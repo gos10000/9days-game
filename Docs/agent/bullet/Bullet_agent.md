@@ -17,15 +17,17 @@
 | `Scripts/Bullet/ProjectileField.cs` | 新增 | 区域场基类，`OnTriggerStay2D` 内累加影响 |
 | `Scripts/Bullet/RadialGravityField.cs` | 新增 | 点状引力/斥力场 + 纯函数 `ComputeAcceleration` |
 | `Scripts/Bullet/Traits/PierceTrait.cs` | 新增 | 穿透特性（演示用） |
-| `Scripts/Bullet/Projectile.cs` | 重写 | 改用 `Stats`/`Traits`/`ProjectileInfluence`；统一 `Despawn`；新增事件 |
+| `Scripts/Bullet/ProjectilePool.cs` | 新增 | 场景级对象池：`Rent/Return/Prewarm/CountInactive/CountActive/Clear` |
+| `Scripts/Bullet/Projectile.cs` | 重写 | 改用 `Stats`/`Traits`/`ProjectileInfluence`；统一 `Despawn`；新增事件；池化 `ResetForPool` + 忽略碰撞全量恢复 |
 | `Scripts/Bullet/ShotSpawner.cs` | 重写 | 收集 `IProjectileModifierSource` → `ProjectileBuild.Build` → `Configure` → `Launch` |
 | `Scripts/Config/ProjectileConfig.cs` | 重写 | 新增 `gravityScale`、`linearDamping`、`traits`、`Validate()` |
 | `Scripts/Events/GameEvents.cs` | 修改 | 新增 `ProjectileHitLanded`、`ProjectileExpired` 及 Raise/ClearAll |
 | `Scripts/Editor/PrefabFactory.cs` | 修改 | 写入新配置字段；`TestBall` 刚体使用配置重力/阻力；`Character_Base` 挂 `ProjectileModifierSource` |
-| `Scripts/Editor/BuildCheck.cs` | 修改 | 断言修改器组件、子弹配置非空、刚体重力与配置一致、traits 列表非空 |
+| `Scripts/Editor/BuildCheck.cs` | 修改 | 断言修改器组件、子弹配置非空、刚体重力与配置一致、traits 列表非空、场景含 `ProjectilePool` |
 | `Assets/Tests/EditMode/ProjectileBuildTests.cs` | 新增 | 9 个用例：构建顺序、修改器、穿透、命中决策 |
 | `Assets/Tests/EditMode/ProjectileInfluenceTests.cs` | 新增 | 7 个用例：积分、累加、引力衰减/钳制 |
-| `Assets/Tests/PlayMode/ProjectileTraitTests.cs` | 新增 | 3 个用例：穿透连中两人、引力加速度、FixedUpdate 速度变化 |
+| `Assets/Tests/PlayMode/ProjectileTraitTests.cs` | 新增 | 5 个用例：穿透、引力、Trigger 路径、撞墙 |
+| `Assets/Tests/PlayMode/ProjectilePoolTests.cs` | 新增 | 5 个用例：复用、事件、预热、inactive 判定、拒绝外部对象 |
 | `Docs/agent/bullet/Bullet.md` / `Bullet_agent.md` | 新增 | 模块文档 |
 | `Docs/agent/README.md` | 修改 | 索引新增「子弹」一行 |
 
@@ -83,7 +85,14 @@ foreach trait:
 
 ### 3.4 穿透
 
-`PierceTrait.ApplyStats` 把 `extraPierce` 加到 `stats.pierceCount`；`OnHit` 在 `pierceRemaining > 0` 时自减并返回 `Pass`，否则 `Consume`。`Projectile` 在 `Pass` 且目标是角色时 `Physics2D.IgnoreCollision` 并恢复 `lastVelocity`。
+`PierceTrait.ApplyStats` 把 `extraPierce` 加到 `stats.pierceCount`；`OnHit` 在 `pierceRemaining > 0` 时自减并返回 `Pass`，否则 `Consume`。`Projectile` 在 `Pass` 且目标是角色时 `IgnorePair` 并恢复 `lastVelocity`。
+
+### 3.5 对象池
+
+- `ProjectilePool` 按 prefab 建 `ObjectPool<Projectile>`；`Rent` 设置 `Pool`/`SourcePrefab` 并 `MarkRented`，`Return` 先捕获 prefab 再 `Release`。
+- `actionOnRelease` 调 `Projectile.ResetForPool`：恢复所有 `IgnorePair` 记录、清 owner/stats/traits/寿命/影响/速度/Trail，并置 `despawning = true` 防止重复回收。
+- `Prewarm` 必须**先全部 `Get` 再统一 `Release`**；若边 Get 边 Release，会反复拿到同一个实例，预热数量永远为 1（本次踩过）。
+- 清场路径 `TurnController.ResetMatch` / `BattleController.RestartBattle` 都改为 `Despawn(Aborted)`，池内对象 inactive，`FindObjectsByType` 默认不计入。
 
 ---
 
@@ -98,18 +107,24 @@ foreach trait:
 | `ProjectileModifierSource` 位置 | `ShotSpawner` 用 `GetComponentsInChildren` 收集，挂在角色根或子物体都可以 |
 | `ProjectileField` 需要 Trigger | 组件本身不加 Collider；`Reset()` 只会在编辑器里把已有 Collider 设为 Trigger，运行时 `AddComponent` 需手动设 `isTrigger` |
 | `lastVelocity` 时机 | 只在 `Launch` 与 `FixedUpdate` 更新；同一物理帧内多次碰撞时以最近一次为准 |
+| 池化对象必须重新 `Configure` | `ResetForPool` 会清空 `stats/traits`；`Rent` 后直接 `Launch` 只能得到无特性、默认数值的子弹 |
+| 池内对象是 inactive | `FindObjectsByType<Projectile>` 默认不统计，因此不会阻塞 `TurnController` 的回合结束判定 |
+| 事件不要缓存引用 | `ProjectileExpired` 在回收前触发，之后对象会被复用；订阅者只应读取当场数据 |
 
 ---
 
 ## 5. 已知限制与待办
 
 - [ ] 未实现爆炸、弹跳、追踪、分裂、持续伤害；`ProjectileTrait` 已留好钩子
-- [ ] 未接对象池；`ShotSpawner.Spawn` 与 `Projectile.Despawn` 是唯一出入口
+- [ ] `ProjectilePool` 默认场景级（`dontDestroyOnLoad = false`）；跨场景常驻/Addressables 预加载未做
+- [ ] `ProjectilePool.Clear()` 只清理池内 inactive 对象；已租出的活跃子弹不处理
+- [ ] `ProjectilePool` 的池 root 是子弹的父节点；销毁池会连带销毁仍在飞的子弹（场景卸载时符合预期）
+- [ ] 池化对象 `Rent` 后必须 `Configure`；若直接 `Launch`，`stats/traits` 为空，只有默认刚体行为
+- [ ] `ProjectileExpired` 订阅者若缓存 `Projectile` 引用，复用后会指向新子弹；事件只保证触发瞬间的数据有效
 - [ ] 没有集中式 `ProjectileInfluenceManager`；`OnTriggerStay2D` 与 `Projectile.FixedUpdate` 的调用顺序无保证，极端情况会有一物理帧延迟
 - [ ] `ProjectileField` 不会自动补 Collider2D；场景里需要手动加 Trigger
 - [ ] 穿透只忽略“命中的那个 Collider”；目标有多个 Collider 时，其余 Collider 仍可能挡住子弹
 - [ ] `ProjectileHitLanded` 只在命中角色时触发；撞墙/障碍不触发（只有 `ProjectileExpired`）
-- [ ] `ExpireReason.Aborted` 目前无调用点；`TurnController` 重开时仍直接 `Destroy(Projectile.gameObject)`，不会走 `Despawn`、不会发 `ProjectileExpired`
 - [ ] `ProjectileBuildContext.Traits` 允许 modifier 追加特性，但追加特性的 `ApplyStats` 在 modifier 之后执行；若某 modifier 依赖该特性带来的数值，顺序不满足
 - [ ] `Projectile.Config` 与 `Projectile.Stats` 可能不一致（运行时被 modifier 改过），HUD 读 `Config` 只用于初始速度显示
 
@@ -127,15 +142,16 @@ Unity.exe -batchmode -projectPath <项目> -runTests -testPlatform PlayMode
 
 | 项 | 结果 |
 |---|---|
-| `BuildAllBatch` | `BUILD_OK`，`[BuildCheck] 结构校验全部通过`（35s） |
+| `BuildAllBatch` | `BUILD_OK`，`[BuildCheck] 结构校验全部通过`（15s） |
 | EditMode | **37/37 Passed**（原 21 + 新增 16） |
-| PlayMode | **6/6 Passed**（原 1 + 新增 5） |
+| PlayMode | **11/11 Passed**（原 1 + 新增 10） |
 
 新增用例：
 
 - `ProjectileBuildTests`：`From_CopiesConfigValues`、`Validate_ClampsNegativeValues`、`Build_AppliesSpeedOverride`、`Build_AppliesTraitStats`、`Build_AppliesModifierAfterTrait`、`Build_TraitAddedByModifier_StillContributes`、`Build_PierceTrait_SetsRemaining`、`HitResolver_NoVotes_UsesDestroyOnHit`、`HitResolver_ConsumeWinsOverPass`
 - `ProjectileInfluenceTests`：`Solver_AppliesAcceleration`、`Solver_AppliesVelocityScale`、`Solver_OverrideWins`、`Influence_AddAccumulates`、`GravityField_PullsTowardCenter`、`GravityField_OutsideRadius_IsZero`、`GravityField_ClampsAcceleration`
 - `ProjectileTraitTests`：`PierceTrait_HitsTwoTargets`、`GravityField_Accumulate_PullsTowardCenter`、`GravityField_TriggerAffectsFlyingProjectile`、`Influence_ChangesVelocity_OnFixedUpdate`、`Projectile_WithoutOwner_HitsWallAndDespawns`
+- `ProjectilePoolTests`：`Rent_ReusesReturnedInstance`、`Despawn_DeactivatesAndFiresExpiredOnce`、`Prewarm_CreatesInactiveInstances`、`PooledProjectile_NotReturnedByFindObjects`、`Return_RejectsForeignProjectile`
 
 `BuildCheck` 新增断言：
 
@@ -143,6 +159,7 @@ Unity.exe -batchmode -projectPath <项目> -runTests -testPlatform PlayMode
 - `TestBall` 的 `Projectile.Config` 非空
 - `TestBall` 刚体 `gravityScale` 与配置一致
 - 子弹配置 `traits` 列表非空（允许空列表）
+- `TestArena` 场景含 `ProjectilePool` 且 `prewarmPrefab` 非空
 
 ---
 
@@ -158,6 +175,8 @@ Unity.exe -batchmode -projectPath <项目> -runTests -testPlatform PlayMode
 | 区域场 | `ProjectileField.OnTriggerStay2D / Accumulate` |
 | 引力数学 | `RadialGravityField.ComputeAcceleration` |
 | 唯一销毁出口 | `Projectile.Despawn` |
+| 对象池 | `ProjectilePool.Rent / Return / Prewarm` |
+| 池化重置 | `Projectile.ResetForPool` |
 | 发射入口 | `ShotSpawner.Spawn` |
 | 道具修改器容器 | `ProjectileModifierSource.CollectModifiers` |
 
