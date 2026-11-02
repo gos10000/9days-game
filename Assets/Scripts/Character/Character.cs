@@ -9,7 +9,7 @@ namespace NineDays
     /// 挂在角色 prefab 根节点（同节点还有 Rigidbody2D / CapsuleCollider2D）。
     /// </summary>
     [RequireComponent(typeof(Rigidbody2D))]
-    public class Character : MonoBehaviour
+    public class Character : MonoBehaviour, IBattleParticipant
     {
         [Header("配置")]
         [SerializeField] private CharacterConfig config;
@@ -20,6 +20,7 @@ namespace NineDays
         [SerializeField] private Collider2D bodyCollider;
         [SerializeField] private CharacterCombat combat;
         [SerializeField] private CharacterVisual visual;
+        [SerializeField] private CharacterHealth health;
         [SerializeField] private Transform aimPivot;
         [SerializeField] private Transform groundCheck;
         [SerializeField] private Transform hitPoint;
@@ -39,6 +40,19 @@ namespace NineDays
 
         public CharacterConfig Config => config;
         public Team Team => team;
+
+        /// <summary>血量组件（惰性解析，兼容运行时动态添加组件）。</summary>
+        public CharacterHealth Health
+        {
+            get
+            {
+                if (health == null) health = GetComponent<CharacterHealth>();
+                return health;
+            }
+        }
+
+        public float CurrentHealth => Health != null ? Health.Current : 0f;
+        public bool IsDefeated => Health != null && Health.IsDefeated;
         public CharacterState State { get; private set; } = CharacterState.Idle;
         public Rigidbody2D Body => body;
         public Transform AimPivot => aimPivot != null ? aimPivot : transform;
@@ -68,6 +82,7 @@ namespace NineDays
             if (bodyCollider == null) bodyCollider = GetComponent<Collider2D>();
             if (combat == null) combat = GetComponent<CharacterCombat>();
             if (visual == null) visual = GetComponentInChildren<CharacterVisual>(true);
+            if (health == null) health = GetComponent<CharacterHealth>();
 
             spawnPoint = transform.position;
             ApplyConfig();
@@ -194,6 +209,34 @@ namespace NineDays
             GameEvents.RaiseCharacterDowned(this);
         }
 
+        /// <summary>血量归零：进入不可操作的战败状态。</summary>
+        public void EnterDefeated()
+        {
+            controlLockTimer = 0f;
+            SetState(CharacterState.Defeated);
+        }
+
+        /// <summary>战斗开始时重置：回满血、回出生点、清状态并交出操作权。</summary>
+        public void ResetForBattle()
+        {
+            if (health != null) health.ResetHealth();
+
+            controlLockTimer = 0f;
+            settleTimer = 0f;
+            stateTimer = 0f;
+
+            if (body != null)
+            {
+                body.linearVelocity = Vector2.zero;
+                body.angularVelocity = 0f;
+                body.position = spawnPoint;
+                body.rotation = 0f;
+            }
+
+            SetState(CharacterState.Idle);
+            SetCanAct(false);
+        }
+
         public void LockControl(float seconds)
         {
             controlLockTimer = Mathf.Max(controlLockTimer, seconds);
@@ -202,6 +245,7 @@ namespace NineDays
         /// <summary>被命中的统一入口（CharacterCombat 负责具体处理）。</summary>
         public void ReceiveHit(in HitInfo info)
         {
+            if (combat == null) combat = GetComponent<CharacterCombat>();
             if (combat != null) combat.ReceiveHit(info);
         }
 

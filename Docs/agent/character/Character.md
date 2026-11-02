@@ -2,6 +2,7 @@
 
 > 面向使用者的简洁文档：怎么用、每个脚本干什么、参数在哪、出入参是什么。
 > 详细工作记录见同目录 `Character_agent.md`；
+> 战斗轮（血量/轮次/额外行动）见 `Docs/agent/battle/Battle.md`；
 > 皮肤/动画见 `Docs/agent/skin/Skin.md`；资源生成与测试场景见 `Docs/agent/tooling/Tooling.md`。
 
 ## 目录
@@ -177,6 +178,7 @@ void OnHit(Character c, HitInfo info)
 | 位置 | 参数 | 作用 |
 |---|---|---|
 | `CharacterConfig` | `hitThreshold` | 多小的冲量算"被打飞" |
+| | `maxHealth` | 战斗轮血量上限（默认 100） |
 | | `knockbackScale` / `minKnockback` / `maxKnockback` | 飞多远 |
 | | `controlLockTime` | 飞出去后多久不能操作 |
 | | `impactThreshold` | 撞障碍多大力度才报事件 |

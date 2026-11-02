@@ -13,7 +13,7 @@ namespace NineDays
     public enum ImpactKind { Obstacle = 0, Character = 1, Projectile = 2 }
 
     /// <summary>角色状态。Animator 的 State 参数使用同样的整数值。</summary>
-    public enum CharacterState { Idle = 0, Aiming = 1, Airborne = 2, Downed = 3, GettingUp = 4 }
+    public enum CharacterState { Idle = 0, Aiming = 1, Airborne = 2, Downed = 3, GettingUp = 4, Defeated = 5 }
 
     /// <summary>Animator 参数契约：任何皮肤控制器都必须实现这 5 个参数。</summary>
     public static class AnimParams
@@ -97,6 +97,44 @@ namespace NineDays
         }
     }
 
+    /// <summary>一次行动的结果（战斗会话用于推进与判定）。</summary>
+    public readonly struct TurnResult
+    {
+        public readonly Team Actor;
+        public readonly bool ShotFired;
+        public readonly bool HitLanded;
+        public readonly float DamageDealt;
+        public readonly bool TargetDefeated;
+
+        public TurnResult(Team actor, bool shotFired, bool hitLanded, float damageDealt, bool targetDefeated)
+        {
+            Actor = actor;
+            ShotFired = shotFired;
+            HitLanded = hitLanded;
+            DamageDealt = damageDealt;
+            TargetDefeated = targetDefeated;
+        }
+
+        public static TurnResult Empty(Team actor) => new TurnResult(actor, false, false, 0f, false);
+    }
+
+    /// <summary>一场战斗结束时的结算数据。</summary>
+    public readonly struct BattleResult
+    {
+        public readonly Team Winner;
+        public readonly int RoundsPlayed;
+        public readonly float HealthA;
+        public readonly float HealthB;
+
+        public BattleResult(Team winner, int roundsPlayed, float healthA, float healthB)
+        {
+            Winner = winner;
+            RoundsPlayed = roundsPlayed;
+            HealthA = healthA;
+            HealthB = healthB;
+        }
+    }
+
     /// <summary>
     /// 全局事件总线（文档「事件单独脚本定义」）。
     /// 模块之间只通过这里通信；订阅必须成对（OnEnable / OnDisable）。
@@ -127,11 +165,41 @@ namespace NineDays
         /// <summary>某一方发射了子弹。</summary>
         public static event Action<Character, Projectile> ShotFired;
 
+        /// <summary>子弹命中角色（伤害已结算）。</summary>
+        public static event Action<Character, Projectile, HitInfo> ProjectileHitLanded;
+
+        /// <summary>子弹消失（命中 / 寿命 / 中止）。</summary>
+        public static event Action<Projectile, ExpireReason> ProjectileExpired;
+
         /// <summary>回合开始。</summary>
         public static event Action<Team> TurnStarted;
 
         /// <summary>回合结束。</summary>
         public static event Action<Team> TurnEnded;
+
+        /// <summary>战斗开始（参数为总轮数）。</summary>
+        public static event Action<int> BattleStarted;
+
+        /// <summary>一轮开始（轮次、先手方）。</summary>
+        public static event Action<int, Team> RoundStarted;
+
+        /// <summary>一轮结束。</summary>
+        public static event Action<int> RoundEnded;
+
+        /// <summary>一次行动结算完成。</summary>
+        public static event Action<TurnResult> TurnResolved;
+
+        /// <summary>追加了一次额外行动（阵营、是否插队）。</summary>
+        public static event Action<Team, bool> ExtraTurnGranted;
+
+        /// <summary>角色血量变化。</summary>
+        public static event Action<Character, float, float> CharacterHealthChanged;
+
+        /// <summary>角色被击败。</summary>
+        public static event Action<Character> CharacterDefeated;
+
+        /// <summary>战斗结束。</summary>
+        public static event Action<BattleResult> BattleEnded;
 
         public static void RaiseCharacterHit(Character character, in HitInfo info) => CharacterHit?.Invoke(character, info);
         public static void RaiseCharacterKnockedBack(Character character, in HitInfo info) => CharacterKnockedBack?.Invoke(character, info);
@@ -141,8 +209,18 @@ namespace NineDays
         public static void RaiseCharacterRecovered(Character character) => CharacterRecovered?.Invoke(character);
         public static void RaiseCharacterOutOfBounds(Character character) => CharacterOutOfBounds?.Invoke(character);
         public static void RaiseShotFired(Character shooter, Projectile projectile) => ShotFired?.Invoke(shooter, projectile);
+        public static void RaiseProjectileHitLanded(Character target, Projectile projectile, in HitInfo info) => ProjectileHitLanded?.Invoke(target, projectile, info);
+        public static void RaiseProjectileExpired(Projectile projectile, ExpireReason reason) => ProjectileExpired?.Invoke(projectile, reason);
         public static void RaiseTurnStarted(Team team) => TurnStarted?.Invoke(team);
         public static void RaiseTurnEnded(Team team) => TurnEnded?.Invoke(team);
+        public static void RaiseBattleStarted(int rounds) => BattleStarted?.Invoke(rounds);
+        public static void RaiseRoundStarted(int round, Team firstActor) => RoundStarted?.Invoke(round, firstActor);
+        public static void RaiseRoundEnded(int round) => RoundEnded?.Invoke(round);
+        public static void RaiseTurnResolved(in TurnResult result) => TurnResolved?.Invoke(result);
+        public static void RaiseExtraTurnGranted(Team team, bool immediate) => ExtraTurnGranted?.Invoke(team, immediate);
+        public static void RaiseCharacterHealthChanged(Character character, float current, float max) => CharacterHealthChanged?.Invoke(character, current, max);
+        public static void RaiseCharacterDefeated(Character character) => CharacterDefeated?.Invoke(character);
+        public static void RaiseBattleEnded(in BattleResult result) => BattleEnded?.Invoke(result);
 
         /// <summary>退出 Play / 关闭 Domain Reload 时清空静态订阅，避免事件翻倍。</summary>
         public static void ClearAll()
@@ -155,8 +233,18 @@ namespace NineDays
             CharacterRecovered = null;
             CharacterOutOfBounds = null;
             ShotFired = null;
+            ProjectileHitLanded = null;
+            ProjectileExpired = null;
             TurnStarted = null;
             TurnEnded = null;
+            BattleStarted = null;
+            RoundStarted = null;
+            RoundEnded = null;
+            TurnResolved = null;
+            ExtraTurnGranted = null;
+            CharacterHealthChanged = null;
+            CharacterDefeated = null;
+            BattleEnded = null;
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]

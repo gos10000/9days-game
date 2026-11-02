@@ -50,8 +50,23 @@ namespace NineDays.EditorTools
                 p2.GetComponent<Character>(),
             });
             EditorAssets.SetInt(turn, "firstTeam", (int)Team.Player1);
-            EditorAssets.SetBool(turn, "autoStart", true);
+            EditorAssets.SetBool(turn, "autoStart", false);
+            EditorAssets.SetBool(turn, "autoAdvance", false);
             EditorAssets.SetFloat(turn, "resolveTimeout", 3f);
+
+            BattleConfig battleConfig = AssetDatabase.LoadAssetAtPath<BattleConfig>(EditorAssets.BattleConfigPath);
+            if (battleConfig == null) throw new System.InvalidOperationException("找不到 BattleConfig，请先跑 Build/Prefabs");
+
+            var battleGo = new GameObject("BattleController");
+            var battle = battleGo.AddComponent<BattleController>();
+            EditorAssets.SetRef(battle, "config", battleConfig);
+            EditorAssets.SetRef(battle, "turnController", turn);
+            EditorAssets.SetObjectArray(battle, "characters", new UnityEngine.Object[]
+            {
+                p1.GetComponent<Character>(),
+                p2.GetComponent<Character>(),
+            });
+            EditorAssets.SetBool(battle, "autoStart", true);
 
             var hudGo = new GameObject("DebugHUD");
             var hud = hudGo.AddComponent<CombatDebugHud>();
@@ -59,9 +74,15 @@ namespace NineDays.EditorTools
             if (ballPrefab == null) throw new System.InvalidOperationException("找不到 TestBall prefab");
 
             EditorAssets.SetRef(hud, "turnController", turn);
+            EditorAssets.SetRef(hud, "battleController", battle);
             EditorAssets.SetRef(hud, "testProjectilePrefab", ballPrefab.GetComponent<Projectile>());
             EditorAssets.SetBool(hud, "showHud", true);
             EditorAssets.SetBool(hud, "verboseImpactLog", false);
+
+            var banner = hudGo.AddComponent<TurnBanner>();
+            EditorAssets.SetBool(banner, "showBanner", true);
+            EditorAssets.SetFloat(banner, "holdSeconds", 1.2f);
+            EditorAssets.SetFloat(banner, "fadeSeconds", 0.25f);
 
             EditorAssets.EnsureFolder(EditorAssets.SceneRoot);
             EditorSceneManager.SaveScene(scene, EditorAssets.TestArenaScenePath);

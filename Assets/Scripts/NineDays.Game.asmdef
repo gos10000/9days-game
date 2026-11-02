@@ -1,0 +1,19 @@
+{
+    "name": "NineDays.Game",
+    "rootNamespace": "NineDays",
+    "references": [
+        "Unity.InputSystem",
+        "Unity.2D.Animation.Runtime",
+        "Unity.2D.Common.Runtime",
+        "Unity.VisualScripting.Core"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
