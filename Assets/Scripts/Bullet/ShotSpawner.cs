@@ -53,7 +53,9 @@ namespace NineDays
             float step = config != null ? config.spawnNudgeStep : 0.3f;
 
             Vector2 origin = ResolveFreePoint(GetOrigin(shooter), dir, stats.radius, obstacleMask, attempts, step);
-            Projectile projectile = Object.Instantiate(prefab, origin, Quaternion.identity);
+            Projectile projectile = ProjectilePool.Instance.Rent(prefab, origin, Quaternion.identity);
+            if (projectile == null) return null;
+
             projectile.Configure(stats, loadout.Traits);
             projectile.Launch(dir * stats.speed, shooter);
             return projectile;

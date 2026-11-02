@@ -84,6 +84,14 @@ namespace NineDays.EditorTools
             EditorAssets.SetFloat(banner, "holdSeconds", 1.2f);
             EditorAssets.SetFloat(banner, "fadeSeconds", 0.25f);
 
+            var poolGo = new GameObject("ProjectilePool");
+            var pool = poolGo.AddComponent<ProjectilePool>();
+            EditorAssets.SetRef(pool, "prewarmPrefab", ballPrefab.GetComponent<Projectile>());
+            EditorAssets.SetInt(pool, "prewarmCount", 8);
+            EditorAssets.SetInt(pool, "defaultCapacity", 8);
+            EditorAssets.SetInt(pool, "maxSizePerPrefab", 64);
+            EditorAssets.SetBool(pool, "dontDestroyOnLoad", false);
+
             EditorAssets.EnsureFolder(EditorAssets.SceneRoot);
             EditorSceneManager.SaveScene(scene, EditorAssets.TestArenaScenePath);
             EditorSceneManager.OpenScene(EditorAssets.TestArenaScenePath);

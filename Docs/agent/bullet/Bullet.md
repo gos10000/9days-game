@@ -14,7 +14,7 @@
 7. [飞行影响：引力场](#7-飞行影响引力场)
 8. [道具与技能接入](#8-道具与技能接入)
 9. [事件](#9-事件)
-10. [对象池预留](#10-对象池预留)
+10. [对象池](#10-对象池)
 11. [测试与验收](#11-测试与验收)
 12. [常见问题](#12-常见问题)
 
@@ -209,11 +209,30 @@ projectile.AddAcceleration(Vector2.down * 20f);   // 持续施力
 
 ---
 
-## 10. 对象池预留
+## 10. 对象池
 
-- 生成入口只有 `ShotSpawner.Spawn`
-- 销毁出口只有 `Projectile.Despawn`
-- 以后接池：替换 `ShotSpawner` 的 `Instantiate` 为池的 `Rent`，`Despawn` 改为 `Return`，业务代码零改动
+`ProjectilePool` 是场景内的 MonoBehaviour，按 prefab 维护 `UnityEngine.Pool.ObjectPool<Projectile>`：
+
+```
+生成：ShotSpawner.Spawn → ProjectilePool.Instance.Rent(prefab, pos, rot)
+回收：Projectile.Despawn → ProjectilePool.Return → ResetForPool → SetActive(false)
+清场：TurnController.ResetMatch / BattleController.RestartBattle → Despawn(Aborted)
+```
+
+| 参数 | 默认 | 说明 |
+|---|---|---|
+| `prewarmPrefab` | TestBall | 场景启动预热的 prefab |
+| `prewarmCount` | 8 | 预热数量 |
+| `defaultCapacity` | 8 | 每个 prefab 的初始容量 |
+| `maxSizePerPrefab` | 64 | 池上限，超出销毁 |
+| `collectionCheck` | true | 重复归还会报错 |
+| `dontDestroyOnLoad` | false | 单场景先关 |
+
+规则：
+
+- 池化对象回收时会恢复所有 `Physics2D.IgnoreCollision` 关系、清速度/角速度/Trail/owner/stats/traits
+- 池内对象是 inactive，`FindObjectsByType<Projectile>` 默认不会统计，回合结束判定不受影响
+- `ProjectileExpired` 在 `ResetForPool` **之前**触发，订阅者可以读 `Stats/Team`，但不要保存 `Projectile` 引用
 
 ---
 
@@ -225,9 +244,9 @@ Unity.exe -batchmode -nographics -projectPath <项目> -runTests -testPlatform E
 Unity.exe -batchmode -projectPath <项目> -runTests -testPlatform PlayMode
 ```
 
-当前结果：**EditMode 37/37、PlayMode 6/6、`BUILD_OK` + 结构校验通过**。
+当前结果：**EditMode 37/37、PlayMode 11/11、`BUILD_OK` + 结构校验通过**。
 
-关键用例：`ProjectileBuildTests`（构建顺序/修改器/穿透）、`ProjectileInfluenceTests`（积分/引力数学）、`ProjectileTraitTests`（穿透连中两人、引力加速度、Trigger 真实路径、FixedUpdate 速度变化）。
+关键用例：`ProjectileBuildTests`（构建顺序/修改器/穿透）、`ProjectileInfluenceTests`（积分/引力数学）、`ProjectileTraitTests`（穿透、引力 Trigger 路径）、`ProjectilePoolTests`（复用/预热/事件/回合判定）。
 
 ---
 

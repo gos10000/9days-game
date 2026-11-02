@@ -126,7 +126,8 @@ namespace NineDays
         public void ResetMatch()
         {
             Projectile[] projectiles = FindObjectsByType<Projectile>(FindObjectsSortMode.None);
-            for (int i = 0; i < projectiles.Length; i++) Destroy(projectiles[i].gameObject);
+            for (int i = 0; i < projectiles.Length; i++)
+                if (projectiles[i] != null) projectiles[i].Despawn(ExpireReason.Aborted);
 
             for (int i = 0; i < characters.Count; i++)
                 if (characters[i] != null) characters[i].ResetToSpawn();
