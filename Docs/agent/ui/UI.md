@@ -33,7 +33,7 @@ UI_Screen          预制体实例：Canvas(Overlay) + CanvasScaler(1920×1080, 
 │  ├─ HealthBar_P1     左上，480×48
 │  ├─ HealthBar_P2     右上，480×48
 │  ├─ TurnBanner       顶部居中，560×64
-│  ├─ AimPower         底部居中，360×36
+│  ├─ BulletType       底部居中，360×72（圆形图标 + 类型名）
 │  └─ PauseButton      右下，96×96
 ├─ Panels          面板容器
 │  ├─ PausePanel       全屏遮罩 + 640×520 面板，默认隐藏
@@ -51,7 +51,7 @@ UI_Screen          预制体实例：Canvas(Overlay) + CanvasScaler(1920×1080, 
 | `UI_Button` | 九宫格底 + TMP 文本 + Button，三态配色 | 所有按钮的唯一来源 |
 | `UI_HealthBar` | 底框 + Filled 血条 + 数值文本 | 双方血条 |
 | `UI_TurnBanner` | 底框 + 回合提示文本 | 回合切换提示 |
-| `UI_AimPower` | 底框 + Filled 力度条 + “力度” | 蓄力显示 |
+| `UI_BulletType` | 底框 + 圆形图标 `BulletIcon`（56×56）+ 类型名 `Label` | 显示当前子弹类型 |
 | `UI_HUD` | 上面四个 + PauseButton | 主 HUD |
 | `UI_PausePanel` | 遮罩 + 标题 + 继续/重开/设置/返回主菜单 | 暂停界面 |
 | `UI_ItemSelectPanel` | 遮罩 + 标题 + 4 道具位 + 4 子弹位 + 确认 | 选取道具子弹界面 |
@@ -73,6 +73,7 @@ UI_Screen          预制体实例：Canvas(Overlay) + CanvasScaler(1920×1080, 
 | UI | 缺的数据 |
 |---|---|
 | 血条 | `Character` 没有 HP 字段（`ProjectileConfig.damage` 目前只透传不扣血） |
+| 子弹类型图标 | `ProjectileConfig.icon / displayName` 字段已加，但 niexa 分支没有 `Projectile` 脚本读取，当前图标是静态占位 |
 | 选取面板 | 没有道具 / 子弹配置（只有一颗 `TestBallConfig`） |
 | 摆放面板 | 没有道具系统与“抽取→选择→摆放”阶段事件 |
 | 暂停面板 | 没有 `PauseController`；且 `InputRouter` 未屏蔽 UI，点按钮会被当成拖拽发射 |

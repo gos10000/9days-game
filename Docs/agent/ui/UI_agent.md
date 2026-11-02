@@ -29,7 +29,7 @@
 ## 生成顺序（依赖不能乱）
 
 ```
-UI_Button → UI_HealthBar / UI_TurnBanner / UI_AimPower → UI_HUD
+UI_Button → UI_HealthBar / UI_TurnBanner / UI_BulletType → UI_HUD
 → UI_PausePanel / UI_ItemSelectPanel / UI_PlacementPanel → UI_Screen → UIScene
 ```
 
@@ -37,7 +37,7 @@ UI_Button → UI_HealthBar / UI_TurnBanner / UI_AimPower → UI_HUD
 
 ## 布局参数（写死在生成器里，改完需重建）
 
-- HUD：血条 P1 (24,-24) 左上 / P2 (-24,-24) 右上，横幅顶部居中 (0,-24)，力度条底部居中 (0,24)，暂停按钮右下 (-24,24) 96×96。
+- HUD：血条 P1 (24,-24) 左上 / P2 (-24,-24) 右上，横幅顶部居中 (0,-24)，子弹类型条底部居中 (0,24) 360×72，暂停按钮右下 (-24,24) 96×96。
 - 暂停面板：遮罩 `Dim` alpha 0.65，面板 640×520，标题 y=-32，四个按钮 y=-140 / -232 / -324 / -416，280×72。
 - 选取面板：面板 1400×800；道具位 220×260（y=-190，x 从 -525 步进 350）；子弹位 160×140（y=-540，x 从 -420 步进 280）；确认 y=-700。
 - 摆放面板：整条底部锚点，高 200；道具位 96×96 y=-32；取消/确认在底部 200×64。
@@ -48,7 +48,7 @@ UI_Button → UI_HealthBar / UI_TurnBanner / UI_AimPower → UI_HUD
 |---|---|---|
 | 回合横幅 | `GameEvents.TurnStarted/TurnEnded`、`TurnController.CurrentTeam/IsResolving` | 无 |
 | 血条 | `HitInfo.Damage`（只透传） | `Character` / `CharacterConfig` 无 HP；无 `HealthChanged` |
-| 力度条 | `CharacterLauncher.AimPower`、`Character.SetAimPower` | 无 |
+| 子弹类型 | `ProjectileConfig.icon / displayName`（已加字段） | niexa 分支无 `Projectile` / `Character` 脚本，图标与文字为静态占位 |
 | 暂停面板 | `TurnController.ResetMatch()` | 无 PauseController；`InputRouter` 未屏蔽 UI 点击 |
 | 选取 / 摆放 | 无 | 无道具 SO、无阶段事件、无抽取逻辑 |
 | 胜利嘲讽 | 无 | 无胜负判定 |
@@ -63,6 +63,6 @@ UI_Button → UI_HealthBar / UI_TurnBanner / UI_AimPower → UI_HUD
 
 ## 验证记录
 
-- 编译：`Editor.log` 中 `Assembly-CSharp-Editor.dll` 于 12:22 重编译，无 `error CS`（新增 `UIBuilder.cs` 已通过）。
+- 编译：`BuildPipeline.cs` 已移除对 niexa 不存在的 `PrefabFactory / ArenaBuilder / BuildCheck / ProjectSetup` 的引用，只保留 UI 菜单与 `BuildUIBatch`；需在 Unity 重新编译后确认无 `error CS`。
 - 结构校验：`UIBuilder.Validate()` 断言 6 个预制体存在、`UI_Screen` 是 Overlay Canvas、参考分辨率 1920×1080、Match=0.5、含 `HUD` 与 `Panels/PausePanel`、`UIScene.unity` 存在。
 - 运行态：未在 Play Mode 验证（UIScene 暂无逻辑脚本，只验证层级与 Canvas 参数）。
