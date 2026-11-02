@@ -31,6 +31,7 @@ MonoBehaviour:
   getUpDelay: 0.5
   getUpDuration: 0.4
   groundCheckRadius: 0.12
+  maxHealth: 100
   spawnNudgeAttempts: 8
   spawnNudgeStep: 0.3
   skins:

@@ -1,10 +1,11 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace NineDays
 {
     /// <summary>
-    /// 子弹出膛位置解析：统一从角色身体中心发射，并避免生成点落在障碍物内部。
-    /// 拖拽发射和调试面板的空格发球都走这里，保证行为一致。
+    /// 子弹出膛位置解析与发射入口：拖拽发射、HUD 与特性生成的子弹都走这里。
+    /// 发射时收集角色身上的 ProjectileModifier，构建本发子弹的数值与特性。
     /// </summary>
     public static class ShotSpawner
     {
@@ -41,17 +42,33 @@ namespace NineDays
         {
             if (prefab == null || shooter == null) return null;
 
+            List<ProjectileModifier> modifiers = CollectModifiers(shooter);
+            ProjectileLoadout loadout = ProjectileBuild.Build(prefab.Config, modifiers, shooter, speed);
+            ProjectileStats stats = loadout.Stats;
+
             CharacterConfig config = shooter.Config;
             Vector2 dir = direction.sqrMagnitude > 0.0001f ? direction.normalized : Vector2.right;
-            float radius = prefab.Config != null ? prefab.Config.radius : 0.25f;
             int obstacleMask = config != null ? config.obstacleMask.value : 0;
             int attempts = config != null ? config.spawnNudgeAttempts : 1;
             float step = config != null ? config.spawnNudgeStep : 0.3f;
 
-            Vector2 origin = ResolveFreePoint(GetOrigin(shooter), dir, radius, obstacleMask, attempts, step);
+            Vector2 origin = ResolveFreePoint(GetOrigin(shooter), dir, stats.radius, obstacleMask, attempts, step);
             Projectile projectile = Object.Instantiate(prefab, origin, Quaternion.identity);
-            projectile.Launch(dir * speed, shooter);
+            projectile.Configure(stats, loadout.Traits);
+            projectile.Launch(dir * stats.speed, shooter);
             return projectile;
+        }
+
+        /// <summary>收集角色及其子物体上的所有修改器来源。</summary>
+        private static List<ProjectileModifier> CollectModifiers(Character shooter)
+        {
+            var modifiers = new List<ProjectileModifier>();
+            IProjectileModifierSource[] sources = shooter.GetComponentsInChildren<IProjectileModifierSource>(true);
+
+            for (int i = 0; i < sources.Length; i++)
+                if (sources[i] != null) sources[i].CollectModifiers(modifiers);
+
+            return modifiers;
         }
     }
 }

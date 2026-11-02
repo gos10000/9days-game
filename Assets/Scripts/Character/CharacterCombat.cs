@@ -12,16 +12,28 @@ namespace NineDays
         [Header("引用")]
         [SerializeField] private Character character;
         [SerializeField] private Rigidbody2D body;
+        [SerializeField] private CharacterHealth health;
 
         private Collider2D lastImpactCollider;
         private float lastImpactTime = -999f;
 
         private CharacterConfig Config => character != null ? character.Config : null;
 
+        /// <summary>血量组件（惰性解析）。</summary>
+        private CharacterHealth Health
+        {
+            get
+            {
+                if (health == null) health = GetComponent<CharacterHealth>();
+                return health;
+            }
+        }
+
         private void Awake()
         {
             if (character == null) character = GetComponent<Character>();
             if (body == null) body = GetComponent<Rigidbody2D>();
+            if (health == null) health = GetComponent<CharacterHealth>();
         }
 
         /// <summary>受击入口：先报「被什么击中」，再按冲量决定是否击飞。</summary>
@@ -31,6 +43,10 @@ namespace NineDays
 
             GameEvents.RaiseCharacterHit(character, info);
             character.Flash();
+
+            CharacterHealth targetHealth = Health;
+            if (targetHealth != null) targetHealth.TakeDamage(info.Damage);
+            if (character.IsDefeated) return;
 
             float threshold = Config != null ? Config.hitThreshold : 0.5f;
             if (info.Impulse < threshold) return;

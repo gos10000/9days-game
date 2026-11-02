@@ -56,6 +56,12 @@ namespace NineDays.EditorTools
             Require(EditorAssets.GetRef(combat, "character") != null, $"{path} CharacterCombat.character 为空");
             Require(EditorAssets.GetRef(visualComp, "config") != null, $"{path}/Visual config 为空");
             Require(EditorAssets.GetRef(launcher, "projectilePrefab") != null, $"{path} CharacterLauncher.projectilePrefab 为空");
+
+            var health = prefab.GetComponent<CharacterHealth>();
+            Require(health != null, $"{path} 缺 CharacterHealth");
+            Require(prefab.GetComponent<ProjectileModifierSource>() != null, $"{path} 缺 ProjectileModifierSource");
+            Require(EditorAssets.GetRef(character, "health") != null, $"{path} Character.health 为空");
+            Require(EditorAssets.GetRef(health, "config") != null, $"{path} CharacterHealth.config 为空");
         }
 
         private static void ValidateSkin(string path)
@@ -75,12 +81,16 @@ namespace NineDays.EditorTools
         {
             GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
             Require(prefab != null, $"{path} 不存在");
-            Require(prefab.GetComponent<Rigidbody2D>() != null, $"{path} 缺 Rigidbody2D");
+            Rigidbody2D ballBody = prefab.GetComponent<Rigidbody2D>();
+            Require(ballBody != null, $"{path} 缺 Rigidbody2D");
             Require(prefab.GetComponent<CircleCollider2D>() != null, $"{path} 缺 CircleCollider2D");
 
             var projectile = prefab.GetComponent<Projectile>();
             Require(projectile != null, $"{path} 缺 Projectile");
             Require(EditorAssets.GetRef(projectile, "config") != null, $"{path} Projectile.config 为空");
+            Require(projectile.Config != null, $"{path} Projectile.Config 为空");
+            Require(Mathf.Approximately(ballBody.gravityScale, projectile.Config.gravityScale),
+                $"{path} 刚体重力与配置不一致");
         }
 
         private static void ValidateConfigs()
@@ -95,6 +105,12 @@ namespace NineDays.EditorTools
             var projectileConfig = AssetDatabase.LoadAssetAtPath<ProjectileConfig>(EditorAssets.ProjectileConfigPath);
             Require(projectileConfig != null, "子弹配置不存在");
             Require(projectileConfig.radius > 0f && projectileConfig.initialSpeed > 0f, "子弹配置数值非法");
+            Require(projectileConfig.traits != null, "子弹配置缺少特性列表");
+
+            var battleConfig = AssetDatabase.LoadAssetAtPath<BattleConfig>(EditorAssets.BattleConfigPath);
+            Require(battleConfig != null, "战斗配置不存在");
+            Require(battleConfig.roundsToPlay > 0, "战斗配置轮数必须大于 0");
+            Require(battleConfig.maxTurnsPerRound >= 2, "战斗配置每轮行动上限至少为 2");
         }
 
         private static void Require(bool condition, string message)

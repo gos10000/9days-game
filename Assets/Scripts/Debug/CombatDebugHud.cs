@@ -12,6 +12,7 @@ namespace NineDays
     {
         [Header("引用")]
         [SerializeField] private TurnController turnController;
+        [SerializeField] private BattleController battleController;
         [SerializeField] private Projectile testProjectilePrefab;
 
         [Header("显示")]
@@ -34,10 +35,12 @@ namespace NineDays
         private int autoKnockbacks;
         private int autoStrongImpacts;
         private int autoGetUps;
+        private string winnerText = string.Empty;
 
         private void Awake()
         {
             if (turnController == null) turnController = FindAnyObjectByType<TurnController>();
+            if (battleController == null) battleController = FindAnyObjectByType<BattleController>();
         }
 
         private void OnEnable()
@@ -50,6 +53,12 @@ namespace NineDays
             GameEvents.CharacterDowned += OnDowned;
             GameEvents.CharacterRecovered += OnRecovered;
             GameEvents.CharacterOutOfBounds += OnOutOfBounds;
+            GameEvents.BattleStarted += OnBattleStarted;
+            GameEvents.RoundStarted += OnRoundStarted;
+            GameEvents.RoundEnded += OnRoundEnded;
+            GameEvents.BattleEnded += OnBattleEnded;
+            GameEvents.ExtraTurnGranted += OnExtraTurnGranted;
+            GameEvents.CharacterDefeated += OnCharacterDefeated;
         }
 
         private void OnDisable()
@@ -62,6 +71,12 @@ namespace NineDays
             GameEvents.CharacterDowned -= OnDowned;
             GameEvents.CharacterRecovered -= OnRecovered;
             GameEvents.CharacterOutOfBounds -= OnOutOfBounds;
+            GameEvents.BattleStarted -= OnBattleStarted;
+            GameEvents.RoundStarted -= OnRoundStarted;
+            GameEvents.RoundEnded -= OnRoundEnded;
+            GameEvents.BattleEnded -= OnBattleEnded;
+            GameEvents.ExtraTurnGranted -= OnExtraTurnGranted;
+            GameEvents.CharacterDefeated -= OnCharacterDefeated;
         }
 
         private void Update()
@@ -70,10 +85,25 @@ namespace NineDays
             if (InputRouter.KeyPressed(Key.Digit1)) turnController?.ForceSwitch(Team.Player1);
             if (InputRouter.KeyPressed(Key.Digit2)) turnController?.ForceSwitch(Team.Player2);
 
+            if (InputRouter.KeyPressed(Key.E))
+            {
+                Team actor = battleController != null ? battleController.CurrentActor : Team.None;
+                if (actor == Team.None && turnController != null) actor = turnController.CurrentTeam;
+
+                if (actor != Team.None && battleController != null)
+                {
+                    battleController.RequestExtraTurn(actor, true);
+                    Log($"extra turn requested: {actor}");
+                }
+            }
+
             if (InputRouter.KeyPressed(Key.R))
             {
-                turnController?.ResetMatch();
+                if (battleController != null) battleController.RestartBattle();
+                else turnController?.ResetMatch();
+
                 logLines.Clear();
+                winnerText = string.Empty;
                 Log("===== reset =====");
             }
 
@@ -191,6 +221,23 @@ namespace NineDays
         }
         private void OnOutOfBounds(Character c) => Log($"{NameOf(c)} OUT OF BOUNDS");
 
+        private void OnBattleStarted(int rounds) => Log($"=== BATTLE START ({rounds} rounds) ===");
+
+        private void OnRoundStarted(int round, Team first) => Log($"--- ROUND {round} (first: {first}) ---");
+
+        private void OnRoundEnded(int round) => Log($"--- ROUND {round} END ---");
+
+        private void OnBattleEnded(BattleResult result)
+        {
+            winnerText = result.Winner == Team.None ? "DRAW" : $"WINNER: {result.Winner}";
+            Log($"=== BATTLE END {winnerText} | rounds {result.RoundsPlayed} | HP {result.HealthA:0}/{result.HealthB:0} ===");
+        }
+
+        private void OnExtraTurnGranted(Team team, bool immediate) =>
+            Log($"EXTRA TURN {team} ({(immediate ? "next" : "last")})");
+
+        private void OnCharacterDefeated(Character c) => Log($"{NameOf(c)} DEFEATED");
+
         private void OnImpactDetected(Character c, ImpactInfo info)
         {
             if (verboseImpactLog) Log($"{NameOf(c)} impact {info}");
@@ -214,9 +261,12 @@ namespace NineDays
 
             string turn = turnController != null ? turnController.CurrentTeam.ToString() : "-";
             bool resolving = turnController != null && turnController.IsResolving;
-            int turnIndex = turnController != null ? turnController.TurnIndex : 0;
+            int round = battleController != null ? battleController.Round : 0;
+            int totalRounds = battleController != null ? battleController.TotalRounds : 0;
             string auto = autoTest ? $"ON {autoShots}/{autoTestRounds}" : "OFF";
-            GUILayout.Label($"Turn: {turn}   Resolving: {resolving}   TurnIndex: {turnIndex}   AutoTest: {auto}   TimeScale: {Time.timeScale:0.0}");
+            GUILayout.Label($"Round: {round}/{totalRounds}   Turn: {turn}   Resolving: {resolving}   AutoTest: {auto}   TimeScale: {Time.timeScale:0.0}");
+
+            if (!string.IsNullOrEmpty(winnerText)) GUILayout.Label(winnerText);
 
             if (turnController != null)
             {
@@ -226,7 +276,9 @@ namespace NineDays
                     Character c = list[i];
                     if (c == null) continue;
 
-                    GUILayout.Label($"{c.Team} [{c.State}] vel {c.Velocity.magnitude:0.00} " +
+                    float hp = c.CurrentHealth;
+                    float maxHp = c.Health != null ? c.Health.Max : 0f;
+                    GUILayout.Label($"{c.Team} [{c.State}] HP {hp:0}/{maxHp:0} vel {c.Velocity.magnitude:0.00} " +
                                     $"grounded {(c.IsGrounded ? "Y" : "N")} canAct {(c.CanAct ? "Y" : "N")}");
                 }
             }
@@ -234,7 +286,7 @@ namespace NineDays
             GUILayout.Space(4f);
             for (int i = logLines.Count - 1; i >= 0; i--) GUILayout.Label(logLines[i]);
 
-            GUILayout.Label("Space=shoot  1/2=turn  R=reset  F1=impact log  T/F2=auto test  G/F3=slow motion");
+            GUILayout.Label("Space=shoot  1/2=turn  E=extra turn  R=reset  F1=impact log  T/F2=auto test  G/F3=slow motion");
             GUILayout.EndArea();
         }
     }
