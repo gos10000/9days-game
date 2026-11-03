@@ -17,7 +17,9 @@ namespace NineDays.EditorTools
             ValidateSkin(EditorAssets.SkinAltPath);
             ValidateBall(EditorAssets.TestBallPath);
             ValidateConfigs();
+            ValidateArenaConfig();
             ValidateScenePool();
+            ValidateSceneArena();
             Debug.Log("[BuildCheck] 结构校验全部通过");
         }
 
@@ -115,6 +117,32 @@ namespace NineDays.EditorTools
             Require(battleConfig.maxTurnsPerRound >= 2, "战斗配置每轮行动上限至少为 2");
         }
 
+        /// <summary>地形配置必须有可用的层、遮罩与视觉数据。</summary>
+        private static void ValidateArenaConfig()
+        {
+            var config = AssetDatabase.LoadAssetAtPath<ArenaConfig>(EditorAssets.ArenaConfigPath);
+            Require(config != null, "地形配置不存在");
+            Require(config.worldRect.width > 0f && config.worldRect.height > 0f, "地形配置场地尺寸非法");
+            Require(config.pixelsPerUnit > 0, "地形配置 pixelsPerUnit 非法");
+            Require(config.layers != null && config.layers.Count > 0, "地形配置至少需要一层");
+
+            bool hasCollision = false;
+            for (int i = 0; i < config.layers.Count; i++)
+            {
+                TerrainLayerData layer = config.layers[i];
+                Require(layer != null, $"地形配置第 {i} 层为空");
+                Require(!string.IsNullOrWhiteSpace(layer.layerId), $"地形配置第 {i} 层缺少 layerId");
+                Require(layer.initialMask != null, $"地形层 {layer.layerId} 缺少遮罩");
+                Require(layer.initialMask.width == config.MaskWidth && layer.initialMask.height == config.MaskHeight,
+                    $"地形层 {layer.layerId} 遮罩尺寸与配置不一致");
+                Require(layer.art != null && layer.art.Count > 0, $"地形层 {layer.layerId} 缺少美术 Sprite");
+                Require(layer.requiredBreakPower >= 0f, $"地形层 {layer.layerId} 破坏力阈值非法");
+                hasCollision |= layer.collisionEnabled;
+            }
+
+            Require(hasCollision, "地形配置至少需要一层参与碰撞");
+        }
+
         /// <summary>测试场景必须在场时检查对象池；只跑 Prefab 构建时跳过。</summary>
         private static void ValidateScenePool()
         {
@@ -124,6 +152,26 @@ namespace NineDays.EditorTools
             ProjectilePool pool = UnityEngine.Object.FindAnyObjectByType<ProjectilePool>();
             Require(pool != null, "TestArena 缺 ProjectilePool");
             Require(pool.PrewarmPrefab != null, "ProjectilePool.prewarmPrefab 为空");
+        }
+
+        /// <summary>测试场景必须挂 ArenaController，且编辑期不保留静态地形。</summary>
+        private static void ValidateSceneArena()
+        {
+            Scene active = SceneManager.GetActiveScene();
+            if (active.path != EditorAssets.TestArenaScenePath) return;
+
+            ArenaController arena = UnityEngine.Object.FindAnyObjectByType<ArenaController>();
+            Require(arena != null, "TestArena 缺 ArenaController");
+            Require(arena.Config != null, "ArenaController.config 为空");
+            Require(arena.TerrainMaterial != null, "ArenaController.terrainMaterial 为空");
+
+            TerrainLayer[] staticLayers = UnityEngine.Object.FindObjectsByType<TerrainLayer>(
+                FindObjectsInactive.Include, FindObjectsSortMode.None);
+            Require(staticLayers.Length == 0, "TestArena 不应包含静态 TerrainLayer，地形必须运行时重建");
+
+            TerrainPhysics[] staticPhysics = UnityEngine.Object.FindObjectsByType<TerrainPhysics>(
+                FindObjectsInactive.Include, FindObjectsSortMode.None);
+            Require(staticPhysics.Length == 0, "TestArena 不应包含静态 TerrainPhysics");
         }
 
         private static void Require(bool condition, string message)

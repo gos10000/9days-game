@@ -23,8 +23,12 @@ namespace NineDays.EditorTools
         internal const string CharacterConfigPath = DataRoot + "/Characters/CharacterConfig_Default.asset";
         internal const string ProjectileConfigPath = DataRoot + "/Projectiles/TestBallConfig.asset";
         internal const string BattleConfigPath = DataRoot + "/Battle/BattleConfig_Default.asset";
+        internal const string ArenaConfigPath = DataRoot + "/Arena/ArenaConfig_Default.asset";
+        internal const string ArenaMaskRoot = DataRoot + "/Arena/Masks";
+        internal const string TerrainMaterialPath = MaterialRoot + "/TerrainMask.mat";
 
         internal const string TestArenaScenePath = SceneRoot + "/TestArena.unity";
+        internal const string ArenaAuthoringScenePath = SceneRoot + "/ArenaAuthoring.unity";
 
         internal static void EnsureFolder(string path)
         {

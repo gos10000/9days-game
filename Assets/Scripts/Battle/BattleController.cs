@@ -14,6 +14,7 @@ namespace NineDays
         [Header("引用")]
         [SerializeField] private BattleConfig config;
         [SerializeField] private TurnController turnController;
+        [SerializeField] private ArenaController arena;
         [SerializeField] private List<Character> characters = new List<Character>();
 
         [Header("启动")]
@@ -34,6 +35,7 @@ namespace NineDays
         {
             if (turnController == null) turnController = FindAnyObjectByType<TurnController>();
             if (turnController != null) turnController.UseExternalDriver();
+            if (arena == null) arena = FindAnyObjectByType<ArenaController>();
 
             EnsureTurnBanner();
         }
@@ -80,6 +82,8 @@ namespace NineDays
                 Debug.LogError("[Battle] 至少需要两名角色");
                 return;
             }
+
+            arena?.BuildForBattle();
 
             for (int i = 0; i < characters.Count; i++)
                 if (characters[i] != null) characters[i].ResetForBattle();
