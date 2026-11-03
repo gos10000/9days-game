@@ -1,6 +1,7 @@
 # 子弹模块（人读版）
 
 > 一句话：**一个 `Projectile` 原型脚本 + 配置资产 + 可组合特性**；发射时构建数值，飞行中可被区域场/技能实时影响，命中统一走 `Character.ReceiveHit(HitInfo)`。
+> 爆发（定时/碰撞后的多效果）见 `Docs/agent/burst/Burst.md`。
 > 详细实现见同目录 `Bullet_agent.md`；战斗流程见 `Docs/agent/battle/Battle.md`。
 
 ## 目录
@@ -131,6 +132,7 @@ OnCollisionEnter2D → 友军过滤 → traits.OnHit 投票 → ProjectileHitRes
 | `destroyOnHit` | true | 没有特性投票时的默认处置 |
 | `friendlyFire` | false | 是否打自己人 |
 | `traits` | 空 | 可组合特性列表，按顺序生效 |
+| `bursts` | 空 | 爆发定义列表；见 `Docs/agent/burst/Burst.md` |
 
 ---
 
@@ -204,8 +206,10 @@ projectile.AddAcceleration(Vector2.down * 20f);   // 持续施力
 | `ShotFired` | `Character, Projectile` | 发射成功后 |
 | `ProjectileHitLanded` | `Character, Projectile, HitInfo` | 命中角色且伤害已结算 |
 | `ProjectileExpired` | `Projectile, ExpireReason` | 命中 / 寿命 / 中止 |
+| `BurstTriggered` | `Projectile, BurstDefinition, BurstContext` | 爆发成功触发（动画接口） |
+| `BurstEffectExecuted` | `Projectile, BurstEffect, BurstContext` | 单个爆发效果执行后 |
 
-`ExpireReason`：`Hit`、`Lifetime`、`Aborted`。特效、音效、统计只订阅这些事件，不写进 `Projectile`。
+`ExpireReason`：`Hit`、`Lifetime`、`Aborted`、`Burst`。特效、音效、统计只订阅这些事件，不写进 `Projectile`。
 
 ---
 
@@ -244,7 +248,7 @@ Unity.exe -batchmode -nographics -projectPath <项目> -runTests -testPlatform E
 Unity.exe -batchmode -projectPath <项目> -runTests -testPlatform PlayMode
 ```
 
-当前结果：**EditMode 37/37、PlayMode 11/11、`BUILD_OK` + 结构校验通过**。
+当前结果：**EditMode 54/54、PlayMode 25/25、`BUILD_OK` + 结构校验通过**。
 
 关键用例：`ProjectileBuildTests`（构建顺序/修改器/穿透）、`ProjectileInfluenceTests`（积分/引力数学）、`ProjectileTraitTests`（穿透、引力 Trigger 路径）、`ProjectilePoolTests`（复用/预热/事件/回合判定）。
 

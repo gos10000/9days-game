@@ -47,7 +47,11 @@ namespace NineDays
         [Tooltip("可组合的子弹特性，按列表顺序生效")]
         public List<ProjectileTrait> traits = new List<ProjectileTrait>();
 
-        /// <summary>把配置钳制到合法范围，并保证特性列表不为空。</summary>
+        [Header("爆发")]
+        [Tooltip("子弹携带的爆发定义；按列表顺序触发")]
+        public List<BurstDefinition> bursts = new List<BurstDefinition>();
+
+        /// <summary>把配置钳制到合法范围，并保证列表不为空。</summary>
         public void Validate()
         {
             mass = Mathf.Max(0.01f, mass);
@@ -60,6 +64,7 @@ namespace NineDays
             linearDamping = Mathf.Max(0f, linearDamping);
 
             if (traits == null) traits = new List<ProjectileTrait>();
+            if (bursts == null) bursts = new List<BurstDefinition>();
         }
 
         private void OnValidate() => Validate();

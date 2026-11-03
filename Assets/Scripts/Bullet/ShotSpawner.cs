@@ -56,7 +56,7 @@ namespace NineDays
             Projectile projectile = ProjectilePool.Instance.Rent(prefab, origin, Quaternion.identity);
             if (projectile == null) return null;
 
-            projectile.Configure(stats, loadout.Traits);
+            projectile.Configure(stats, loadout.Traits, loadout.Bursts);
             projectile.Launch(dir * stats.speed, shooter);
             return projectile;
         }

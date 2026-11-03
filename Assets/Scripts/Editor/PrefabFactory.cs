@@ -180,6 +180,7 @@ namespace NineDays.EditorTools
             config.gravityScale = 1f;
             config.linearDamping = 0f;
             if (config.traits == null) config.traits = new List<ProjectileTrait>();
+            if (config.bursts == null) config.bursts = new List<BurstDefinition>();
 
             EditorUtility.SetDirty(config);
             Debug.Log($"[PrefabFactory] 子弹配置: {path}");

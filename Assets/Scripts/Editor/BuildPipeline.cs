@@ -11,6 +11,7 @@ namespace NineDays.EditorTools
         public static void BuildPrefabsMenu()
         {
             PrefabFactory.BuildAll();
+            ArenaTerrainFactory.EnsureDefaultConfig();
             BuildCheck.ValidateAll();
             Debug.Log("[Build] 预制体完成");
         }
@@ -27,6 +28,7 @@ namespace NineDays.EditorTools
         {
             ProjectSetup.Apply();
             PrefabFactory.BuildAll();
+            ArenaTerrainFactory.EnsureDefaultConfig();
             ArenaBuilder.Build();
             BuildCheck.ValidateAll();
             Debug.Log("[Build] 全部完成");
@@ -42,6 +44,7 @@ namespace NineDays.EditorTools
             {
                 ProjectSetup.Apply();
                 PrefabFactory.BuildAll();
+                ArenaTerrainFactory.EnsureDefaultConfig();
                 BuildCheck.ValidateAll();
 
                 AssetDatabase.SaveAssets();
@@ -66,6 +69,7 @@ namespace NineDays.EditorTools
             {
                 ProjectSetup.Apply();
                 PrefabFactory.BuildAll();
+                ArenaTerrainFactory.EnsureDefaultConfig();
                 ArenaBuilder.Build();
                 BuildCheck.ValidateAll();
 

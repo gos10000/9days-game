@@ -20,6 +20,8 @@ namespace NineDays
 
         private ProjectileStats stats;
         private List<ProjectileTrait> traits;
+        private List<BurstDefinition> burstDefinitions;
+        private readonly List<BurstRuntime> burstRuntimes = new List<BurstRuntime>();
         private ProjectileInfluence pendingInfluence = ProjectileInfluence.None;
 
         private Character owner;
@@ -36,6 +38,8 @@ namespace NineDays
         public ProjectileConfig Config => config;
         public ProjectileStats Stats => stats;
         public IReadOnlyList<ProjectileTrait> Traits => traits;
+        public IReadOnlyList<BurstDefinition> Bursts => burstDefinitions;
+        public IReadOnlyList<BurstRuntime> BurstRuntimes => burstRuntimes;
         public Character Owner => owner;
         public Team Team => owner != null ? owner.Team : NineDays.Team.None;
         public bool IsLaunched { get; private set; }
@@ -45,6 +49,8 @@ namespace NineDays
             if (body == null) body = GetComponent<Rigidbody2D>();
             if (bodyCollider == null) bodyCollider = GetComponent<Collider2D>();
             if (stats == null) stats = ProjectileStats.From(config);
+            burstDefinitions = CopyBursts(config != null ? config.bursts : null);
+            BuildBurstRuntimes();
             ApplyStats();
         }
 
@@ -60,11 +66,19 @@ namespace NineDays
                     if (projectileConfig.traits[i] != null) newTraits.Add(projectileConfig.traits[i]);
             }
 
-            Configure(ProjectileStats.From(projectileConfig), newTraits);
+            Configure(ProjectileStats.From(projectileConfig), newTraits,
+                      CopyBursts(projectileConfig != null ? projectileConfig.bursts : null));
         }
 
-        /// <summary>注入最终数值与特性（发射构建管线使用）。</summary>
+        /// <summary>注入最终数值与特性（旧接口）；爆发从当前 Config 读取。</summary>
         public void Configure(ProjectileStats projectileStats, IReadOnlyList<ProjectileTrait> projectileTraits)
+        {
+            Configure(projectileStats, projectileTraits, config != null ? config.bursts : null);
+        }
+
+        /// <summary>注入最终数值、特性与爆发（发射构建管线使用）。</summary>
+        public void Configure(ProjectileStats projectileStats, IReadOnlyList<ProjectileTrait> projectileTraits,
+                              IReadOnlyList<BurstDefinition> projectileBursts)
         {
             stats = projectileStats ?? ProjectileStats.From(config);
             stats.Validate();
@@ -79,7 +93,29 @@ namespace NineDays
                     if (projectileTraits[i] != null) traits.Add(projectileTraits[i]);
             }
 
+            burstDefinitions = CopyBursts(projectileBursts);
+            BuildBurstRuntimes();
             ApplyStats();
+        }
+
+        private static List<BurstDefinition> CopyBursts(IReadOnlyList<BurstDefinition> source)
+        {
+            var result = new List<BurstDefinition>();
+            if (source == null) return result;
+
+            for (int i = 0; i < source.Count; i++)
+                if (source[i] != null) result.Add(source[i]);
+
+            return result;
+        }
+
+        private void BuildBurstRuntimes()
+        {
+            burstRuntimes.Clear();
+            if (burstDefinitions == null) return;
+
+            for (int i = 0; i < burstDefinitions.Count; i++)
+                burstRuntimes.Add(new BurstRuntime(burstDefinitions[i]));
         }
 
         /// <summary>把运行时数值同步到刚体与碰撞体。</summary>
@@ -123,6 +159,13 @@ namespace NineDays
                 for (int i = 0; i < traits.Count; i++)
                     if (traits[i] != null) traits[i].OnLaunch(this);
             }
+
+            for (int i = 0; i < burstRuntimes.Count; i++)
+                burstRuntimes[i].ResetForLaunch();
+
+            TriggerBursts(BurstTriggerType.OnLaunch,
+                          body != null ? body.position : (Vector2)transform.position,
+                          Vector2.zero, default, false);
         }
 
         private void IgnoreOwnerTemporarily()
@@ -199,6 +242,9 @@ namespace NineDays
                     if (traits[i] != null) traits[i].OnTick(this, dt);
             }
 
+            TickBursts(dt);
+            if (!IsLaunched) return;
+
             if (stats != null && lifeTimer >= stats.lifeTime) Despawn(ExpireReason.Lifetime);
         }
 
@@ -261,7 +307,49 @@ namespace NineDays
                 GameEvents.RaiseProjectileHitLanded(target, this, info);
             }
 
+            bool hitTerrain = ArenaController.Instance != null &&
+                              ArenaController.Instance.IsTerrainCollider(collision.collider);
+            TriggerBursts(BurstTriggerType.OnImpact, hit.Point, hit.Normal, hit, hitTerrain);
+
             if (disposition == HitDisposition.Consume) Despawn(ExpireReason.Hit);
+        }
+
+        /// <summary>推进 OnTimer 爆发；效果可能回收子弹。</summary>
+        private void TickBursts(float deltaTime)
+        {
+            for (int i = 0; i < burstRuntimes.Count; i++)
+            {
+                burstRuntimes[i].Tick(deltaTime, this);
+                if (!IsLaunched) return;
+            }
+        }
+
+        /// <summary>按触发类型执行爆发；返回成功触发的数量。</summary>
+        private int TriggerBursts(BurstTriggerType trigger, Vector2 point, Vector2 normal,
+                                  ProjectileHit hit, bool hitTerrain)
+        {
+            int count = 0;
+            for (int i = 0; i < burstRuntimes.Count; i++)
+            {
+                if (burstRuntimes[i].TryTrigger(this, trigger, point, normal, hit, hitTerrain))
+                    count++;
+                if (trigger != BurstTriggerType.OnExpire && !IsLaunched) return count;
+            }
+            return count;
+        }
+
+        /// <summary>外部手动触发 Manual 爆发；返回成功触发的数量。</summary>
+        public int TriggerManualBursts()
+        {
+            if (!IsLaunched) return 0;
+
+            Vector2 point = body != null ? body.position : (Vector2)transform.position;
+            int count = 0;
+            for (int i = 0; i < burstRuntimes.Count; i++)
+            {
+                if (burstRuntimes[i].TryManual(this)) count++;
+            }
+            return count;
         }
 
         private ProjectileHit BuildProjectileHit(Collision2D collision, Character target)
@@ -315,6 +403,8 @@ namespace NineDays
             ownerColliders = null;
             stats = null;
             traits = null;
+            burstDefinitions = null;
+            burstRuntimes.Clear();
 
             pendingInfluence.Reset();
             lifeTimer = 0f;
@@ -346,6 +436,9 @@ namespace NineDays
 
             despawning = true;
             IsLaunched = false;
+
+            Vector2 point = body != null ? body.position : (Vector2)transform.position;
+            TriggerBursts(BurstTriggerType.OnExpire, point, Vector2.zero, default, false);
 
             if (traits != null)
             {
