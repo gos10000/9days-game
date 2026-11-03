@@ -18,8 +18,10 @@ namespace NineDays.EditorTools
             ValidateBall(EditorAssets.TestBallPath);
             ValidateConfigs();
             ValidateArenaConfig();
+            ValidateUI();
             ValidateScenePool();
             ValidateSceneArena();
+            ValidateSceneUI();
             Debug.Log("[BuildCheck] 结构校验全部通过");
         }
 
@@ -151,6 +153,41 @@ namespace NineDays.EditorTools
             }
 
             Require(hasCollision, "地形配置至少需要一层参与碰撞");
+        }
+
+        /// <summary>页面注册表、页面 prefab 与 UI 根 prefab 的结构校验。</summary>
+        private static void ValidateUI()
+        {
+            var catalog = AssetDatabase.LoadAssetAtPath<UIPageCatalog>(EditorAssets.UIPageCatalogPath);
+            Require(catalog != null, "UI 页面注册表不存在");
+            Require(catalog.Count > 0, "UI 页面注册表至少需要一个页面");
+            catalog.Validate();
+
+            for (int i = 0; i < catalog.Pages.Count; i++)
+            {
+                UIPageConfig config = catalog.Pages[i];
+                Require(config != null, $"UI 页面配置第 {i} 项为空");
+                Require(config.Prefab != null, $"UI 页面 {config.PageId} 缺少 prefab");
+                Require(config.Prefab.GetComponent<UIPage>() != null, $"UI 页面 {config.PageId} 的 prefab 缺 UIPage");
+                Require(config.Prefab.GetComponent<CanvasGroup>() != null, $"UI 页面 {config.PageId} 的 prefab 缺 CanvasGroup");
+            }
+
+            GameObject rootPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(EditorAssets.UIRootPrefabPath);
+            Require(rootPrefab != null, "UIRoot prefab 不存在");
+            var uiRoot = rootPrefab.GetComponent<UIRoot>();
+            Require(uiRoot != null, "UIRoot prefab 缺 UIRoot");
+            Require(EditorAssets.GetRef(uiRoot, "catalog") != null, "UIRoot prefab 的 catalog 为空");
+        }
+
+        /// <summary>测试场景必须挂 UIRoot 且引用页面注册表。</summary>
+        private static void ValidateSceneUI()
+        {
+            Scene active = SceneManager.GetActiveScene();
+            if (active.path != EditorAssets.TestArenaScenePath) return;
+
+            UIRoot uiRoot = UnityEngine.Object.FindAnyObjectByType<UIRoot>();
+            Require(uiRoot != null, "TestArena 缺 UIRoot");
+            Require(uiRoot.Catalog != null, "UIRoot.catalog 为空");
         }
 
         /// <summary>测试场景必须在场时检查对象池；只跑 Prefab 构建时跳过。</summary>

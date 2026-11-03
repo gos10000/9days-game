@@ -2,7 +2,8 @@
     "name": "NineDays.Tests.PlayMode",
     "rootNamespace": "NineDays.Tests.PlayMode",
     "references": [
-        "NineDays.Game"
+        "NineDays.Game",
+        "UnityEngine.UI"
     ],
     "optionalUnityReferences": [
         "TestAssemblies"

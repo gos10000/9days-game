@@ -19,6 +19,7 @@ namespace NineDays.EditorTools
         [MenuItem("9Days/Build/Test Arena")]
         public static void BuildArenaMenu()
         {
+            UIFactory.BuildAll();
             ArenaBuilder.Build();
             Debug.Log("[Build] 测试场景完成");
         }
