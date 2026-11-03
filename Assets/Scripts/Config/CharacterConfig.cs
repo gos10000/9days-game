@@ -24,7 +24,7 @@ namespace NineDays
             [Tooltip("只含表现层的 prefab（SortingGroup + SpriteRenderer / 骨骼 + Animator）")]
             public GameObject visualPrefab;
 
-            [Tooltip("可空：留空则使用 visualPrefab 自带的 AnimatorController")]
+            [Tooltip("一般留空：动画与皮肤绑定，Controller 直接放在 visualPrefab 上；只有特殊覆盖时才填")]
             public RuntimeAnimatorController controller;
 
             [Tooltip("可空：骨骼皮肤用它替换图集（Sprite Library）")]

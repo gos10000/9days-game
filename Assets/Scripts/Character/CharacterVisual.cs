@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.U2D.Animation;
 
@@ -33,7 +32,6 @@ namespace NineDays
         private Animator animator;
         private SpriteRenderer[] renderers = new SpriteRenderer[0];
         private Color[] baseColors = new Color[0];
-        private readonly HashSet<int> animatorParams = new HashSet<int>();
         private Coroutine flashRoutine;
         private int facing = 1;
         private float fallbackAngle;
@@ -90,7 +88,6 @@ namespace NineDays
             animator = null;
             renderers = new SpriteRenderer[0];
             baseColors = new Color[0];
-            animatorParams.Clear();
 
             if (visualRoot != null) visualRoot.localRotation = Quaternion.identity;
 
@@ -116,7 +113,6 @@ namespace NineDays
                 if (skin.controller != null) animator.runtimeAnimatorController = skin.controller;
                 animator.applyRootMotion = false;
                 animator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
-                CacheAnimatorParams();
             }
 
             SpriteLibrary library = skinInstance.GetComponentInChildren<SpriteLibrary>(true);
@@ -148,11 +144,11 @@ namespace NineDays
             flashRoutine = StartCoroutine(FlashRoutine(duration));
         }
 
-        /// <summary>瞄准力度（0~1）写入 Animator，没有控制器时是空操作。</summary>
-        public void SetAimPower(float power)
-        {
-            SetFloat(AnimParams.AimPower, Mathf.Clamp01(power));
-        }
+        /// <summary>
+        /// 仅为兼容 Character.SetAimPower 保留的接口。
+        /// 瞄准力度已改为由 SkinAnimator 直接读取 CharacterLauncher.AimPower，这里不再处理。
+        /// </summary>
+        public void SetAimPower(float power) { }
 
         private IEnumerator FlashRoutine(float duration)
         {
@@ -187,17 +183,9 @@ namespace NineDays
             }
         }
 
-        /// <summary>状态 → Animator 参数（唯一允许动 Animator 的地方）。</summary>
+        /// <summary>状态变化：只维护兜底旋转的基准角度，动画推进交给 SkinAnimator。</summary>
         private void OnStateChanged(CharacterState state)
         {
-            if (animator != null)
-            {
-                SetInteger(AnimParams.State, (int)state);
-                SetBool(AnimParams.Grounded, character != null && character.IsGrounded);
-                if (state == CharacterState.Airborne) SetTrigger(AnimParams.Hit);
-                if (state == CharacterState.GettingUp) SetTrigger(AnimParams.GetUp);
-            }
-
             if (visualRoot != null)
                 fallbackAngle = Mathf.DeltaAngle(0f, visualRoot.localEulerAngles.z);
         }
@@ -212,35 +200,6 @@ namespace NineDays
                 case CharacterState.Downed: return -80f * facing;
                 default: return 0f;
             }
-        }
-
-        private void CacheAnimatorParams()
-        {
-            animatorParams.Clear();
-            if (animator == null) return;
-
-            AnimatorControllerParameter[] parameters = animator.parameters;
-            for (int i = 0; i < parameters.Length; i++) animatorParams.Add(parameters[i].nameHash);
-        }
-
-        private void SetInteger(int hash, int value)
-        {
-            if (animator != null && animatorParams.Contains(hash)) animator.SetInteger(hash, value);
-        }
-
-        private void SetBool(int hash, bool value)
-        {
-            if (animator != null && animatorParams.Contains(hash)) animator.SetBool(hash, value);
-        }
-
-        private void SetFloat(int hash, float value)
-        {
-            if (animator != null && animatorParams.Contains(hash)) animator.SetFloat(hash, value);
-        }
-
-        private void SetTrigger(int hash)
-        {
-            if (animator != null && animatorParams.Contains(hash)) animator.SetTrigger(hash);
         }
     }
 }
