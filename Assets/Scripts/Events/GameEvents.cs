@@ -201,6 +201,15 @@ namespace NineDays
         /// <summary>战斗结束。</summary>
         public static event Action<BattleResult> BattleEnded;
 
+        /// <summary>地形搭建完成。</summary>
+        public static event Action<ArenaController> TerrainBuilt;
+
+        /// <summary>地形被抹除。</summary>
+        public static event Action<TerrainBreakRequest, TerrainBreakResult> TerrainBroken;
+
+        /// <summary>地形被追加。</summary>
+        public static event Action<string, int> TerrainAppended;
+
         public static void RaiseCharacterHit(Character character, in HitInfo info) => CharacterHit?.Invoke(character, info);
         public static void RaiseCharacterKnockedBack(Character character, in HitInfo info) => CharacterKnockedBack?.Invoke(character, info);
         public static void RaiseImpactDetected(Character character, in ImpactInfo info) => ImpactDetected?.Invoke(character, info);
@@ -221,6 +230,9 @@ namespace NineDays
         public static void RaiseCharacterHealthChanged(Character character, float current, float max) => CharacterHealthChanged?.Invoke(character, current, max);
         public static void RaiseCharacterDefeated(Character character) => CharacterDefeated?.Invoke(character);
         public static void RaiseBattleEnded(in BattleResult result) => BattleEnded?.Invoke(result);
+        public static void RaiseTerrainBuilt(ArenaController arena) => TerrainBuilt?.Invoke(arena);
+        public static void RaiseTerrainBroken(in TerrainBreakRequest request, in TerrainBreakResult result) => TerrainBroken?.Invoke(request, result);
+        public static void RaiseTerrainAppended(string layerId, int pixels) => TerrainAppended?.Invoke(layerId, pixels);
 
         /// <summary>退出 Play / 关闭 Domain Reload 时清空静态订阅，避免事件翻倍。</summary>
         public static void ClearAll()
@@ -245,6 +257,9 @@ namespace NineDays
             CharacterHealthChanged = null;
             CharacterDefeated = null;
             BattleEnded = null;
+            TerrainBuilt = null;
+            TerrainBroken = null;
+            TerrainAppended = null;
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]

@@ -33,11 +33,15 @@ namespace NineDays.EditorTools
             EditorAssets.SetBool(arena, "recoverOutOfBounds", true);
             EditorAssets.SetFloat(arena, "checkInterval", 0.2f);
 
-            Sprite square = EditorAssets.LoadSquareSprite();
-            CreateStaticBlock("Ground", new Vector2(0f, -5f), new Vector2(16f, 0.6f),
-                              new Color(0.25f, 0.28f, 0.34f), square);
-            CreateStaticBlock("Obstacle_Block", new Vector2(0f, -4f), new Vector2(1f, 1.4f),
-                              new Color(0.9f, 0.6f, 0.2f), square);
+            ArenaConfig arenaConfig = ArenaTerrainFactory.EnsureDefaultConfig();
+            Material terrainMaterial = ArenaTerrainFactory.EnsureTerrainMaterial();
+            var arenaControllerGo = new GameObject("ArenaController");
+            var arenaController = arenaControllerGo.AddComponent<ArenaController>();
+            EditorAssets.SetRef(arenaController, "config", arenaConfig);
+            EditorAssets.SetRef(arenaController, "bounds", arena);
+            EditorAssets.SetRef(arenaController, "terrainMaterial", terrainMaterial);
+            EditorAssets.SetString(arenaController, "obstacleLayerName", "Obstacle");
+            EditorAssets.SetFloat(arenaController, "maxBreakRadius", 6f);
 
             GameObject p1 = InstantiateCharacter(EditorAssets.CharacterP1Path, new Vector3(-5f, -3.7f, 0f), Team.Player1);
             GameObject p2 = InstantiateCharacter(EditorAssets.CharacterP2Path, new Vector3(5f, -3.7f, 0f), Team.Player2);
@@ -61,6 +65,7 @@ namespace NineDays.EditorTools
             var battle = battleGo.AddComponent<BattleController>();
             EditorAssets.SetRef(battle, "config", battleConfig);
             EditorAssets.SetRef(battle, "turnController", turn);
+            EditorAssets.SetRef(battle, "arena", arenaController);
             EditorAssets.SetObjectArray(battle, "characters", new UnityEngine.Object[]
             {
                 p1.GetComponent<Character>(),
@@ -108,29 +113,6 @@ namespace NineDays.EditorTools
             instance.transform.position = position;
             instance.name = $"Character_{expectedTeam}";
             return instance;
-        }
-
-        private static void CreateStaticBlock(string name, Vector2 center, Vector2 size, Color color, Sprite sprite)
-        {
-            int layer = LayerMask.NameToLayer("Obstacle");
-            if (layer < 0) layer = 0;
-
-            var root = new GameObject(name);
-            root.layer = layer;
-            root.transform.position = center;
-
-            var spriteGo = new GameObject("Sprite");
-            spriteGo.transform.SetParent(root.transform, false);
-
-            var renderer = spriteGo.AddComponent<SpriteRenderer>();
-            renderer.sprite = sprite;
-            renderer.color = color;
-            renderer.sortingLayerName = "Default";
-            renderer.sortingOrder = 0;
-            EditorAssets.ScaleToWorldSize(spriteGo.transform, sprite, size);
-
-            var box = root.AddComponent<BoxCollider2D>();
-            box.size = size;
         }
     }
 }
