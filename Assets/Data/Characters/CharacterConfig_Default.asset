@@ -36,7 +36,7 @@ MonoBehaviour:
   spawnNudgeStep: 0.3
   skins:
   - skinId: Player1
-    visualPrefab: {fileID: 8956658176010071794, guid: 0c579c93051347e4d84f7671b6c4c8e2, type: 3}
+    visualPrefab: {fileID: 9055727090848596740, guid: 4fd7602f4bddc054884707d9eb783126, type: 3}
     controller: {fileID: 0}
     spriteLibrary: {fileID: 0}
     visualOffset: {x: 0, y: 0}
