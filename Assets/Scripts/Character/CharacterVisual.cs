@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.U2D.Animation;
 
@@ -33,7 +32,7 @@ namespace NineDays
         private Animator animator;
         private SpriteRenderer[] renderers = new SpriteRenderer[0];
         private Color[] baseColors = new Color[0];
-        private readonly HashSet<int> animatorParams = new HashSet<int>();
+        private int[] baseSortingOrders = new int[0];
         private Coroutine flashRoutine;
         private int facing = 1;
         private float fallbackAngle;
@@ -90,7 +89,7 @@ namespace NineDays
             animator = null;
             renderers = new SpriteRenderer[0];
             baseColors = new Color[0];
-            animatorParams.Clear();
+            baseSortingOrders = new int[0];
 
             if (visualRoot != null) visualRoot.localRotation = Quaternion.identity;
 
@@ -104,9 +103,31 @@ namespace NineDays
 
             renderers = skinInstance.GetComponentsInChildren<SpriteRenderer>(true);
             baseColors = new Color[renderers.Length];
+            baseSortingOrders = new int[renderers.Length];
+
+            // 个别部件可能在美术 prefab 里挂错了 Sorting Layer。
+            // SortingLayer 的优先级高于 Order in Layer，只要有一个部件层不对，
+            // 整个角色的 order 排序就会被它打乱。这里取"多数部件所在的层"作为基准。
+            int majorLayerId = renderers.Length > 0 ? renderers[0].sortingLayerID : 0;
+            int maxCount = 0;
             for (int i = 0; i < renderers.Length; i++)
             {
-                renderers[i].sortingOrder = skin.sortingOrder + i;
+                int id = renderers[i].sortingLayerID;
+                int count = 0;
+                for (int j = 0; j < renderers.Length; j++)
+                    if (renderers[j].sortingLayerID == id) count++;
+                if (count > maxCount) { maxCount = count; majorLayerId = id; }
+            }
+
+            // 排序规则：保留美术在 prefab 里为每个部件设好的相对顺序（0~4 那组值），
+            // 再整体加上 skin.sortingOrder 作为与世界其他物体比较的基准。
+            // 之前直接用遍历索引 i 覆盖，部件在层级里的深度优先顺序不是美术意图，
+            // 会把"身体盖住头"这类错误固化进来。
+            for (int i = 0; i < renderers.Length; i++)
+            {
+                baseSortingOrders[i] = renderers[i].sortingOrder;
+                renderers[i].sortingLayerID = majorLayerId;
+                renderers[i].sortingOrder = skin.sortingOrder + baseSortingOrders[i];
                 baseColors[i] = renderers[i].color;
             }
 
@@ -116,7 +137,6 @@ namespace NineDays
                 if (skin.controller != null) animator.runtimeAnimatorController = skin.controller;
                 animator.applyRootMotion = false;
                 animator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
-                CacheAnimatorParams();
             }
 
             SpriteLibrary library = skinInstance.GetComponentInChildren<SpriteLibrary>(true);
@@ -148,11 +168,11 @@ namespace NineDays
             flashRoutine = StartCoroutine(FlashRoutine(duration));
         }
 
-        /// <summary>瞄准力度（0~1）写入 Animator，没有控制器时是空操作。</summary>
-        public void SetAimPower(float power)
-        {
-            SetFloat(AnimParams.AimPower, Mathf.Clamp01(power));
-        }
+        /// <summary>
+        /// 仅为兼容 Character.SetAimPower 保留的接口。
+        /// 瞄准力度已改为由 SkinAnimator 直接读取 CharacterLauncher.AimPower，这里不再处理。
+        /// </summary>
+        public void SetAimPower(float power) { }
 
         private IEnumerator FlashRoutine(float duration)
         {
@@ -162,13 +182,20 @@ namespace NineDays
             flashRoutine = null;
         }
 
+        /// <summary>
+        /// 翻转朝向。必须翻容器（visualRoot 的 localScale.x）而不是逐个 SpriteRenderer.flipX：
+        /// flipX 只镜像图像、不动子物体位置，多部件拼图皮肤会变成"每个部件各自反了但位置没换"。
+        /// 翻父节点则位置和图像一起镜像，骨骼 / 拼图皮肤都成立。
+        /// </summary>
         private void ApplyFacing()
         {
-            bool flip = facing < 0;
-            for (int i = 0; i < renderers.Length; i++)
-            {
-                if (renderers[i] != null) renderers[i].flipX = flip;
-            }
+            if (visualRoot == null) return;
+
+            Vector3 scale = visualRoot.localScale;
+            float magnitude = Mathf.Abs(scale.x);
+            if (Mathf.Approximately(magnitude, 0f)) magnitude = 1f;
+            scale.x = facing < 0 ? -magnitude : magnitude;
+            visualRoot.localScale = scale;
         }
 
         private void SetRendererColors(Color color)
@@ -187,60 +214,27 @@ namespace NineDays
             }
         }
 
-        /// <summary>状态 → Animator 参数（唯一允许动 Animator 的地方）。</summary>
+        /// <summary>状态变化：只维护兜底旋转的基准角度，动画推进交给 SkinAnimator。</summary>
         private void OnStateChanged(CharacterState state)
         {
-            if (animator != null)
-            {
-                SetInteger(AnimParams.State, (int)state);
-                SetBool(AnimParams.Grounded, character != null && character.IsGrounded);
-                if (state == CharacterState.Airborne) SetTrigger(AnimParams.Hit);
-                if (state == CharacterState.GettingUp) SetTrigger(AnimParams.GetUp);
-            }
-
             if (visualRoot != null)
                 fallbackAngle = Mathf.DeltaAngle(0f, visualRoot.localEulerAngles.z);
         }
 
-        /// <summary>没有 Animator 时的兜底姿态：倒了就歪，飞出去就后仰。</summary>
+        /// <summary>
+        /// 没有 Animator 时的兜底姿态：倒了就歪，飞出去就后仰。
+        /// 角度不再乘 facing：visualRoot 的 localScale.x 已经镜像过了，
+        /// 再乘一次会让左朝向时往错误的方向倒。
+        /// </summary>
         private float GetFallbackAngle()
         {
             CharacterState state = character != null ? character.State : CharacterState.Idle;
             switch (state)
             {
-                case CharacterState.Airborne: return -25f * facing;
-                case CharacterState.Downed: return -80f * facing;
+                case CharacterState.Airborne: return -25f;
+                case CharacterState.Downed: return -80f;
                 default: return 0f;
             }
-        }
-
-        private void CacheAnimatorParams()
-        {
-            animatorParams.Clear();
-            if (animator == null) return;
-
-            AnimatorControllerParameter[] parameters = animator.parameters;
-            for (int i = 0; i < parameters.Length; i++) animatorParams.Add(parameters[i].nameHash);
-        }
-
-        private void SetInteger(int hash, int value)
-        {
-            if (animator != null && animatorParams.Contains(hash)) animator.SetInteger(hash, value);
-        }
-
-        private void SetBool(int hash, bool value)
-        {
-            if (animator != null && animatorParams.Contains(hash)) animator.SetBool(hash, value);
-        }
-
-        private void SetFloat(int hash, float value)
-        {
-            if (animator != null && animatorParams.Contains(hash)) animator.SetFloat(hash, value);
-        }
-
-        private void SetTrigger(int hash)
-        {
-            if (animator != null && animatorParams.Contains(hash)) animator.SetTrigger(hash);
         }
     }
 }
