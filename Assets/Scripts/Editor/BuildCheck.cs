@@ -110,6 +110,16 @@ namespace NineDays.EditorTools
             Require(projectileConfig != null, "子弹配置不存在");
             Require(projectileConfig.radius > 0f && projectileConfig.initialSpeed > 0f, "子弹配置数值非法");
             Require(projectileConfig.traits != null, "子弹配置缺少特性列表");
+            Require(projectileConfig.bursts != null, "子弹配置缺少爆发列表");
+            for (int i = 0; i < projectileConfig.bursts.Count; i++)
+            {
+                BurstDefinition burst = projectileConfig.bursts[i];
+                Require(burst != null, $"子弹配置第 {i} 个爆发为空");
+                Require(burst.effects != null && burst.effects.Count > 0, $"爆发 {burst.burstId} 没有效果");
+                Require(burst.cooldown >= 0f && burst.maxTriggers >= 0, $"爆发 {burst.burstId} 参数非法");
+                for (int j = 0; j < burst.effects.Count; j++)
+                    Require(burst.effects[j] != null, $"爆发 {burst.burstId} 第 {j} 个效果为空");
+            }
 
             var battleConfig = AssetDatabase.LoadAssetAtPath<BattleConfig>(EditorAssets.BattleConfigPath);
             Require(battleConfig != null, "战斗配置不存在");

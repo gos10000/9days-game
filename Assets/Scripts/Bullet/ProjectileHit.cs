@@ -40,7 +40,8 @@ namespace NineDays
     {
         Hit = 0,
         Lifetime = 1,
-        Aborted = 2
+        Aborted = 2,
+        Burst = 3
     }
 
     /// <summary>命中决策：优先问特性，没有特性投票时用配置的 destroyOnHit。</summary>

@@ -7,7 +7,7 @@ namespace NineDays
     public enum Team { None = 0, Player1 = 1, Player2 = 2 }
 
     /// <summary>命中来源类型。</summary>
-    public enum HitKind { Unknown = 0, Projectile = 1, Obstacle = 2, Character = 3 }
+    public enum HitKind { Unknown = 0, Projectile = 1, Obstacle = 2, Character = 3, Burst = 4 }
 
     /// <summary>被撞到的对象类型。</summary>
     public enum ImpactKind { Obstacle = 0, Character = 1, Projectile = 2 }
@@ -171,6 +171,12 @@ namespace NineDays
         /// <summary>子弹消失（命中 / 寿命 / 中止）。</summary>
         public static event Action<Projectile, ExpireReason> ProjectileExpired;
 
+        /// <summary>一次爆发成功触发；表现层以后订阅它接动画/特效/音效。</summary>
+        public static event Action<Projectile, BurstDefinition, BurstContext> BurstTriggered;
+
+        /// <summary>爆发中的单个效果执行完成；用于效果级表现/统计。</summary>
+        public static event Action<Projectile, BurstEffect, BurstContext> BurstEffectExecuted;
+
         /// <summary>回合开始。</summary>
         public static event Action<Team> TurnStarted;
 
@@ -220,6 +226,8 @@ namespace NineDays
         public static void RaiseShotFired(Character shooter, Projectile projectile) => ShotFired?.Invoke(shooter, projectile);
         public static void RaiseProjectileHitLanded(Character target, Projectile projectile, in HitInfo info) => ProjectileHitLanded?.Invoke(target, projectile, info);
         public static void RaiseProjectileExpired(Projectile projectile, ExpireReason reason) => ProjectileExpired?.Invoke(projectile, reason);
+        public static void RaiseBurstTriggered(Projectile projectile, BurstDefinition definition, in BurstContext context) => BurstTriggered?.Invoke(projectile, definition, context);
+        public static void RaiseBurstEffectExecuted(Projectile projectile, BurstEffect effect, in BurstContext context) => BurstEffectExecuted?.Invoke(projectile, effect, context);
         public static void RaiseTurnStarted(Team team) => TurnStarted?.Invoke(team);
         public static void RaiseTurnEnded(Team team) => TurnEnded?.Invoke(team);
         public static void RaiseBattleStarted(int rounds) => BattleStarted?.Invoke(rounds);
@@ -247,6 +255,8 @@ namespace NineDays
             ShotFired = null;
             ProjectileHitLanded = null;
             ProjectileExpired = null;
+            BurstTriggered = null;
+            BurstEffectExecuted = null;
             TurnStarted = null;
             TurnEnded = null;
             BattleStarted = null;

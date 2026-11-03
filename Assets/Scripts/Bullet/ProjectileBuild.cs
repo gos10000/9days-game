@@ -10,26 +10,32 @@ namespace NineDays
         public Team Team { get; }
         public ProjectileConfig Config { get; }
         public List<ProjectileTrait> Traits { get; }
+        public List<BurstDefinition> Bursts { get; }
 
-        public ProjectileBuildContext(Character shooter, ProjectileConfig config, List<ProjectileTrait> traits)
+        public ProjectileBuildContext(Character shooter, ProjectileConfig config, List<ProjectileTrait> traits,
+                                      List<BurstDefinition> bursts = null)
         {
             Shooter = shooter;
             Team = shooter != null ? shooter.Team : NineDays.Team.None;
             Config = config;
             Traits = traits ?? new List<ProjectileTrait>();
+            Bursts = bursts ?? new List<BurstDefinition>();
         }
     }
 
-    /// <summary>一发子弹的最终构建结果（运行时数值 + 特性列表）。</summary>
+    /// <summary>一发子弹的最终构建结果（运行时数值 + 特性 + 爆发）。</summary>
     public sealed class ProjectileLoadout
     {
         public ProjectileStats Stats { get; }
         public IReadOnlyList<ProjectileTrait> Traits { get; }
+        public IReadOnlyList<BurstDefinition> Bursts { get; }
 
-        public ProjectileLoadout(ProjectileStats stats, IReadOnlyList<ProjectileTrait> traits)
+        public ProjectileLoadout(ProjectileStats stats, IReadOnlyList<ProjectileTrait> traits,
+                                 IReadOnlyList<BurstDefinition> bursts = null)
         {
             Stats = stats;
             Traits = traits;
+            Bursts = bursts;
         }
     }
 
@@ -54,7 +60,14 @@ namespace NineDays
                     if (config.traits[i] != null) traits.Add(config.traits[i]);
             }
 
-            var context = new ProjectileBuildContext(shooter, config, traits);
+            var bursts = new List<BurstDefinition>();
+            if (config != null && config.bursts != null)
+            {
+                for (int i = 0; i < config.bursts.Count; i++)
+                    if (config.bursts[i] != null) bursts.Add(config.bursts[i]);
+            }
+
+            var context = new ProjectileBuildContext(shooter, config, traits, bursts);
 
             int baseTraitCount = traits.Count;
             for (int i = 0; i < baseTraitCount; i++) traits[i].ApplyStats(stats);
@@ -73,7 +86,7 @@ namespace NineDays
             stats.pierceCount = Mathf.Max(0, stats.pierceCount);
             stats.pierceRemaining = stats.pierceCount;
 
-            return new ProjectileLoadout(stats, traits);
+            return new ProjectileLoadout(stats, traits, bursts);
         }
     }
 }

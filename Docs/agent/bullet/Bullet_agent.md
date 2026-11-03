@@ -20,8 +20,8 @@
 | `Scripts/Bullet/ProjectilePool.cs` | 新增 | 场景级对象池：`Rent/Return/Prewarm/CountInactive/CountActive/Clear` |
 | `Scripts/Bullet/Projectile.cs` | 重写 | 改用 `Stats`/`Traits`/`ProjectileInfluence`；统一 `Despawn`；新增事件；池化 `ResetForPool` + 忽略碰撞全量恢复 |
 | `Scripts/Bullet/ShotSpawner.cs` | 重写 | 收集 `IProjectileModifierSource` → `ProjectileBuild.Build` → `Configure` → `Launch` |
-| `Scripts/Config/ProjectileConfig.cs` | 重写 | 新增 `gravityScale`、`linearDamping`、`traits`、`Validate()` |
-| `Scripts/Events/GameEvents.cs` | 修改 | 新增 `ProjectileHitLanded`、`ProjectileExpired` 及 Raise/ClearAll |
+| `Scripts/Config/ProjectileConfig.cs` | 重写 | 新增 `gravityScale`、`linearDamping`、`traits`、`bursts`、`Validate()` |
+| `Scripts/Events/GameEvents.cs` | 修改 | 新增 `ProjectileHitLanded`、`ProjectileExpired`、`BurstTriggered`、`BurstEffectExecuted` 及 Raise/ClearAll |
 | `Scripts/Editor/PrefabFactory.cs` | 修改 | 写入新配置字段；`TestBall` 刚体使用配置重力/阻力；`Character_Base` 挂 `ProjectileModifierSource` |
 | `Scripts/Editor/BuildCheck.cs` | 修改 | 断言修改器组件、子弹配置非空、刚体重力与配置一致、traits 列表非空、场景含 `ProjectilePool` |
 | `Assets/Tests/EditMode/ProjectileBuildTests.cs` | 新增 | 9 个用例：构建顺序、修改器、穿透、命中决策 |
@@ -143,8 +143,8 @@ Unity.exe -batchmode -projectPath <项目> -runTests -testPlatform PlayMode
 | 项 | 结果 |
 |---|---|
 | `BuildAllBatch` | `BUILD_OK`，`[BuildCheck] 结构校验全部通过`（15s） |
-| EditMode | **37/37 Passed**（原 21 + 新增 16） |
-| PlayMode | **11/11 Passed**（原 1 + 新增 10） |
+| EditMode | **54/54 Passed** |
+| PlayMode | **25/25 Passed** |
 
 新增用例：
 
