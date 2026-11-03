@@ -8,6 +8,7 @@
 | 战斗轮 | `battle/Battle.md` | `battle/Battle_agent.md` | 血量制、9 轮、先手判定、额外行动、行动/轮间间隔、回合提示、自动验收 |
 | 皮肤与动画 | `skin/Skin.md` | `skin/Skin_agent.md` | 皮肤配置、切换流程、Animator 契约、序列帧/骨骼 |
 | 子弹 | `bullet/Bullet.md` | `bullet/Bullet_agent.md` | 原型脚本、数值副本、特性组合、发射修改器、飞行影响场、穿透、对象池 |
+| 子弹爆发 | `burst/Burst.md` | `burst/Burst_agent.md` | 触发/冷却/重复、伤害/牵引/地形效果、动画事件接口 |
 | 场景地形 | `arena/Arena.md` | `arena/Arena_agent.md` | 分层遮罩地形、Bake、运行时重建、破坏力/范围、轮廓碰撞、追加接口 |
 | 资源生成与调试工具 | `tooling/Tooling.md` | `tooling/Tooling_agent.md` | 菜单/batchmode、层配置、测试场景、HUD、结构校验 |
 
