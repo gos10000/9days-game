@@ -599,9 +599,9 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingLayerID: 327991120
+  m_SortingLayer: 1
+  m_SortingOrder: 2
   m_Sprite: {fileID: -5042975621605120156, guid: ea90c32740ca00c419c49f32ae612447, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -1046,7 +1046,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 327991120
   m_SortingLayer: 1
-  m_SortingOrder: 0
+  m_SortingOrder: -1
   m_Sprite: {fileID: -6728756520790175228, guid: 4150a42a371751441bfd317c38aad1f9, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -1134,7 +1134,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 327991120
   m_SortingLayer: 1
-  m_SortingOrder: 0
+  m_SortingOrder: -1
   m_Sprite: {fileID: 7853660018629104925, guid: d15d44915c39d6944ab58a6e4a454cf9, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -1221,7 +1221,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 327991120
   m_SortingLayer: 1
-  m_SortingOrder: 0
+  m_SortingOrder: -1
   m_Sprite: {fileID: 8717759663495521311, guid: 4b784dea999db4649a6595e5f5a94eb6, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -1393,9 +1393,9 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingLayerID: 327991120
+  m_SortingLayer: 1
+  m_SortingOrder: 2
   m_Sprite: {fileID: 6905043196221402701, guid: 50163108901f2d843baf9cd11ef9cac3, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -1482,7 +1482,12 @@ MonoBehaviour:
   preAimState: PreAiming
   aimState: Aiming
   fireState: Fire
+  lightHitState: LightHIt
+  airborneState: HeaveHit
+  downedState: 
+  gettingUpState: 
   crossFadeTime: 0.05
   preAimDurationOverride: 0
   fireDurationOverride: 0
+  lightHitDurationOverride: 0
   logPhaseChanges: 0

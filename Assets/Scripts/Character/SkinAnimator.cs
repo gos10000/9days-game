@@ -6,12 +6,13 @@ namespace NineDays
     /// 皮肤自带的动画驱动：只管表现节奏，不参与任何玩法判定。
     /// 与 Animator 挂在同一个物体上（皮肤 prefab 根），随皮肤实例化 / 销毁。
     ///
-    /// 阶段流转：
-    ///   按下瞄准 → PreAiming →（片段播完）→ Aiming（循环）
-    ///   发射     → Fire     →（片段播完）→ Idle / Aiming
-    ///   轻受击   → LightHit →（片段播完）→ Idle / Aiming
-    ///   重受击   → 由 CharacterState.Airborne 映射到 HeaveHit，倒地 / 起身同理由 Inspector 指定
-    /// </summary>
+        /// 阶段流转：
+        ///   按下瞄准 → PreAiming →（片段播完）→ Aiming（循环）
+        ///   发射     → Fire     →（片段播完）→ Idle / Aiming
+        ///   轻受击   → LightHit →（片段播完）→ Idle / Aiming
+        ///   重受击   → 由 CharacterState.Airborne 映射到 HeaveHit，倒地 / 起身同理由 Inspector 指定
+        ///   死亡     → Death →（片段播完）→ Died（循环保持）
+        /// </summary>
     [RequireComponent(typeof(Animator))]
     public class SkinAnimator : MonoBehaviour
     {
@@ -37,6 +38,13 @@ namespace NineDays
         [SerializeField] private string downedState = "";
         [SerializeField] private string gettingUpState = "";
 
+        [Header("死亡状态名")]
+        [Tooltip("血量归零瞬间的死亡过程动画（不循环）")]
+        [SerializeField] private string deathState = "Death";
+
+        [Tooltip("死亡过程播完后保持的姿势（循环）。留空表示没有，播完停在最后一帧")]
+        [SerializeField] private string diedState = "Died";
+
         [Header("过渡")]
         [SerializeField] private float crossFadeTime = 0.05f;
 
@@ -44,11 +52,12 @@ namespace NineDays
         [SerializeField] private float preAimDurationOverride;
         [SerializeField] private float fireDurationOverride;
         [SerializeField] private float lightHitDurationOverride;
+        [SerializeField] private float deathDurationOverride;
 
         [Header("调试")]
         [SerializeField] private bool logPhaseChanges;
 
-        private enum Phase { None, PreAim, Aim, Fire, LightHit }
+        private enum Phase { None, PreAim, Aim, Fire, LightHit, Dying, Dead }
 
         private static readonly int AimPowerParam = Animator.StringToHash("AimPower");
 
@@ -99,13 +108,20 @@ namespace NineDays
             if (launcher != null)
                 animator.SetFloat(AimPowerParam, Mathf.Clamp01(launcher.AimPower));
 
-            // 只有这三个阶段会自己结束并回到下一阶段
-            if (phase != Phase.PreAim && phase != Phase.Fire && phase != Phase.LightHit) return;
+            // 只有这四个阶段会自己结束并回到下一阶段
+            if (phase != Phase.PreAim && phase != Phase.Fire && phase != Phase.LightHit && phase != Phase.Dying) return;
 
             phaseTimer += Time.deltaTime;
             if (phaseTimer < phaseDuration) return;
 
             if (phase == Phase.PreAim) Enter(Phase.Aim);
+            else if (phase == Phase.Dying)
+            {
+                // 死亡过程播完：落到循环的保持姿势，从此停在 Phase.Dead，
+                // 直到 ResetForBattle 把逻辑状态拉回 Idle 才会退出
+                CrossFade(diedState, crossFadeTime);
+                Enter(Phase.Dead);
+            }
             else Enter(Phase.None);
         }
 
@@ -123,8 +139,13 @@ namespace NineDays
                     if (phase != Phase.Fire) Enter(Phase.None);
                     break;
 
+                case CharacterState.Defeated:
+                    // 终态：播死亡过程，播完后由 Update 落到 Died 保持
+                    Enter(Phase.Dying);
+                    break;
+
                 default:
-                    // Airborne / Downed / GettingUp / Defeated 抢占一切
+                    // Airborne / Downed / GettingUp 抢占一切
                     Enter(Phase.None);
                     CrossFade(ResolveStateName(state), crossFadeTime);
                     break;
@@ -221,6 +242,15 @@ namespace NineDays
                         ? lightHitDurationOverride
                         : CrossFade(lightHitState, crossFadeTime);
                     break;
+
+                case Phase.Dying:
+                    // Controller 里没有 Death 状态时 duration 为 0，下一帧直接落到 Died
+                    phaseDuration = deathDurationOverride > 0f
+                        ? deathDurationOverride
+                        : CrossFade(deathState, crossFadeTime);
+                    break;
+
+                // Phase.Dead：什么都不做，保持 Died 循环
             }
 
             if (logPhaseChanges && previous != next)

@@ -48,14 +48,15 @@
 
 ## 1. 最终文件清单
 
-### 运行时（11 个）
+### 运行时（12 个）
 
 | 路径 | 职责 | 关键点 |
 |---|---|---|
 | `Scripts/Events/GameEvents.cs` | 枚举、`HitInfo`/`ImpactInfo`、`AnimParams`、静态事件总线 | 含 `ClearAll()` + `[RuntimeInitializeOnLoadMethod]` |
 | `Scripts/Character/Character.cs` | 状态机、队伍、接地、对外 API | 接地用 `ContactFilter2D + OverlapCircle`（无 GC） |
 | `Scripts/Character/CharacterCombat.cs` | 受击、击退、撞障碍冲量上报 | 去重按 `Collider2D + cooldown` |
-| `Scripts/Character/CharacterVisual.cs` | 皮肤实例化/切换、翻面、闪白、Animator 桥 | 无 Animator 时用代码倾斜兜底 |
+| `Scripts/Character/CharacterVisual.cs` | 皮肤实例化/切换、翻面、闪白、Animator 桥 | 翻容器镜像朝向；无 Animator 时用代码倾斜兜底 |
+| `Scripts/Character/SkinAnimator.cs` | 皮肤动画阶段机（状态名驱动 + 轻受击 / 死亡表现） | 阈值读 `Config.hitThreshold`；详见 `Skin_agent.md` 第 13 节 |
 | `Scripts/Character/CharacterLauncher.cs` | 拖拽瞄准 + 发射 | 受 `CanAct` 门控 |
 | `Scripts/Bullet/Projectile.cs` | 子弹原型 | 出膛忽略 owner，命中构造 `HitInfo` |
 | `Scripts/Bullet/ShotSpawner.cs` | 出膛点解析 | 身体中心 + 避障平移 |
@@ -219,8 +220,12 @@ EndTurn → RaiseTurnEnded → BeginTurn(OpponentOf)
 ### 3.6 皮肤与 Animator 契约
 
 - 逻辑 prefab 不感知美术；`CharacterVisual.ApplySkin` 销毁旧实例 → 实例化 `skin.visualPrefab` → 重绑 Animator → 重写当前状态
-- 参数：`State(int) / Grounded(bool) / AimPower(float) / Hit(Trigger) / GetUp(Trigger)`
-- 用 `Animator.parameters` 缓存 hash，缺参数时静默跳过（无美术也能跑）
+- 动画实际由 `SkinAnimator` 阶段机按**状态名**驱动：`Idle/PreAiming/Aiming/Fire/LightHIt/HeaveHit/Death/Died`，代码只写 float `AimPower`
+- `AnimParams`（`State/Grounded/Hit/GetUp`）是预留软契约，当前未驱动
+- 轻受击（冲量 < `hitThreshold`，阈值与 `CharacterCombat` 同源）只播 `LightHIt`，不动状态机
+- 死亡链路：`Defeated → Death（0.5s）→ Died（循环保持）→ ResetForBattle 退出`
+- 朝向翻转翻容器 `visualRoot.localScale.x`（逐部件 `flipX` 会让拼图皮肤破碎）
+- 排序：`sortingOrder = skin.sortingOrder + 美术原 order`；挂错 Sorting Layer 的部件归并到多数部件所在层
 - 骨骼皮肤额外支持 `CharacterConfig.Skin.spriteLibrary → SpriteLibrary.spriteLibraryAsset`
 
 ### 3.7 出界兜底
@@ -318,6 +323,8 @@ Unity.exe -batchmode -quit -projectPath <项目> ^
 | 7.7 | batchmode 启动失败 | Editor 打开时工程被锁 | 执行前关闭 Editor，检查 `Temp/UnityLockfile` 是否为 False |
 | 7.8 | 删掉运行时 asmdef 后测试 asmdef 报错 | 测试程序集引用了不存在的 `NineDays.Game` | 一并删除 `Game.Tests.asmdef`，测试延后 |
 | 7.9 | `SortingGroup` 编译找不到 | 它在 `UnityEngine.Rendering` 命名空间 | Editor 脚本加 `using UnityEngine.Rendering;` |
+| 7.10 | 拼图皮肤瞄准转身时整体破碎 | `flipX` 只绕各部件自身 pivot 镜像、不动位置，16 个部件各自翻转 | `ApplyFacing` 改为翻 `visualRoot.localScale.x`；兜底倾斜角同步去掉 `* facing`（容器已镜像，再乘会往错方向倒） |
+| 7.11 | 皮肤图层顺序错乱（头被身体盖住） | ① `ApplySkin` 用遍历索引 `i` 覆盖美术 order ② `head angry_0` / `head hurt_0` 挂在 `Background` 层（Layer 优先级高于 order） | 改为 `skin.sortingOrder + 美术原 order`；实例化时归并到多数部件所在层（病根仍建议在 prefab 里改） |
 
 ## 8. 未完成与下一步
 
