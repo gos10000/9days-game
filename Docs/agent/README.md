@@ -9,7 +9,10 @@
 | 皮肤与动画 | `skin/Skin.md` | `skin/Skin_agent.md` | 皮肤配置、切换流程、Animator 契约、序列帧/骨骼 |
 | 子弹 | `bullet/Bullet.md` | `bullet/Bullet_agent.md` | 原型脚本、数值副本、特性组合、发射修改器、飞行影响场、穿透、对象池 |
 | 子弹爆发 | `burst/Burst.md` | `burst/Burst_agent.md` | 触发/冷却/重复、伤害/牵引/地形效果、动画事件接口 |
+| UI 框架 | `ui/UI.md` | `ui/UI_agent.md` | UIRoot、Canvas 五层、页面栈/弹窗、缓存、过渡、页面扩展 |
 | 场景地形 | `arena/Arena.md` | `arena/Arena_agent.md` | 分层遮罩地形、Bake、运行时重建、破坏力/范围、轮廓碰撞、追加接口 |
+| 镜头控制 | `camera/Camera.md` | `camera/Camera_agent.md` | 2D 正交取景、回合/子弹目标、场地夹取、平滑、trauma 震动 |
+| 玩家设置 | `settings/Settings.md` | `settings/Settings_agent.md` | 默认值 SO、JSON 存档、Service、Applier 扩展、版本迁移；暂不做设置页 |
 | 资源生成与调试工具 | `tooling/Tooling.md` | `tooling/Tooling_agent.md` | 菜单/batchmode、层配置、测试场景、HUD、结构校验 |
 
 约定：

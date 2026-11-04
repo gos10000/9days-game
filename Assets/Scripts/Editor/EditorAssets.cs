@@ -19,11 +19,16 @@ namespace NineDays.EditorTools
         internal const string SkinDefaultPath = PrefabRoot + "/Skins/Skin_Default.prefab";
         internal const string SkinAltPath = PrefabRoot + "/Skins/Skin_Alt.prefab";
         internal const string TestBallPath = PrefabRoot + "/Projectiles/TestBall.prefab";
+        internal const string UIRootPrefabPath = PrefabRoot + "/UI/UIRoot.prefab";
+        internal const string UIPlaceholderPagePath = PrefabRoot + "/UI/Pages/PlaceholderPage.prefab";
 
         internal const string CharacterConfigPath = DataRoot + "/Characters/CharacterConfig_Default.asset";
         internal const string ProjectileConfigPath = DataRoot + "/Projectiles/TestBallConfig.asset";
         internal const string BattleConfigPath = DataRoot + "/Battle/BattleConfig_Default.asset";
         internal const string ArenaConfigPath = DataRoot + "/Arena/ArenaConfig_Default.asset";
+        internal const string UIPageCatalogPath = DataRoot + "/UI/UIPageCatalog_Default.asset";
+        internal const string UIPlaceholderConfigPath = DataRoot + "/UI/Pages/PlaceholderPage.asset";
+        internal const string PlayerSettingsDefaultsPath = DataRoot + "/Settings/PlayerSettingsDefaults.asset";
         internal const string ArenaMaskRoot = DataRoot + "/Arena/Masks";
         internal const string TerrainMaterialPath = MaterialRoot + "/TerrainMask.mat";
 

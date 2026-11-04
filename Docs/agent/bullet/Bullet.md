@@ -248,7 +248,7 @@ Unity.exe -batchmode -nographics -projectPath <项目> -runTests -testPlatform E
 Unity.exe -batchmode -projectPath <项目> -runTests -testPlatform PlayMode
 ```
 
-当前结果：**EditMode 54/54、PlayMode 25/25、`BUILD_OK` + 结构校验通过**。
+当前结果：**EditMode 76/76、PlayMode 33/33、`BUILD_OK` + 结构校验通过**。
 
 关键用例：`ProjectileBuildTests`（构建顺序/修改器/穿透）、`ProjectileInfluenceTests`（积分/引力数学）、`ProjectileTraitTests`（穿透、引力 Trigger 路径）、`ProjectilePoolTests`（复用/预热/事件/回合判定）。
 

@@ -128,8 +128,8 @@ Unity.exe -batchmode -projectPath <项目> -runTests -testPlatform PlayMode
 | 项 | 结果 |
 |---|---|
 | `BuildPrefabsBatch` / `BuildAllBatch` | `BUILD_OK`，结构校验通过 |
-| EditMode | **54/54 Passed** |
-| PlayMode | **25/25 Passed** |
+| EditMode | **76/76 Passed** |
+| PlayMode | **33/33 Passed** |
 
 新增关键用例：
 
