@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: c27840c7c721fb14c90ee95776d5995c
+guid: 69342c2670266b24cabdd4c1ff370188
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 8693331107333150055
-    second: Sprite-BlackHole_0
+      213: 4160635012330822537
+    second: obstacle_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Sprite-BlackHole_0
+      name: obstacle_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 64
-        height: 64
+        width: 32
+        height: 32
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 7651277359ae4a870800000000000000
-      internalID: 8693331107333150055
+      spriteID: 98b180eef7b8db930800000000000000
+      internalID: 4160635012330822537
       vertices: []
       indices: 
       edges: []
@@ -135,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Sprite-BlackHole_0: 8693331107333150055
+      obstacle_0: 4160635012330822537
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

@@ -53,5 +53,8 @@ TagManager:
   - name: FX
     uniqueID: 1825785779
     locked: 0
+  - name: Effect
+    uniqueID: 952889169
+    locked: 0
   m_RenderingLayers:
   - Default
