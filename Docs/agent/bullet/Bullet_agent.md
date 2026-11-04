@@ -143,8 +143,8 @@ Unity.exe -batchmode -projectPath <项目> -runTests -testPlatform PlayMode
 | 项 | 结果 |
 |---|---|
 | `BuildAllBatch` | `BUILD_OK`，`[BuildCheck] 结构校验全部通过`（15s） |
-| EditMode | **54/54 Passed** |
-| PlayMode | **25/25 Passed** |
+| EditMode | **70/70 Passed** |
+| PlayMode | **30/30 Passed** |
 
 新增用例：
 

@@ -5,7 +5,8 @@
         "Unity.InputSystem",
         "Unity.2D.Animation.Runtime",
         "Unity.2D.Common.Runtime",
-        "Unity.VisualScripting.Core"
+        "Unity.VisualScripting.Core",
+        "UnityEngine.UI"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

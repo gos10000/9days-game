@@ -49,6 +49,7 @@ namespace NineDays.EditorTools
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
+            UIFactory.BuildAll();
             Debug.Log("[PrefabFactory] 预制体与配置生成完成");
         }
 
