@@ -33,7 +33,7 @@
 | `controller` | RuntimeAnimatorController | 可空；为空时用 `visualPrefab` 自带的控制器 |
 | `spriteLibrary` | SpriteLibraryAsset | 可空；骨骼皮肤换图集用（写 `SpriteLibrary.spriteLibraryAsset`） |
 | `visualOffset` | Vector2 | 脚底对齐偏移，换美术不用改逻辑 prefab |
-| `sortingOrder` | int | 排序序号，第 i 个渲染器 = `sortingOrder + i` |
+| `sortingOrder` | int | 排序基准：部件最终 order = `sortingOrder + 美术在 prefab 里设的 order`（不是遍历序号）；部件挂错 Sorting Layer 时会被归并到多数部件所在层 |
 | `icon` | Sprite | 选人界面图标，可空 |
 
 当前两套占位皮肤（代码生成）：
@@ -50,23 +50,27 @@
 1. 销毁旧皮肤实例
 2. 重置缓存（渲染器 / 原始颜色 / Animator 参数表）
 3. 实例化 `skin.visualPrefab` 到 `Visual` 节点下，位置 = `visualOffset`，旋转归零，缩放 1
-4. 收集所有 `SpriteRenderer`，设置 `sortingOrder = skin.sortingOrder + i`，记录原始颜色（闪白恢复用）
+4. 收集所有 `SpriteRenderer`：快照美术原 order 与原始颜色 → 统一 Sorting Layer 到多数部件所在层 → `sortingOrder = skin.sortingOrder + 美术原 order`（保留美术相对顺序）
 5. 找 `Animator`：套 `skin.controller`（若有）、`applyRootMotion = false`、`cullingMode = AlwaysAnimate`、缓存参数 hash
 6. 绑定 `SpriteLibrary`（若有）
 7. 重新应用朝向 + **重新写入当前状态**（所以换皮肤不会卡在 Idle）
 
 ## 4. 动画契约
 
-| 参数 | 类型 | 取值 |
-|---|---|---|
-| `State` | int | 0 Idle / 1 Aiming / 2 Airborne / 3 Downed / 4 GettingUp |
-| `Grounded` | bool | 是否接地 |
-| `AimPower` | float | 瞄准力度 0~1 |
-| `Hit` | Trigger | 进入 `Airborne` 时触发 |
-| `GetUp` | Trigger | 进入 `GettingUp` 时触发 |
+动画由 `SkinAnimator`（与 `Animator` 同挂在皮肤 prefab 根上）按**状态名**驱动，控制器里须有同名状态（名字都可在 Inspector 改）：
 
-- 只有这 5 个参数由代码驱动，其余参数你自己加多少都行
-- 运行时按 `Animator.parameters` 缓存 hash，**缺参数会静默跳过**（不会报错，但对应动作不会播放）
+| 逻辑状态 / 事件 | 播放的状态 | 默认状态名 | 说明 |
+|---|---|---|---|
+| 开始瞄准 | 过程 → 循环 | `PreAiming` → `Aiming` | `Aiming` 循环 |
+| 发射 | 一次性 | `Fire` | 播完回 Idle / Aiming |
+| 轻受击（冲量 < `hitThreshold`） | 一次性 | `LightHIt`（大写 I） | 逻辑状态不变，纯表现 |
+| 被击飞（Airborne） | 抢占 | `HeaveHit` | 倒地 / 起身走 `downedState` / `gettingUpState`（默认空 = 保持上一帧） |
+| 血量归零（Defeated） | 两段 | `Death` → `Died` | `Death` 播完自动落 `Died` 循环保持，直到 `ResetForBattle` |
+
+- 唯一由代码写的 Animator 参数是 float `AimPower`（瞄准力度 0~1）
+- 轻受击阈值读 `CharacterConfig.hitThreshold`，与逻辑层同源，不会两边脱节
+- 状态名找不到只 warning 不报错；`Death` 缺失时直接落 `Died`
+- `AnimParams`（`State/Grounded/Hit/GetUp`）是预留的软契约，当前代码未驱动
 - 没有 `Animator` 时，`CharacterVisual` 用代码兜底：受击闪白、击飞后仰、倒地倾斜、起身回正
 
 ## 5. 新增一套皮肤 5 步
@@ -103,11 +107,24 @@
 | `fallbackTiltSpeed` | 360 | 倾斜过渡速度（度/秒） |
 | `flashDuration` | 0.1 | 受击闪白时长（秒） |
 
+`SkinAnimator`（挂皮肤 prefab 根）：
+
+| 参数 | 默认 | 说明 |
+|---|---|---|
+| `lightHitState` / `airborneState` | `LightHIt` / `HeaveHit` | 轻受击 / 被击飞映射的状态名 |
+| `downedState` / `gettingUpState` | 空 | 留空 = 保持上一帧表现 |
+| `deathState` / `diedState` | `Death` / `Died` | 死亡过程 / 死亡保持 |
+| `preAim/fire/lightHit/deathDurationOverride` | 0 | 0 = 使用动画片段自身长度 |
+| `logPhaseChanges` | false | Console 打印阶段流转，排错用 |
+
 ## 8. 排错
 
 | 现象 | 原因 / 处理 |
 |---|---|
-| 换皮肤后没有动画 | 控制器缺 `State/Grounded/AimPower/Hit/GetUp`，或 `initialSkinIndex` 越界（会被 Clamp 到最后一套） |
+| 换皮肤后没有动画 | 控制器缺同名状态或缺 `AimPower` 参数，或 `initialSkinIndex` 越界（会被 Clamp 到最后一套） |
 | 换皮肤后角色位置偏移 | 皮肤根节点自带位移了，改用 `visualOffset` |
 | 皮肤挡住 / 被挡住 | 检查 `sortingOrder` 与 Sorting Layer；皮肤内部的 `SortingGroup` 会覆盖外层顺序 |
 | 换皮肤瞬间闪一下 | 旧实例是 `Destroy`（帧末销毁），同一帧最多双渲染一帧，可接受 |
+| 皮肤部件相互遮挡错乱 | 相对顺序取自各部件自己在 prefab 里设的 order；部件挂错 Sorting Layer 会被归并到多数部件所在层 |
+| 轻受击不播 `LightHIt` | 状态名大小写要对（大写 I）；被击飞 / 倒地 / 死亡期间会被故意跳过 |
+| 死亡后角色僵住不播动画 | Controller 里没有 `Death` / `Died` 状态或名字不一致；两者都缺会停在最后一帧 |

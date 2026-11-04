@@ -18,6 +18,7 @@
 - [10. 验证记录](#10-验证记录)
 - [11. 待办](#11-待办)
 - [12. 接手检查清单](#12-接手检查清单)
+- [13. SkinAnimator 阶段机（2026-11-03 增补）](#13-skinanimator-阶段机2026-11-03-增补)
 
 ---
 
@@ -27,6 +28,7 @@
 |---|---|
 | `Assets/Scripts/Config/CharacterConfig.cs` | `Skin` 嵌套结构定义（`[Serializable]`） |
 | `Assets/Scripts/Character/CharacterVisual.cs` | 皮肤实例化/切换、朝向、闪白、Animator 桥、无动画兜底 |
+| `Assets/Scripts/Character/SkinAnimator.cs` | 皮肤动画阶段机：状态名驱动 + 轻受击 / 死亡表现（见第 13 节） |
 | `Assets/Scripts/Editor/PrefabFactory.cs` | `BuildSkin()` 生成占位皮肤；`CreateCharacterConfig()` 写 `skins` 列表 |
 | `Assets/Scripts/Editor/BuildCheck.cs` | `ValidateSkin()` 结构断言 |
 | `Assets/Prefabs/Skins/Skin_Default.prefab` / `Skin_Alt.prefab` | 生成的占位皮肤 |
@@ -41,13 +43,15 @@ ApplySkin(int index)
 ApplySkin(Skin)
   1. Destroy(skinInstance)                // 帧末销毁，允许一帧双渲染
   2. skinInstance = null; animator = null;
-     renderers = empty; baseColors = empty; animatorParams.Clear()
+     renderers = empty; baseColors = empty; baseSortingOrders = empty
   3. visualRoot.localRotation = identity  // 兜底倾斜可能改过它，必须复位
   4. skin == null || skin.visualPrefab == null → 直接 return（保留无皮肤状态）
   5. Instantiate(skin.visualPrefab, visualRoot, false)
      localPosition = skin.visualOffset；localRotation = identity；localScale = one
   6. renderers = GetComponentsInChildren<SpriteRenderer>(true)
-     for i: sortingOrder = skin.sortingOrder + i；baseColors[i] = renderer.color
+     快照 baseSortingOrders[i]（美术原 order）/ baseColors[i]
+     统一 sortingLayerID 到多数部件所在层
+     for i: sortingOrder = skin.sortingOrder + baseSortingOrders[i]（保留美术相对顺序）
   7. animator = GetComponentInChildren<Animator>(true)
      若有 skin.controller → runtimeAnimatorController = controller
      applyRootMotion = false；cullingMode = AlwaysAnimate；CacheAnimatorParams()
@@ -64,22 +68,29 @@ ApplySkin(Skin)
 - 角色 `Visual` 节点挂着 `SortingGroup`（layer=`Character`, order=10）
 - 皮肤 prefab 根节点**也**挂 `SortingGroup`（同层同序）
 - 嵌套 SortingGroup 时**内层生效**：所以皮肤的排序由皮肤自己的 `SortingGroup` 决定
-- 同时 `CharacterVisual` 会给每个 `SpriteRenderer` 设 `sortingOrder = skin.sortingOrder + i`，
-  保证同一皮肤内多部件（身体/武器/挂件）的相对顺序稳定
+- 部件相对顺序**不用遍历索引**：`sortingOrder = skin.sortingOrder + 美术在 prefab 里设的 order`。
+  遍历顺序是深度优先的层级序，不是美术意图，会固化"身体盖住头"之类的错误
+- 部件挂错 Sorting Layer（优先级高于 Order in Layer）会打乱整套排序：
+  实例化时统计多数部件所在层，把个别挂错的归并过去（`PlayerCharacterSkin1` 的 `head angry_0` / `head hurt_0` 曾挂在 `Background`）
+- 美术原 order 存在 `baseSortingOrders[]` 快照里，后续要做"切皮肤恢复原状"可直接用
 
 ## 3. 朝向与兜底倾斜
 
-- 朝向：`FaceTo(Vector2 direction)` → `facing = sign(direction.x)` → `SpriteRenderer.flipX = facing < 0`
+- 朝向：`FaceTo(Vector2 direction)` → `facing = sign(direction.x)` → **翻容器** `visualRoot.localScale.x = ±|x|`
+  - **不能逐个 `SpriteRenderer.flipX`**：flipX 只镜像图像、不动子物体位置，
+    多部件拼图皮肤会变成"每个部件各自以自身中心镜像、整体破碎"（实测踩过）；翻父节点则位置和图像一起镜像
   - 只翻表现，**不动碰撞体**（物理体 `freezeRotation = true`，也不动旋转）
   - `|direction.x| < 0.01` 时忽略（防止抖动）
 - 无 Animator 时（`allowFallbackTilt && animator == null`）每帧：
 
 ```
-targetAngle = Airborne ? -25 * facing
-            : Downed   ? -80 * facing
+targetAngle = Airborne ? -25
+            : Downed   ? -80
             : 0
 visualRoot.localRotation = Euler(0,0, MoveTowardsAngle(current, target, fallbackTiltSpeed * dt))
 ```
+
+（角度不乘 facing：容器已经镜像过，再乘会往错误的方向倒）
 
 ## 4. 闪白
 
@@ -141,6 +152,9 @@ AnimParams.State / Grounded / AimPower / Hit / GetUp   // StringToHash 常量
 | `SortingGroup` 编译不到 | Editor 脚本报 CS0246 | 它在 `UnityEngine.Rendering` 命名空间，需要 `using UnityEngine.Rendering;` |
 | 皮肤里 `Animator` 在深层子节点 | 找不到控制器/参数 | 用 `GetComponentInChildren<Animator>(true)`（已支持） |
 | 旧皮肤一帧残留 | 换皮肤瞬间可能双渲染一帧 | `Destroy` 是帧末销毁；若在意可改对象池复用 |
+| 拼图皮肤逐部件 `flipX` | 每个部件以自身 pivot 镜像、位置不动，整体破碎 | `ApplyFacing` 改为翻 `visualRoot.localScale.x` |
+| 部件 order 用遍历索引覆盖 | 深度优先顺序 ≠ 美术意图，身体盖住头 | 改为 `sortingOrder + 美术原 order`，见第 2 节 |
+| 部件 Sorting Layer 挂错 | Layer 优先级高于 order，部件永远画在全身下面 | 实例化时归并到多数部件所在层 |
 
 ## 9. 已知限制
 
@@ -175,4 +189,41 @@ AnimParams.State / Grounded / AimPower / Hit / GetUp   // StringToHash 常量
 3. 改排序：优先改 `CharacterConfig.Skin.sortingOrder`，不要改皮肤内部 renderer 顺序
 4. 改完跑 `9Days/Build/Prefabs`（会重新生成占位皮肤并覆盖 `Skin_Default/Alt`；**新增的皮肤文件不会被删**）
 5. 若手工改了 `Skin_Default.prefab` 后被重建覆盖，把改法固化到 `PrefabFactory.BuildSkin`
+
+## 13. SkinAnimator 阶段机（2026-11-03 增补）
+
+皮肤动画由 `SkinAnimator` 驱动（与 `Animator` 同挂皮肤 prefab 根，`RequireComponent(typeof(Animator))`），
+**按状态名 CrossFade，不依赖 `AnimParams`**（`AnimParams.Hit` 等仍是未接线的预留）。
+
+### 阶段流转
+
+```
+Character.StateChanged:
+    Aiming   → PreAim（播完自动进 Aim 循环）
+    Idle     → None（Fire 播完才回，避免打断）
+    Defeated → Dying（播 Death，播完落 Died，进入 Dead 终态直到 ResetForBattle）
+    其余（Airborne/Downed/GettingUp）→ None + CrossFade(ResolveStateName)
+GameEvents.CharacterHit（冲量 < hitThreshold）→ LightHit（纯表现，逻辑状态不变）
+GameEvents.ShotFired → Fire
+```
+
+### 关键决策
+
+- **阈值唯一来源**：`OnCharacterHit` 读 `character.Config.hitThreshold`，与 `CharacterCombat.ReceiveHit` 同源
+- **瞄准中被打不僵住**：`Enter(Phase.None)` 走 `ResolveIdleState()`——逻辑状态是 Aiming 回 `Aiming`，
+  Airborne / Downed / Defeated 返回空串跳过，避免闪一帧 Idle
+- **死亡是终态**：`Phase.Dead` 无出口；`Death` 缺失时 duration=0 下一帧直接落 `Died`，
+  `Died` 也缺则保持最后一帧，不报错
+- 轻受击在 Airborne / Downed / GettingUp / Defeated 期间被故意跳过，不打断击飞 / 死亡
+
+### 实测数据（PlayerCharacterSkin1.controller）
+
+| 状态 | clip | 时长 | 循环 |
+|---|---|---|---|
+| LightHIt | LightHIt.anim | 0.333s | 否 |
+| HeaveHit | HeaveHit.anim | 1.5s | 需在 Inspector 确认 Loop Time 已关（击飞全程约 0.9s，循环会重播） |
+| Death / Died | Death.anim / Died.anim | 0.5s / 0.083s | 否 / 是（正确） |
+
+注意：`LightHIt` 状态名是大写 `I`（美术命名如此），脚本默认值已按此填写，改字段名时别"纠正"它。
+`HeaveHit` 1.5s > 击飞流程约 0.9s，动作常被起身打断；想播完整就剪短 clip 或调大 `getUpDelay` / `getUpDuration`。
 

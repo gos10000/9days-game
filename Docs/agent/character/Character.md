@@ -77,9 +77,16 @@ Assets/Scripts/
 |---|---|
 | `void ApplySkin(int index)` | 按配置下标换皮肤 |
 | `void ApplySkin(CharacterConfig.Skin skin)` | 直接指定皮肤 |
-| `void FaceTo(Vector2 direction)` | 朝向（`SpriteRenderer.flipX`） |
+| `void FaceTo(Vector2 direction)` | 朝向（翻转 `visualRoot.localScale.x`，整副皮肤一起镜像） |
 | `void Flash()` / `Flash(float duration)` | 受击闪白 |
-| `void SetAimPower(float power)` | 瞄准力度写入 Animator |
+| `void SetAimPower(float power)` | 兼容保留接口（瞄准力度已由 SkinAnimator 直读 Launcher） |
+
+### SkinAnimator（挂皮肤 prefab 根，随皮肤实例化）
+
+| 成员 | 说明 |
+|---|---|
+| ※ 无 public 方法 | 订阅 `StateChanged` / `ShotFired` / `CharacterHit`，按阶段机 CrossFade 同名状态 |
+| 状态名契约 | `Idle/PreAiming/Aiming/Fire/LightHIt/HeaveHit/Death/Died`，详见 `Docs/agent/skin/Skin.md` 第 4 节 |
 
 ### CharacterLauncher
 
@@ -199,4 +206,4 @@ void OnHit(Character c, HitInfo info)
 | 撞墙没报 `StrongImpact` | 用 `F1` 看 `impulse` 是否小于 `impactThreshold`；障碍必须是实体碰撞体 |
 | 角色掉出地面 | `Ground` 的 Layer 必须是 `Obstacle` |
 | 热键没反应 | 先点一下 Game 视图（Scene 视图会吞掉 F 键），或用 `T` / `G` 别名 |
-| 换皮肤没动画 | 控制器缺 `State/Grounded/AimPower/Hit/GetUp` 五个参数 |
+| 换皮肤没动画 | Controller 缺同名状态（注意 `LightHIt` 是大写 I）或缺 `AimPower` 参数，见 `Skin.md` 第 8 节 |

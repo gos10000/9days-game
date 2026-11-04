@@ -35,8 +35,8 @@ MonoBehaviour:
   spawnNudgeAttempts: 8
   spawnNudgeStep: 0.3
   skins:
-  - skinId: Default
-    visualPrefab: {fileID: 6570486920760179978, guid: 1879eecd37862e74db5f231ab70c206d, type: 3}
+  - skinId: Player1
+    visualPrefab: {fileID: 9055727090848596740, guid: 4fd7602f4bddc054884707d9eb783126, type: 3}
     controller: {fileID: 0}
     spriteLibrary: {fileID: 0}
     visualOffset: {x: 0, y: 0}
