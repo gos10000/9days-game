@@ -28,6 +28,7 @@ namespace NineDays.EditorTools
         internal const string ArenaConfigPath = DataRoot + "/Arena/ArenaConfig_Default.asset";
         internal const string UIPageCatalogPath = DataRoot + "/UI/UIPageCatalog_Default.asset";
         internal const string UIPlaceholderConfigPath = DataRoot + "/UI/Pages/PlaceholderPage.asset";
+        internal const string PlayerSettingsDefaultsPath = DataRoot + "/Settings/PlayerSettingsDefaults.asset";
         internal const string ArenaMaskRoot = DataRoot + "/Arena/Masks";
         internal const string TerrainMaterialPath = MaterialRoot + "/TerrainMask.mat";
 

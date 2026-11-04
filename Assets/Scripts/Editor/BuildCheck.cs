@@ -17,6 +17,7 @@ namespace NineDays.EditorTools
             ValidateSkin(EditorAssets.SkinAltPath);
             ValidateBall(EditorAssets.TestBallPath);
             ValidateConfigs();
+            ValidateSettings();
             ValidateArenaConfig();
             ValidateUI();
             ValidateScenePool();
@@ -127,6 +128,20 @@ namespace NineDays.EditorTools
             Require(battleConfig != null, "战斗配置不存在");
             Require(battleConfig.roundsToPlay > 0, "战斗配置轮数必须大于 0");
             Require(battleConfig.maxTurnsPerRound >= 2, "战斗配置每轮行动上限至少为 2");
+        }
+
+        /// <summary>玩家设置默认值资产必须存在，且默认值能被正常规范化。</summary>
+        private static void ValidateSettings()
+        {
+            var defaults = AssetDatabase.LoadAssetAtPath<PlayerSettingsDefaults>(
+                EditorAssets.PlayerSettingsDefaultsPath);
+            Require(defaults != null, "玩家设置默认值资产不存在");
+
+            PlayerSettingsData data = defaults.CreateDefault();
+            Require(data != null, "玩家设置默认值为空");
+            Require(data.audio != null, "玩家设置缺少音频分组");
+            Require(data.display != null, "玩家设置缺少显示分组");
+            Require(PlayerSettingsValidator.Normalize(data, out string error), error);
         }
 
         /// <summary>地形配置必须有可用的层、遮罩与视觉数据。</summary>

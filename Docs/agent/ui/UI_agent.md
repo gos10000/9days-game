@@ -131,7 +131,7 @@
 | 项 | 结果 |
 |---|---|
 | `BuildAllBatch` | `BUILD_OK`，`[BuildCheck] 结构校验全部通过` |
-| EditMode | **59/59 Passed** |
+| EditMode | **70/70 Passed** |
 | PlayMode | **30/30 Passed** |
 
 新增测试覆盖：
