@@ -283,8 +283,8 @@ public sealed class AddBurstModifier : ProjectileModifier
 
 当前结果：
 
-- EditMode **70/70**
-- PlayMode **30/30**
+- EditMode **76/76**
+- PlayMode **33/33**
 - `BuildAllBatch`：`BUILD_OK`
 
 覆盖：

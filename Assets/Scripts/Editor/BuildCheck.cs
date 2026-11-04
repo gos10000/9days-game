@@ -23,6 +23,7 @@ namespace NineDays.EditorTools
             ValidateScenePool();
             ValidateSceneArena();
             ValidateSceneUI();
+            ValidateSceneCamera();
             Debug.Log("[BuildCheck] 结构校验全部通过");
         }
 
@@ -203,6 +204,32 @@ namespace NineDays.EditorTools
             UIRoot uiRoot = UnityEngine.Object.FindAnyObjectByType<UIRoot>();
             Require(uiRoot != null, "TestArena 缺 UIRoot");
             Require(uiRoot.Catalog != null, "UIRoot.catalog 为空");
+        }
+
+        /// <summary>测试场景的主相机必须有镜头控制组件和完整引用。</summary>
+        private static void ValidateSceneCamera()
+        {
+            Scene active = SceneManager.GetActiveScene();
+            if (active.path != EditorAssets.TestArenaScenePath) return;
+
+            Camera camera = UnityEngine.Object.FindAnyObjectByType<Camera>();
+            Require(camera != null, "TestArena 缺 Main Camera");
+            Require(camera.CompareTag("MainCamera"), "TestArena 的 Camera 必须设置 MainCamera Tag");
+            Require(camera.orthographic, "TestArena 的 Camera 必须是正交相机");
+
+            var rig = camera.GetComponent<CameraRig>();
+            Require(rig != null, "TestArena 的 Main Camera 缺 CameraRig");
+            Require(EditorAssets.GetRef(rig, "targetCamera") != null, "CameraRig.targetCamera 为空");
+
+            var director = camera.GetComponent<CameraDirector>();
+            Require(director != null, "TestArena 的 Main Camera 缺 CameraDirector");
+            Require(EditorAssets.GetRef(director, "rig") != null, "CameraDirector.rig 为空");
+            Require(EditorAssets.GetRef(director, "bounds") != null, "CameraDirector.bounds 为空");
+
+            var battleCamera = camera.GetComponent<BattleCameraController>();
+            Require(battleCamera != null, "TestArena 的 Main Camera 缺 BattleCameraController");
+            Require(EditorAssets.GetRef(battleCamera, "director") != null, "BattleCameraController.director 为空");
+            Require(EditorAssets.GetRef(battleCamera, "turnController") != null, "BattleCameraController.turnController 为空");
         }
 
         /// <summary>测试场景必须在场时检查对象池；只跑 Prefab 构建时跳过。</summary>

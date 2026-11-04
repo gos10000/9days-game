@@ -25,6 +25,9 @@ namespace NineDays.EditorTools
             camera.backgroundColor = new Color(0.11f, 0.13f, 0.19f);
             cameraGo.AddComponent<AudioListener>();
 
+            var cameraRig = cameraGo.AddComponent<CameraRig>();
+            EditorAssets.SetRef(cameraRig, "targetCamera", camera);
+
             var arenaGo = new GameObject("ArenaBounds");
             var arena = arenaGo.AddComponent<ArenaBounds>();
             EditorAssets.SetRect(arena, "playArea", new Rect(-8f, -5f, 16f, 10f));
@@ -57,6 +60,19 @@ namespace NineDays.EditorTools
             EditorAssets.SetBool(turn, "autoStart", false);
             EditorAssets.SetBool(turn, "autoAdvance", false);
             EditorAssets.SetFloat(turn, "resolveTimeout", 3f);
+
+            var cameraDirector = cameraGo.AddComponent<CameraDirector>();
+            EditorAssets.SetRef(cameraDirector, "rig", cameraRig);
+            EditorAssets.SetRef(cameraDirector, "bounds", arena);
+
+            var battleCamera = cameraGo.AddComponent<BattleCameraController>();
+            EditorAssets.SetRef(battleCamera, "director", cameraDirector);
+            EditorAssets.SetRef(battleCamera, "turnController", turn);
+            EditorAssets.SetObjectArray(battleCamera, "characters", new UnityEngine.Object[]
+            {
+                p1.GetComponent<Character>(),
+                p2.GetComponent<Character>(),
+            });
 
             BattleConfig battleConfig = AssetDatabase.LoadAssetAtPath<BattleConfig>(EditorAssets.BattleConfigPath);
             if (battleConfig == null) throw new System.InvalidOperationException("找不到 BattleConfig，请先跑 Build/Prefabs");
