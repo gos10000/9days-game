@@ -42,8 +42,8 @@ MonoBehaviour:
     visualOffset: {x: 0, y: 0}
     sortingOrder: 10
     icon: {fileID: 0}
-  - skinId: Alt
-    visualPrefab: {fileID: 1757460218731613828, guid: f6d10c698379fad44a97748f1a36f6aa, type: 3}
+  - skinId: Player2
+    visualPrefab: {fileID: 9055727090848596740, guid: b4976937a16bd824eab173784096d070, type: 3}
     controller: {fileID: 0}
     spriteLibrary: {fileID: 0}
     visualOffset: {x: 0, y: 0}

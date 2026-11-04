@@ -1,0 +1,53 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: WhiteHole
+  m_Shader: {fileID: 4800000, guid: b4e7c1a90d3f5e2a8c6b4d1f9e0a7c35, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _Alpha: 1
+    - _ColorSteps: 4
+    - _CoreIntensity: 2
+    - _CoreRadius: 0.3
+    - _DiskInner: 0.33
+    - _DiskIntensity: 1.3
+    - _DiskOuter: 0.95
+    - _NoiseScale: 9
+    - _Outflow: 0.6
+    - _PixelGrid: 224
+    - _RingIntensity: 2.2
+    - _RingRadius: 0.34
+    - _RingWidth: 0.027
+    - _SpinSpeed: 0.5
+    m_Colors:
+    - _CoreColor: {r: 1, g: 0.99, b: 0.95, a: 1}
+    - _InnerColor: {r: 1, g: 1, b: 1, a: 1}
+    - _MidColor: {r: 0.72, g: 0.92, b: 1, a: 1}
+    - _OuterColor: {r: 0.35, g: 0.55, b: 1, a: 1}
+    - _RingColor: {r: 0.85, g: 0.95, b: 1, a: 1}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1
