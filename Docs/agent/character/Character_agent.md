@@ -6,7 +6,7 @@
 ## 目录
 
 - [文档地图](#文档地图)
-- [0. 任务上下文](#0-任务上下文)
+- [0. 当前状态与任务背景](#0-当前状态与任务背景)
 - [1. 最终文件清单](#1-最终文件清单)
 - [2. 关键设计决策与理由](#2-关键设计决策与理由)
 - [3. 实现细节 接手必读](#3-实现细节-接手必读)
@@ -14,9 +14,8 @@
 - [5. 生成与校验](#5-生成与校验)
 - [6. 验证记录](#6-验证记录)
 - [7. 踩过的坑与修法](#7-踩过的坑与修法)
-- [8. 未完成与下一步](#8-未完成与下一步)
+- [8. 当前状态、风险与下一步](#8-当前状态风险与下一步)
 - [9. 接手检查清单](#9-接手检查清单)
-- [10. 文档自审记录](#10-文档自审记录)
 
 ---
 
@@ -32,31 +31,26 @@
 | `Docs/agent/README.md` | 索引 |
 | `Docs/program/**` | **人写**，agent 不修改 |
 
-## 0. 任务上下文
+## 0. 当前状态与任务背景
 
 - **玩法**：双人对战，两人轮流用鼠标
-- **本轮范围**：只做角色预制体（不做正式子弹），需要三个能力
-  1. 受击按冲量飞出
-  2. 报事件说明"被什么击中"
-  3. 与障碍碰撞超过阈值时，报事件并传撞击力度
-- **约束**：
-  - 不参考、不依赖 demo 的 `Assets/Scripts/*.cs`、`Assets/Art`、`MainScene`
-  - demo 由团队后续删除；本地版本落后于团队，**不能本地删 demo**
-  - 目录只要 `Assets/Scripts/<模块>`，不额外套一层 `Game/`
-  - 无 asmdef（因此没有测试程序集）
-  - prefab / 配置 / 测试场景全部由代码生成（避免多人手拖 prefab 冲突）
+- 角色模块最初只实现预制体、受击击退、撞击事件；后续已接入血量、战斗轮、皮肤/动画、对象池和测试框架。
+- **当前程序集**：`Assets/Scripts/NineDays.Game.asmdef`；Editor 工具在 `Assets/Scripts/Editor/NineDays.Editor.asmdef`；测试在 `Assets/Tests`。
+- 当前自动化基线：EditMode `76/76`、PlayMode `33/33`，`BuildAllBatch` = `BUILD_OK`。
+- prefab、内容配置、测试场景仍以代码生成为主；手工改数值只改 SO，不要随手重跑生成器。
 
 ## 1. 最终文件清单
 
-### 运行时（12 个）
+### 角色相关运行时（节选）
 
 | 路径 | 职责 | 关键点 |
 |---|---|---|
 | `Scripts/Events/GameEvents.cs` | 枚举、`HitInfo`/`ImpactInfo`、`AnimParams`、静态事件总线 | 含 `ClearAll()` + `[RuntimeInitializeOnLoadMethod]` |
 | `Scripts/Character/Character.cs` | 状态机、队伍、接地、对外 API | 接地用 `ContactFilter2D + OverlapCircle`（无 GC） |
 | `Scripts/Character/CharacterCombat.cs` | 受击、击退、撞障碍冲量上报 | 去重按 `Collider2D + cooldown` |
+| `Scripts/Character/CharacterHealth.cs` | 血量、扣血、战败 | 战斗轮血量制使用 |
 | `Scripts/Character/CharacterVisual.cs` | 皮肤实例化/切换、翻面、闪白、Animator 桥 | 翻容器镜像朝向；无 Animator 时用代码倾斜兜底 |
-| `Scripts/Character/SkinAnimator.cs` | 皮肤动画阶段机（状态名驱动 + 轻受击 / 死亡表现） | 阈值读 `Config.hitThreshold`；详见 `Skin_agent.md` 第 13 节 |
+| `Scripts/Character/SkinAnimator.cs` | 皮肤动画阶段机（状态名驱动 + 轻受击 / 死亡表现） | 阈值读 `Config.hitThreshold`；详见 `Skin_agent.md` |
 | `Scripts/Character/CharacterLauncher.cs` | 拖拽瞄准 + 发射 | 受 `CanAct` 门控 |
 | `Scripts/Bullet/Projectile.cs` | 子弹原型 | 出膛忽略 owner，命中构造 `HitInfo` |
 | `Scripts/Bullet/ShotSpawner.cs` | 出膛点解析 | 身体中心 + 避障平移 |
@@ -65,7 +59,7 @@
 | `Scripts/Config/CharacterConfig.cs` | 角色数值 SO（含 `Skin` 嵌套结构） | 皮肤表 + 出膛避障参数 |
 | `Scripts/Config/ProjectileConfig.cs` | 子弹数值 SO | — |
 
-### 编辑器（5 个，`Scripts/Editor/`）
+### 角色相关编辑器（`Scripts/Editor/`）
 
 | 路径 | 职责 |
 |---|---|
@@ -134,10 +128,10 @@ force   = impulse / Time.fixedDeltaTime           // 近似力度 N
 `PrefabFactory` 用 `PrefabUtility.SaveAsPrefabAsset` + `SerializedObject` 写私有字段，
 `BuildCheck` 断言结构。好处：可重复执行、可 review、无手拖冲突。
 
-### 2.7 无 asmdef（测试延后）
+### 2.7 asmdef 与测试
 
-用户选择"先不要 asmdef"（demo 未删，避免把 demo 卷进程序集且影响队友）。
-代价：**测试程序集无法引用 `Assembly-CSharp`，自动化测试延后**；见本文第 8 节「未完成」。
+当前已有 `Assets/Scripts/NineDays.Game.asmdef`、`Assets/Scripts/Editor/NineDays.Editor.asmdef` 和 `Assets/Tests` 下的 EditMode / PlayMode 测试程序集。
+角色相关测试由 `BattleSessionTests`、`ProjectileHitTests`、`TerrainTests` 等覆盖；不要再按"无 asmdef、测试延后"的旧假设开发。
 
 ## 3. 实现细节 接手必读
 
@@ -249,9 +243,11 @@ Character_P2.prefab (Variant, team=2, initialSkinIndex=1)
 TestArena.unity
 ├─ Character_P1 / Character_P2（预制体实例）
 ├─ TurnController.characters[0..1] → 两个 Character 组件
-├─ DebugHUD.turnController / testProjectilePrefab
+├─ DebugHUD / TurnBanner
 ├─ ArenaBounds(playArea = -8,-5,16,10)
-└─ Ground / Obstacle_Block（Layer = Obstacle(10)）
+├─ ArenaController（运行时重建地形，不保留静态 Ground）
+├─ UIRoot / ProjectilePool
+└─ Main Camera（CameraRig / CameraDirector / BattleCameraController）
 ```
 
 ## 5. 生成与校验
@@ -296,19 +292,17 @@ Unity.exe -batchmode -quit -projectPath <项目> ^
 
 ## 6. 验证记录
 
+当前全量基线（2026-11-04）：
+
 | 项 | 方式 | 结果 |
 |---|---|---|
-| 运行时脚本编译 | Unity 自带 Roslyn（`DotNetSdkRoslyn/csc.dll`）+ netstandard 2.1 + 全部 UnityEngine 模块 + `Unity.InputSystem` / `Unity.2D.Animation.Runtime` / `Unity.2D.Common.Runtime` | exit 0，`/nowarn:0649` 后 0 warning |
-| 运行时 + Editor 编译 | 另加 `Managed/UnityEngine/UnityEditor.*Module.dll`（**不要**再引用 `Managed/UnityEditor.dll`，会类型重复 CS0433） | exit 0 |
-| 资源生成 | batchmode `BuildAllBatch` | `BUILD_OK`，40s，退出码 0 |
-| demo 依赖扫描 | 8 个 demo GUID（3 脚本、32x32.png、Trail.mat、Idle.anim、Square.controller、Ball.physicsMaterial2D）在 `Assets/Prefabs`、`Assets/Data`、`Assets/Materials`、`TestArena.unity` 中搜索 | 0 命中 |
-| 场景结构 | 读 YAML | P1/P2 实例存在；`characters` 2 项；`firstTeam: 1`；Ground/Obstacle 的 `m_Layer: 10`；`playArea` = (-8,-5,16,10) |
+| 资源生成 | batchmode `BuildAllBatch` | `BUILD_OK`，`BuildCheck` 通过 |
+| EditMode | 全量测试 | **76/76 Passed** |
+| PlayMode | 全量测试 | **33/33 Passed** |
+| 场景结构 | 读 YAML / `BuildCheck` | P1/P2、BattleController、UIRoot、ProjectilePool、相机组件存在；地形由 ArenaController 重建 |
 | 变体覆盖 | 读 `Character_P2.prefab` 的 `m_Modifications` | `team: 2`、`initialSkinIndex: 1` |
-| 用户 Play 验证 | 人工 | 击飞 / 起身 / 回合 / 撞击事件均正常；发现并修复两个问题（见 7.1、7.3） |
-| 参数外提后重建 | `BuildPrefabsBatch`（只重建 prefab + 配置，不动场景） | `BUILD_OK`，20s；`CharacterConfig_Default.asset` 已写入 `spawnNudgeAttempts: 8` / `spawnNudgeStep: 0.3`；`TestArena.unity` 未改动 |
 
-**最后一次代码改动**（出膛点、F2/F3、参数外提）只影响脚本，随后用 `BuildPrefabsBatch` 重新生成：
-配置里的新字段已持久化，`[BuildCheck] 结构校验全部通过` + `BUILD_OK`；`TestArena.unity` 保持原时间戳（未被重建）。
+> 具体测试用例和数字会随全项目变化；不要在本文件里写死旧的单模块数字，统一使用全量基线。
 
 ## 7. 踩过的坑与修法
 
@@ -321,71 +315,48 @@ Unity.exe -batchmode -quit -projectPath <项目> ^
 | 7.5 | 写不进 prefab 的私有字段 | 没有 `AddComponent` 的 public setter | 统一用 `SerializedObject.FindProperty(...)` 写（`EditorAssets.SetRef/SetInt/...`） |
 | 7.6 | 皮肤 prefab 若带碰撞体会污染物理 | `GetComponentsInChildren<Collider2D>` 会把它算进去 | `BuildCheck` 强制皮肤无刚体/碰撞体 |
 | 7.7 | batchmode 启动失败 | Editor 打开时工程被锁 | 执行前关闭 Editor，检查 `Temp/UnityLockfile` 是否为 False |
-| 7.8 | 删掉运行时 asmdef 后测试 asmdef 报错 | 测试程序集引用了不存在的 `NineDays.Game` | 一并删除 `Game.Tests.asmdef`，测试延后 |
 | 7.9 | `SortingGroup` 编译找不到 | 它在 `UnityEngine.Rendering` 命名空间 | Editor 脚本加 `using UnityEngine.Rendering;` |
 | 7.10 | 拼图皮肤瞄准转身时整体破碎 | `flipX` 只绕各部件自身 pivot 镜像、不动位置，16 个部件各自翻转 | `ApplyFacing` 改为翻 `visualRoot.localScale.x`；兜底倾斜角同步去掉 `* facing`（容器已镜像，再乘会往错方向倒） |
 | 7.11 | 皮肤图层顺序错乱（头被身体盖住） | ① `ApplySkin` 用遍历索引 `i` 覆盖美术 order ② `head angry_0` / `head hurt_0` 挂在 `Background` 层（Layer 优先级高于 order） | 改为 `skin.sortingOrder + 美术原 order`；实例化时归并到多数部件所在层（病根仍建议在 prefab 里改） |
 
-## 8. 未完成与下一步
+## 8. 当前状态、风险与下一步
 
-### 未完成
+### 已完成
 
-- [ ] 美术：精灵 / 骨骼、动画片段、脚底 pivot、`visualOffset` 微调
-- [ ] 自动化测试：需要先补 `Assets/Scripts/Game.asmdef` + `Assets/Scripts/Tests/Game.Tests.asmdef`
-- [ ] 血量 / 胜负 / 回合数规则（`HitInfo.Damage` 已透传）
-- [ ] 对象池（`Projectile` 目前 `Instantiate/Destroy`）
-- [ ] 正式子弹与命中特效
-- [ ] UI / 音频（订阅 `GameEvents` 即可）
+- 角色状态机、受击/击退、撞障碍事件；
+- 血量、战斗轮、重开；
+- 皮肤与动画（`CharacterVisual` / `SkinAnimator`）；
+- 子弹出膛、对象池、命中链路；
+- `NineDays.Game` / `NineDays.Editor` / EditMode / PlayMode asmdef 与自动化测试。
+
+### 仍待办
+
+- [ ] 美术资源：精灵 / 骨骼、动画片段、脚底 pivot、`visualOffset` 微调；
+- [ ] 正式 UI / 音频：当前 `TurnBanner` 和 `CombatDebugHud` 仍是 OnGUI 占位；
+- [ ] 更丰富的地形命中表现（碎屑、断面、音效）；
+- [ ] `CharacterConfig` 的生成器覆盖策略：当前仍会重写部分字段，调数值时不要跑 `Build/Prefabs`。
 
 ### 风险
 
-1. 静态事件若忘记取消订阅，会持有已销毁对象 → 订阅方必须在 `OnDisable` 取消（HUD 已示范）
-2. `CharacterConfig` 新增字段尚未写入已生成 asset，**重建一次**才会在 Inspector 里显式出现
-3. `TurnController.HasSettled()` 每帧 `FindObjectsByType<Projectile>`，子弹多时会分配内存；接对象池时一并优化
-4. 无 asmdef 时所有脚本在 `Assembly-CSharp`，队友在 `Assets/Scripts` 下新增的脚本会进同一程序集
+1. 静态事件若忘记取消订阅，会持有已销毁对象 → 订阅方必须在 `OnDisable` 取消（HUD 已示范）；
+2. `TurnController.HasSettled()` 每帧 `FindObjectsByType<Projectile>`，子弹多时会分配内存；
+3. 内容配置由生成器生成，手工修改后若重跑生成会被覆盖；
+4. 角色视觉取景/碰撞依赖 `CharacterConfig` 与 prefab 结构，改字段时同步跑 `BuildCheck`。
 
-### 下一步建议顺序
+### 下一步建议
 
-1. 团队删除 demo → 补 asmdef + 测试
-2. 美术接入皮肤与动画
-3. 血量 / 胜负 → 正式子弹 → 对象池 → UI/音频
+1. 美术接入皮肤与动画；
+2. 正式 UI / 音频；
+3. 角色数值与对象池性能优化；
+4. 需要新玩法时优先通过 `GameEvents` 扩展，不直接耦合模块。
 
 ## 9. 接手检查清单
 
-1. 先读 `Assets/Scripts/Events/GameEvents.cs`：所有数据契约在这里
-2. 再读 `Character.cs`（状态机）→ `CharacterCombat.cs`（数值链路）→ `CharacterVisual.cs`（表现）
-3. 改**结构**：改 `Editor/PrefabFactory.cs` + `Editor/BuildCheck.cs`，然后跑 `9Days/Build/All`
-4. 改**数值**：只改 `Assets/Data/**` 下的 SO，不碰代码
-5. 改**玩法**：优先在 `GameEvents` 加事件，避免模块间直接引用
-6. 每次改完：关闭 Editor → batchmode 生成/校验 → 看 `Temp/build.log` 是否有 `BUILD_OK`
-
-### 当前 git 状态（本次工作结束时）
-
-```
-M  ProjectSettings/TagManager.asset        ← 唯一被修改的既有文件（Layer / Sorting Layer）
-?? Docs/agent/README.md
-?? Docs/agent/{character,skin,tooling}/
-?? Assets/Scripts/{Events,Character,Bullet,Battle,Scene,Config,Debug,Editor}/
-?? Assets/Prefabs/  Assets/Data/  Assets/Materials/  Assets/Scenes/TestArena.unity
-```
-
-> `Docs/program/**` 由人维护，本次工作**未改动**（当前为空文件）。
-> 尚未提交；建议单独一个 commit 便于 review。
-
-## 10. 文档自审记录
-
-初版只有 `Character.md` / `Character_agent.md`，自审发现以下**已完成但未单独成文**的内容，已补齐：
-
-| 缺口 | 补到哪里 |
-|---|---|
-| 皮肤配置字段、切换流程、Animator 契约、序列帧/骨骼兼容 | 新建 `Docs/agent/skin/{Skin.md, Skin_agent.md}` |
-| 资源生成工具链（生成顺序、BuildCheck 断言、幂等/覆盖、batchmode、离线编译技巧） | 新建 `Docs/agent/tooling/{Tooling.md, Tooling_agent.md}` |
-| 层与 Sorting Layer 的具体值、物理矩阵"未修改"的事实 | `Tooling.md` 第 5 节 / `Tooling_agent.md` 第 1 节 |
-| 测试场景构图、HUD 参数与热键、自动测试统计 | `Tooling.md` 第 6–7 节 / `Tooling_agent.md` 第 4 节 |
-| 角色文档缺少 `InputRouter` / `CombatDebugHud` / 两个 Config 的条目 | 补进 `Character.md` 第 3 节 |
-| 工作项索引 | 新建 `Docs/agent/README.md` |
-
-自审原则：**每个已交付的脚本/资源/流程都要能在文档里找到"它是什么、怎么用、有什么坑"**；
-不属于角色主文档的内容（皮肤、工具链）单独建工作项文件夹，而不是继续往角色文档里堆。
-
+1. 先读 `Assets/Scripts/Events/GameEvents.cs`：所有数据契约在这里；
+2. 再读 `Character.cs`（状态机）→ `CharacterCombat.cs`（数值链路）→ `CharacterVisual.cs`（表现）；
+3. 改**结构**：改 `Editor/PrefabFactory.cs` + `Editor/BuildCheck.cs`，然后跑 `9Days/Build/All`；
+4. 改**数值**：只改 `Assets/Data/**` 下的 SO，不碰代码，也不要跑 `Build/Prefabs`；
+5. 改**玩法**：优先在 `GameEvents` 加事件，避免模块间直接引用；
+6. 每次改完：关闭 Editor → batchmode 生成/校验 → 看 `Temp/build.log` 是否有 `BUILD_OK`；
+7. 跑 EditMode / PlayMode 全量测试，当前基线 `76/76`、`33/33`。
 

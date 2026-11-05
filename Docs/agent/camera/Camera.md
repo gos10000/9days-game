@@ -1,7 +1,7 @@
 # 镜头控制模块（人读版）
 
 > 一句话：**CameraFramer 算取景，CameraRig 做平滑/震动，CameraDirector 管目标，BattleCameraController 把战斗事件翻译成镜头行为。**
-> 自研、无 Cinemachine 依赖；本轮只做镜头框架，不做剧情演出。
+> 自研、无 Cinemachine 依赖；当前范围是战斗镜头框架，不含剧情演出。
 
 ## 目录
 
@@ -237,7 +237,7 @@ int TargetCount { get; }
 - 发射后才跟踪子弹；
 - UI 是 Screen Space Overlay，不受镜头震动影响；
 - 玩家设置以后可以加 `cameraShake`，通过 `CameraRig.SetShakeScale` 接入；
-- 本轮没有设置页面，也没有把镜头参数放进 Settings。
+- 当前没有设置页面，也没有把镜头参数放进 Settings；`SetShakeScale` 已预留。
 
 ---
 

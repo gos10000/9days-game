@@ -112,8 +112,8 @@
 
 ## 5. 已知限制与待办
 
-- [ ] `Projectile` 尚未调用 `ArenaController.ApplyTerrainBreak`；当前只有场景接口和测试
-- [ ] 没有实现爆发（Burst）框架；`TerrainBreakKind.Burst` 只是标记
+- [ ] `Projectile` 直接命中尚未调用 `ArenaController.ApplyTerrainBreak`；`BurstTerrainEffect` 已接入
+- [ ] `TerrainBreakKind.Burst` 只是来源标记；爆发框架本身在 `Scripts/Burst`，场景模块不实现爆发逻辑
 - [ ] `AppendTerrain` 只有圆形/矩形，没有任意遮罩形状
 - [ ] Bake 只支持 `SpriteDrawMode.Simple`；Tiled/Sliced 需要拆分
 - [ ] 轮廓每次重建是整层重算；当前场地小，未做脏区域优化
@@ -133,14 +133,14 @@ Unity.exe -batchmode -nographics -projectPath <项目> -runTests -testPlatform E
 Unity.exe -batchmode -projectPath <项目> -runTests -testPlatform PlayMode
 ```
 
-2026-11-03 实测：
+2026-11-04 实测：
 
 | 项 | 结果 |
 |---|---|
 | `BuildAllBatch` | `BUILD_OK`，结构校验通过 |
 | Bake 冒烟 | 临时复制项目内 Sprite → Bake → 遮罩非空（通过后已清理临时资产） |
-| EditMode | **45/45 Passed** |
-| PlayMode | **19/19 Passed** |
+| EditMode | **76/76 Passed**（全量） |
+| PlayMode | **33/33 Passed**（全量） |
 
 新增用例：
 

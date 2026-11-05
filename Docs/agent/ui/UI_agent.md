@@ -151,7 +151,7 @@ Unity.exe -batchmode -projectPath <项目> -runTests -testPlatform PlayMode -tes
 
 ## 已知限制 / 待办
 
-1. 正式页面未实现：MainMenu、BattleHUD、Pause、Result、Settings 仍是 TODO
+1. 正式游戏页面未实现：MainMenu、BattleHUD、Pause、Result 仍是 TODO；Settings 页面按产品安排暂缓，但设置服务框架已在 `Docs/agent/settings/Settings.md`
 2. `TurnBanner` 仍是 OnGUI；后续应迁移为 `BattleHUD` 页面
 3. 页面资源同步 `Instantiate`；未接 Addressables/异步加载
 4. 占位页使用 legacy `Text`；正式 UI 建议 TMP

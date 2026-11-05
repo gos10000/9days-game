@@ -138,7 +138,7 @@ Unity.exe -batchmode -nographics -projectPath <项目> -runTests -testPlatform E
 Unity.exe -batchmode -projectPath <项目> -runTests -testPlatform PlayMode
 ```
 
-2026-11-02 实测：
+2026-11-04 实测：
 
 | 项 | 结果 |
 |---|---|

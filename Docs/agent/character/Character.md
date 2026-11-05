@@ -176,7 +176,7 @@ void OnHit(Character c, HitInfo info)
 
 1. **场景里放**：直接拖 `Assets/Prefabs/Characters/Character_P1.prefab`（或 `_P2`）进场景
 2. **配回合**：场景中放一个空物体挂 `TurnController`，把两个角色拖进 `characters` 列表
-3. **调数值**：改 `Assets/Data/Characters/CharacterConfig_Default.asset`
+3. **调数值**：改 `Assets/Data/Characters/CharacterConfig_Default.asset`；只改 SO 时不要跑 `Build/Prefabs`，内容生成器会重写部分配置字段
 
 测试场景 `Assets/Scenes/TestArena.unity` 已经按上面配好，可直接 Play。
 

@@ -1,7 +1,7 @@
 # 资源生成与调试工具（人读版）
 
-> 一句话：**所有 prefab / 配置 / 测试场景都由代码生成**，改结构改生成器，改数值改 SO。
-> 详细实现见同目录 `Tooling_agent.md`。
+> 一句话：**prefab、内容配置、玩家默认设置、测试场景都由代码生成**；改结构改生成器，改数值优先改 SO。
+> 详细实现见同目录 `Tooling_agent.md`。玩家设置的使用方式见 `settings/Settings.md`。
 
 ## 目录
 
@@ -32,8 +32,8 @@
 | `9Days/Setup/Layers & Sorting Layers` | 写 `TagManager`：Layer `Character/Projectile/Obstacle`，Sorting Layer `Character/Projectile/FX` | 新机器、换工程、误删层 |
 | `9Days/Arena/Create Authoring Scene` | 创建人工摆地形的编辑场景（不参与 BuildAll 覆盖） | 首次做地形布局 |
 | `9Days/Arena/Bake Terrain` | 编辑场景 → ArenaConfig + 遮罩 | 改完地形布局 |
-| `9Days/Build/Prefabs (角色 + 皮肤 + 子弹)` | 生成皮肤 / 配置 / 子弹 / 角色 / 变体 + 地形默认配置 + 结构校验 | 改了 `PrefabFactory` |
-| `9Days/Build/Test Arena` | 重建 `TestArena.unity` | 改了 `ArenaBuilder`（**会覆盖场景手改**） |
+| `9Days/Build/Prefabs (角色 + 皮肤 + 子弹)` | 生成皮肤 / 配置 / 子弹 / 角色 / 变体 + 地形默认配置 + 玩家设置默认值 + 结构校验 | 改了 `PrefabFactory` 或配置结构 |
+| `9Days/Build/Test Arena` | 重建 `TestArena.unity`，并确保默认设置资产存在 | 改了 `ArenaBuilder`（**会覆盖场景手改**） |
 | `9Days/Build/All (Setup + Prefabs + Arena)` | 全量 | 从零搭环境 |
 
 ## 3. batchmode Unity 关闭时
@@ -65,11 +65,12 @@ Unity.exe -batchmode -quit -projectPath <项目> ^
 6. AimLine.mat                     → Assets/Materials/
 7. Character_Base                  → Assets/Prefabs/Characters/（引用角色配置 + 子弹）
 8. Character_P1 / Character_P2     → 变体（team / initialSkinIndex 覆盖）
-9. ArenaConfig + 遮罩 + TerrainMask.mat → Assets/Data/Arena / Assets/Materials
-10. TestArena                     → Assets/Scenes/（仅 BuildAll）
+9. PlayerSettingsDefaults        → Assets/Data/Settings（不存在时创建）
+10. ArenaConfig + 遮罩 + TerrainMask.mat → Assets/Data/Arena / Assets/Materials
+11. TestArena                     → Assets/Scenes/（仅 BuildAll / Build/Test Arena）
 ```
 
-顺序不能乱：后一步依赖前一步的资源。
+顺序不能乱：后一步依赖前一步的资源。`TestArena` 的主相机会额外挂 `CameraRig` / `CameraDirector` / `BattleCameraController`。
 
 ## 5. 层与排序层
 
@@ -89,6 +90,7 @@ Unity.exe -batchmode -quit -projectPath <项目> ^
 
 ```
 Main Camera      正交 5.5，纯色背景，Tag=MainCamera
+                + CameraRig / CameraDirector / BattleCameraController
 ArenaBounds      playArea (-8,-5,16,10)，自动空气墙 + Gizmos 边框
 ArenaController  ArenaConfig + TerrainMask 材质，战斗开始时程序重建地形
 Character_P1     (-5, -3.7)
@@ -96,6 +98,8 @@ Character_P2     (5, -3.7)
 TurnController   characters=[P1,P2]，firstTeam=Player1，resolveTimeout=3
 BattleController battleConfig + characters + arena
 DebugHUD         turnController + testProjectilePrefab
+UIRoot           Placeholder 启动页
+ProjectilePool   预热 TestBall
 ```
 
 ## 7. 调试 HUD
@@ -120,10 +124,13 @@ DebugHUD         turnController + testProjectilePrefab
 | 结构校验规则 | `Editor/BuildCheck.cs`（新增断言后跑生成） |
 | 测试场景布局 | `Editor/ArenaBuilder.cs` → `9Days/Build/Test Arena` |
 | 数值（伤害 / 击退 / 阈值） | `Assets/Data/**` 的 SO，**不用重跑生成** |
+| 玩家默认音量 / 分辨率 | `Assets/Data/Settings/PlayerSettingsDefaults.asset` |
 | 皮肤美术 | 新建皮肤 prefab + `CharacterConfig.skins` 条目 |
+| 镜头手感 | `TestArena` 主相机的 `CameraRig` / `CameraDirector` |
 
 ⚠️ 重新生成会**覆盖** `Character_Base / P1 / P2 / Skin_Default / Skin_Alt / TestBall`，
-对这些文件的手动修改会丢失；把改法固化到生成器里。
+以及重写 `CharacterConfig` / `BattleConfig` / `ProjectileConfig` 的字段；对这些文件的手动修改会丢失。
+**只调内容数值时不要顺手跑 `Build/Prefabs`**；玩家设置默认值由 `SettingsFactory` 单独管理，不会被内容生成器覆盖。
 
 ## 9. 常见问题
 

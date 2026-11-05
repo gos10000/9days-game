@@ -285,7 +285,7 @@ Assets/Data/UI/Pages/PlaceholderPage.asset
 - `TurnBanner` 仍是 `OnGUI`，尚未迁移到页面
 - 页面资源同步加载；尚未接入 Addressables/异步加载
 - 页面内容目前使用 legacy `Text`；正式 UI 可替换为 TMP
-- `closeOnBack` 字段已保留，当前 `Back()` 主要按栈深度和弹窗判断
+- `CanGoBack()` 会遵循 `UIPageConfig.closeOnBack`；`Close(page)` / `CloseAll()` 是显式关闭，不受该字段限制
 - 同一 pageId 只保留一个实例；需要同页多实例时需扩展缓存键
 - 返回键与角色输入目前是“UI 能返回时优先”，复杂输入上下文后续再细化
 

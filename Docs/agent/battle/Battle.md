@@ -130,7 +130,7 @@ Unity.exe -batchmode -projectPath <项目> ^
   -runTests -testPlatform PlayMode -testResults Temp\playmode.xml -logFile Temp\playmode.log
 ```
 
-当前结果：**EditMode 21/21、PlayMode 1/1**。
+当前结果（全量基线）：**EditMode 76/76、PlayMode 33/33**。
 
 ## 10. 常见问题
 

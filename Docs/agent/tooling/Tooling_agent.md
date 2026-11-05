@@ -26,12 +26,14 @@
 |---|---|---|
 | `Scripts/Editor/ProjectSetup.cs` | 静态工具 + 菜单 | 写 `TagManager`（Layer / Sorting Layer），幂等 |
 | `Scripts/Editor/EditorAssets.cs` | 静态工具 | 路径常量、内置精灵、材质、`SerializedObject` 读写 |
-| `Scripts/Editor/PrefabFactory.cs` | 生成器 | 皮肤 → 配置 → 子弹 → 材质 → 角色 → 变体 |
-| `Scripts/Editor/ArenaBuilder.cs` | 生成器 | 重建 `TestArena.unity` |
+| `Scripts/Editor/PrefabFactory.cs` | 生成器 | 皮肤 → 内容配置 → 子弹 → 材质 → 角色 → 变体 |
+| `Scripts/Editor/UIFactory.cs` | 生成器 | UIRoot / 占位页 / UIPageCatalog |
+| `Scripts/Editor/SettingsFactory.cs` | 生成器 | 玩家设置默认值资产；已存在不覆盖 |
+| `Scripts/Editor/ArenaBuilder.cs` | 生成器 | 重建 `TestArena.unity`，接入 UI 与相机组件 |
 | `Scripts/Editor/BuildCheck.cs` | 校验 | 生成后断言，失败抛 `UnityException` |
-| `Scripts/Editor/BuildPipeline.cs` | 入口 | 4 个菜单 + `BuildPrefabsBatch` / `BuildAllBatch` |
+| `Scripts/Editor/BuildPipeline.cs` | 入口 | 3 个菜单 + `BuildPrefabsBatch` / `BuildAllBatch` |
 
-> 这些脚本放在 `Assets/Scripts/Editor/`（`Editor` 特殊目录）→ 自动编入 `Assembly-CSharp-Editor`，不会进包。
+> 编辑脚本在 `Assets/Scripts/Editor/`，由 `NineDays.Editor.asmdef` 编入 Editor-only 程序集，并引用 `NineDays.Game`；不是旧版的 `Assembly-CSharp-Editor`。
 
 ## 1. ProjectSetup
 
@@ -123,24 +125,26 @@ Layer = `Character`。
 ArenaBuilder.Build()   // 菜单：9Days/Build/Test Arena
 ```
 
-1. `EditorSceneManager.NewScene(EmptyScene, Single)`
-2. 相机：`Main Camera`，Tag = `MainCamera`，`orthographic = true`，`size = 5.5`，位置 `(0,0,-10)`，纯色背景 `(0.11,0.13,0.19)`，加 `AudioListener`
-3. `ArenaBounds`：`playArea = (-8,-5,16,10)`、`createInvisibleWalls = true`、`obstacleLayerName = "Obstacle"`、`recoverOutOfBounds = true`、`checkInterval = 0.2`
-4. 静态块（`CreateStaticBlock`）：
-   - `Ground`：中心 `(0,-5)`，尺寸 `(16,0.6)`，Layer = `Obstacle`
-   - `Obstacle_Block`：中心 `(0,-4)`，尺寸 `(1,1.4)`，Layer = `Obstacle`
-   - 结构：根（`BoxCollider2D`，size = 世界尺寸，scale 1）+ 子 `Sprite`（`SpriteRenderer`，`ScaleToWorldSize`）
-   - ⚠️ 碰撞体挂在**根**、缩放挂在**子**，否则 `localScale` 会把 collider 一起放大
-5. 角色实例：`PrefabUtility.InstantiatePrefab`，P1 `(-5,-3.7)` / P2 `(5,-3.7)`（地面顶 = -4.7，胶囊半高 1 → 中心 -3.7）
-6. `TurnController`：`SetObjectArray("characters", {P1,P2})`、`firstTeam = Player1`、`autoStart = true`、`resolveTimeout = 3`
-7. `DebugHUD`：`turnController`、`testProjectilePrefab = TestBall.prefab 上的 Projectile`、`showHud = true`
-8. `EditorSceneManager.SaveScene(scene, "Assets/Scenes/TestArena.unity")` + `OpenScene`
+1. `EditorSceneManager.NewScene(EmptyScene, Single)`；
+2. 相机：`Main Camera`，Tag = `MainCamera`，`orthographic = true`，`size = 5.5`，位置 `(0,0,-10)`，纯色背景 `(0.11,0.13,0.19)`，加 `AudioListener`；
+3. 相机组件：`CameraRig` → `CameraDirector`（接 `ArenaBounds`）→ `BattleCameraController`（接 `TurnController` 与角色）；
+4. `ArenaBounds`：`playArea = (-8,-5,16,10)`、自动空气墙、出界回收；
+5. `ArenaController`：引用 `ArenaConfig`、`ArenaBounds`、地形材质；
+6. 角色实例：`PrefabUtility.InstantiatePrefab`，P1 `(-5,-3.7)` / P2 `(5,-3.7)`；
+7. `TurnController`：角色列表、`firstTeam = Player1`、`autoStart = false`、`autoAdvance = false`；
+8. `BattleController`：`BattleConfig` + `TurnController` + `ArenaController` + 角色；
+9. `DebugHUD` / `TurnBanner`：调试 HUD、回合提示；
+10. `UIRoot`：实例化 prefab，`startupPageId = Placeholder`；
+11. `ProjectilePool`：预热 `TestBall`；
+12. `SaveScene` + `OpenScene`。
 
 **覆盖行为**：每次执行都会重建场景，**场景里的手动修改会丢失**。日常只用 `BuildPrefabsBatch`。
 
+> 当前 TestArena 不生成静态 Ground/Obstacle_Block；地形由 `ArenaController` 在战斗开始时重建。
+
 ## 5. BuildCheck
 
-`ValidateAll()` 依次检查：3 个角色 prefab → 2 个皮肤 → 1 个子弹 → 2 个配置。
+`ValidateAll()` 覆盖角色、皮肤、子弹、内容配置、玩家设置默认值、UI、地形和 TestArena 场景（含相机组件）。
 
 ### 角色（对 Base / P1 / P2 都跑）
 
@@ -165,7 +169,13 @@ ArenaBuilder.Build()   // 菜单：9Days/Build/Test Arena
 
 ### 配置
 
-`CharacterConfig.skins.Count >= 2` 且每套 `visualPrefab` 非空；`ProjectileConfig.radius > 0 && initialSpeed > 0`。
+`CharacterConfig.skins.Count >= 2` 且每套 `visualPrefab` 非空；`ProjectileConfig.radius > 0 && initialSpeed > 0`；`BattleConfig.roundsToPlay > 0`。
+
+### 玩家设置 / UI / 相机
+
+- 玩家设置默认值资产存在，且 `PlayerSettingsValidator.Normalize` 能通过；
+- UI catalog、页面 prefab、`UIRoot.catalog` 引用有效；
+- TestArena 主相机是正交、Tag = MainCamera，含 `CameraRig` / `CameraDirector` / `BattleCameraController` 与完整引用。
 
 失败统一 `throw new UnityException("[BuildCheck] ...")`。
 
@@ -173,10 +183,10 @@ ArenaBuilder.Build()   // 菜单：9Days/Build/Test Arena
 
 | 成员 | 说明 |
 |---|---|
-| `BuildPrefabsMenu()` | 菜单：`9Days/Build/Prefabs ...` → `PrefabFactory.BuildAll` + `BuildCheck.ValidateAll` |
-| `BuildArenaMenu()` | 菜单：`9Days/Build/Test Arena` |
-| `BuildAllMenu()` | 菜单：全量（Setup + Prefabs + Arena + Check） |
-| `BuildPrefabsBatch()` | batchmode：Setup + Prefabs + Check（**不动场景**） |
+| `BuildPrefabsMenu()` | 菜单：`9Days/Build/Prefabs ...` → `PrefabFactory` + `SettingsFactory` + `ArenaTerrainFactory` + `BuildCheck` |
+| `BuildArenaMenu()` | 菜单：`9Days/Build/Test Arena` → `UIFactory` + `SettingsFactory` + `ArenaBuilder` |
+| `BuildAllMenu()` | 菜单：全量（Setup + Prefabs + Settings + Arena + Check） |
+| `BuildPrefabsBatch()` | batchmode：Setup + Prefabs + Settings + Check（**不动场景**） |
 | `BuildAllBatch()` | batchmode：全量 |
 
 两个 batch 方法都是 `try { ... Debug.Log("BUILD_OK"); } catch (Exception e) { Debug.LogError("BUILD_FAILED\n" + e); EditorApplication.Exit(1); }`。
@@ -187,7 +197,7 @@ ArenaBuilder.Build()   // 菜单：9Days/Build/Test Arena
 | 项 | 结果 |
 |---|---|
 | 命令 | `-batchmode -quit -projectPath <proj> -executeMethod ...BuildPrefabsBatch -logFile Temp\build_prefabs.log` |
-| 耗时 | 首次（资源重建）：20s；全量含场景：40s |
+| 耗时 | 视机器与资源缓存而定；首次全量重建明显更慢 |
 | 退出码 | `0` |
 | 日志关键行 | `[BuildCheck] 结构校验全部通过` → `BUILD_OK` → `Exiting without the bug reporter. Application will terminate with return code 0` |
 | 前置条件 | Unity Editor 必须关闭；否则 `Temp/UnityLockfile` 占用导致启动失败 |
@@ -229,13 +239,14 @@ dotnet "<Unity>\Editor\Data\DotNetSdkRoslyn\csc.dll" `
 | 资源 | 行为 |
 |---|---|
 | 目录 | `EnsureFolder` 递归创建，已存在跳过 |
-| `CharacterConfig` / `ProjectileConfig` | `LoadAssetAtPath` 复用，字段整体重写（不会重复创建） |
+| `CharacterConfig` / `BattleConfig` / `ProjectileConfig` | `LoadAssetAtPath` 复用，字段整体重写（不会重复创建） |
 | `Skin_Default` / `Skin_Alt` / `TestBall` / `Character_Base` / `P1` / `P2` | `SaveAsPrefabAsset` **覆盖**同名文件 |
-| `TestArena.unity` | 仅 `BuildAll` / `BuildArenaMenu` 覆盖；`BuildPrefabsBatch` 不碰 |
+| `TestArena.unity` | 仅 `BuildAllMenu` / `BuildArenaMenu` / `BuildAllBatch` 覆盖；`BuildPrefabsBatch` 不碰 |
+| `PlayerSettingsDefaults` | 仅不存在时创建；已有默认值不覆盖 |
 | `AimLine.mat` | 已存在直接复用（不会覆盖手调材质） |
 | Layer / Sorting Layer | 幂等，只补缺失项 |
 
-**结论**：可以反复执行不会产生垃圾资源；但**对手工改过的 prefab / 场景会被覆盖**，改结构必须回到生成器。
+**结论**：生成器可反复执行，但**手工改过的 prefab、场景和部分内容配置会被覆盖**；改结构必须回到生成器。只调内容数值时不要跑 `Build/Prefabs`。
 
 ## 10. 坑与处理
 
@@ -244,18 +255,25 @@ dotnet "<Unity>\Editor\Data\DotNetSdkRoslyn\csc.dll" `
 | `Managed/UnityEditor.dll` + `UnityEditor.*Module.dll` 同时引用 | CS0433 类型重复 | 离线编译只引用模块 dll |
 | Editor 打开时跑 batchmode | 启动失败 / 卡住 | 先关 Editor，检查 `Temp/UnityLockfile` |
 | `Temp/` 被清空 | `-logFile` 写入失败 | 先建目录或换日志路径 |
-| 静态块直接把 sprite 挂在带 collider 的根上 | `localScale` 会把 collider 一起缩放，尺寸错 | 碰撞体在根、缩放给子物体（`CreateStaticBlock` 已这么做） |
 | 皮肤/角色 prefab 加 collider | 干扰 `GetComponentsInChildren<Collider2D>` | `BuildCheck` 断言拦截 |
 | 生成后角色位置/场景布局变了 | 跑的是 `BuildAll`，重建了场景 | 日常用 `BuildPrefabsBatch` |
 | `BuildCheck` 抛异常但看不到具体 | 日志里搜 `BUILD_FAILED` 后的堆栈 | 断言消息带 prefab 路径与缺失字段 |
 
 ## 11. 未完成与风险
 
-- [ ] 生成器没有"增量"能力：每次全量重建（资源量上来后可接受，目前 12 个资源）
+- [ ] 生成器没有"增量"能力：每次全量重建
 - [ ] `TestArena` 无版本管理策略：手动微调会被覆盖 → 需要微调的布局应写进 `ArenaBuilder`
 - [ ] `BuildCheck` 未校验 Animator 参数契约（等皮肤有控制器后补）
-- [ ] 缺少 PlayMode 冒烟测试（无 asmdef）
 - [ ] `AimLine.mat` 的 shader 回退链依赖 URP 包；换渲染管线需调整 `CreateOrLoadMaterial` 的 shader 名顺序
+- [ ] `PrefabFactory` 仍会重写内容配置；目前没有"只补缺不覆盖"的内容配置策略
+
+### 当前测试基线
+
+- EditMode **76/76 Passed**
+- PlayMode **33/33 Passed**
+- `BuildAllBatch` = `BUILD_OK`，`BuildCheck` 覆盖角色/配置/UI/场景/玩家设置默认值/相机组件
+
+测试程序集位于 `Assets/Tests`，已有 Editor-only / PlayMode 两个 asmdef；旧文档中"无 asmdef、测试延后"的说法已失效。
 
 ## 12. 接手检查清单
 

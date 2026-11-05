@@ -18,7 +18,7 @@
 - [10. 验证记录](#10-验证记录)
 - [11. 待办](#11-待办)
 - [12. 接手检查清单](#12-接手检查清单)
-- [13. SkinAnimator 阶段机（2026-11-03 增补）](#13-skinanimator-阶段机2026-11-03-增补)
+- [13. SkinAnimator 阶段机](#13-skinanimator-阶段机)
 
 ---
 
@@ -113,8 +113,8 @@ AnimParams.State / Grounded / AimPower / Hit / GetUp   // StringToHash 常量
 
 - `CacheAnimatorParams()` 遍历 `animator.parameters`，把 `nameHash` 存入 `HashSet<int>`
 - 写入前判断 `Contains(hash)`，**缺参数静默跳过**（避免 Unity 刷警告、也支持空控制器）
-- 这是"软契约"：**没有自动化测试校验**（当前无 asmdef），只能靠文档 + 运行时表现
-- 将来补测试时建议：遍历所有 `CharacterSkin`，断言 `controller` 含这 5 个参数且类型正确
+- 这是"软契约"：当前自动化测试集中在框架/物理层，尚未逐个校验皮肤控制器的 5 个参数
+- 将来补测试时建议：遍历所有带有控制的皮肤资产，断言 `controller` 含这 5 个参数且类型正确；项目已有 EditMode / PlayMode 测试程序集
 
 ## 6. 占位皮肤的生成规格
 
@@ -190,7 +190,7 @@ AnimParams.State / Grounded / AimPower / Hit / GetUp   // StringToHash 常量
 4. 改完跑 `9Days/Build/Prefabs`（会重新生成占位皮肤并覆盖 `Skin_Default/Alt`；**新增的皮肤文件不会被删**）
 5. 若手工改了 `Skin_Default.prefab` 后被重建覆盖，把改法固化到 `PrefabFactory.BuildSkin`
 
-## 13. SkinAnimator 阶段机（2026-11-03 增补）
+## 13. SkinAnimator 阶段机
 
 皮肤动画由 `SkinAnimator` 驱动（与 `Animator` 同挂皮肤 prefab 根，`RequireComponent(typeof(Animator))`），
 **按状态名 CrossFade，不依赖 `AnimParams`**（`AnimParams.Hit` 等仍是未接线的预留）。
