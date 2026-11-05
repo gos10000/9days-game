@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 namespace NineDays
 {
@@ -81,11 +80,11 @@ namespace NineDays
 
         private void Update()
         {
-            if (InputRouter.KeyPressed(Key.Space)) FireTestShot();
-            if (InputRouter.KeyPressed(Key.Digit1)) turnController?.ForceSwitch(Team.Player1);
-            if (InputRouter.KeyPressed(Key.Digit2)) turnController?.ForceSwitch(Team.Player2);
+            if (GameInput.WasPressed(GameInputAction.TestShot)) FireTestShot();
+            if (GameInput.WasPressed(GameInputAction.ForcePlayer1)) turnController?.ForceSwitch(Team.Player1);
+            if (GameInput.WasPressed(GameInputAction.ForcePlayer2)) turnController?.ForceSwitch(Team.Player2);
 
-            if (InputRouter.KeyPressed(Key.E))
+            if (GameInput.WasPressed(GameInputAction.ExtraTurn))
             {
                 Team actor = battleController != null ? battleController.CurrentActor : Team.None;
                 if (actor == Team.None && turnController != null) actor = turnController.CurrentTeam;
@@ -97,7 +96,7 @@ namespace NineDays
                 }
             }
 
-            if (InputRouter.KeyPressed(Key.R))
+            if (GameInput.WasPressed(GameInputAction.Restart))
             {
                 if (battleController != null) battleController.RestartBattle();
                 else turnController?.ResetMatch();
@@ -107,14 +106,14 @@ namespace NineDays
                 Log("===== reset =====");
             }
 
-            if (InputRouter.KeyPressed(Key.F1))
+            if (GameInput.WasPressed(GameInputAction.ToggleImpactLog))
             {
                 verboseImpactLog = !verboseImpactLog;
                 Log($"verbose impact = {verboseImpactLog}");
             }
 
-            if (InputRouter.KeyPressed(Key.F2) || InputRouter.KeyPressed(Key.T)) ToggleAutoTest();
-            if (InputRouter.KeyPressed(Key.F3) || InputRouter.KeyPressed(Key.G)) ToggleSlowMotion();
+            if (GameInput.WasPressed(GameInputAction.ToggleAutoTest)) ToggleAutoTest();
+            if (GameInput.WasPressed(GameInputAction.ToggleSlowMotion)) ToggleSlowMotion();
 
             if (autoTest) UpdateAutoTest();
         }

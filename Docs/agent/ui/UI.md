@@ -212,10 +212,11 @@ public sealed class BattleHudArgs : UIPageArgs
 
 返回键：
 
-- `UIRoot.handleBackInput = true` 时监听 `Keyboard.current.escapeKey`
+- `UIRoot.handleBackInput = true` 时通过 `GameInput.ConsumeCancel()` 读取 Esc
 - 只有 `Router.CanGoBack` 为 true 时才消费
 - 没有可返回页面时，Esc 继续留给角色/游戏逻辑
-- 角色的 Esc 与 UI 的 Esc 同时存在时，建议由 UIRoot 先处理；后续正式页面可改为独立 Cancel action
+- `UIRoot` 使用 `[DefaultExecutionOrder(-100)]`，先于 `BattleInputController` 消费，避免同一帧同时关页面和取消瞄准
+- 输入模块详见 `Docs/agent/input/Input.md`
 
 ---
 
@@ -287,5 +288,5 @@ Assets/Data/UI/Pages/PlaceholderPage.asset
 - 页面内容目前使用 legacy `Text`；正式 UI 可替换为 TMP
 - `CanGoBack()` 会遵循 `UIPageConfig.closeOnBack`；`Close(page)` / `CloseAll()` 是显式关闭，不受该字段限制
 - 同一 pageId 只保留一个实例；需要同页多实例时需扩展缓存键
-- 返回键与角色输入目前是“UI 能返回时优先”，复杂输入上下文后续再细化
+- 返回键与角色输入现在统一走 `GameInput.ConsumeCancel()`，仍是“UI 能返回时优先”；复杂输入上下文后续再细化
 

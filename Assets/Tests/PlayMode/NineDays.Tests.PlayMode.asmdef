@@ -3,6 +3,12 @@
     "rootNamespace": "NineDays.Tests.PlayMode",
     "references": [
         "NineDays.Game",
+        "NineDays.Battle",
+        "NineDays.Camera",
+        "NineDays.Debug",
+        "NineDays.Input",
+        "NineDays.Settings",
+        "NineDays.UI",
         "UnityEngine.UI"
     ],
     "optionalUnityReferences": [

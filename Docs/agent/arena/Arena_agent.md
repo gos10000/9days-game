@@ -133,14 +133,14 @@ Unity.exe -batchmode -nographics -projectPath <项目> -runTests -testPlatform E
 Unity.exe -batchmode -projectPath <项目> -runTests -testPlatform PlayMode
 ```
 
-2026-11-04 实测：
+2026-11-05 实测：
 
 | 项 | 结果 |
 |---|---|
 | `BuildAllBatch` | `BUILD_OK`，结构校验通过 |
 | Bake 冒烟 | 临时复制项目内 Sprite → Bake → 遮罩非空（通过后已清理临时资产） |
-| EditMode | **76/76 Passed**（全量） |
-| PlayMode | **33/33 Passed**（全量） |
+| EditMode | **81/81 Passed**（全量） |
+| PlayMode | **34/34 Passed**（全量） |
 
 新增用例：
 

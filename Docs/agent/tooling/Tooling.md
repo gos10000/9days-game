@@ -97,6 +97,7 @@ Character_P1     (-5, -3.7)
 Character_P2     (5, -3.7)
 TurnController   characters=[P1,P2]，firstTeam=Player1，resolveTimeout=3
 BattleController battleConfig + characters + arena
+BattleInputController turnController（把输入转发给当前行动角色）
 DebugHUD         turnController + testProjectilePrefab
 UIRoot           Placeholder 启动页
 ProjectilePool   预热 TestBall
@@ -115,11 +116,13 @@ ProjectilePool   预热 TestBall
 | `G` / `F3` | 慢动作 0.2x / 1x |
 
 > F 键在 Scene / Hierarchy 视图聚焦时会被 Unity 编辑器吞掉，所以提供 `T` / `G` 别名；按之前先点一下 Game 视图。
+> 键位映射由 `Input/UnityInputSource.cs` 统一维护，HUD 只调用 `GameInput.WasPressed(GameInputAction)`；详见 `input/Input.md`。
 
 ## 8. 正确的工作方式
 
 | 想改什么 | 改哪里 |
 |---|---|
+| 输入动作 / 调试热键 | `Assets/Scripts/Input/`，先看 `input/Input.md` |
 | 角色结构 / 组件 / 引用 | `Editor/PrefabFactory.cs` → 跑 `9Days/Build/Prefabs` |
 | 结构校验规则 | `Editor/BuildCheck.cs`（新增断言后跑生成） |
 | 测试场景布局 | `Editor/ArenaBuilder.cs` → `9Days/Build/Test Arena` |

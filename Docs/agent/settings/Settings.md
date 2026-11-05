@@ -290,7 +290,7 @@ Unity.exe -batchmode -quit -projectPath <项目> ^
 
 - 日志出现 `BUILD_OK`；
 - `Assets/Data/Settings/PlayerSettingsDefaults.asset` 存在；
-- EditMode **76/76**、PlayMode **33/33**（当前全量基线）；
+- EditMode **81/81**、PlayMode **34/34**（当前全量基线）；
 - `BuildCheck` 会校验默认值资产和 `audio/display` 分组。
 
 ## 常见问题

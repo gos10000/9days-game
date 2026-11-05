@@ -238,11 +238,11 @@ public interface ISettingsApplier
 10. Applier 按 `Order` 执行；
 11. 未初始化访问 `Current` 抛异常。
 
-结果：**EditMode 76/76 Passed**（2026-11-04，全量）。
+结果：**EditMode 81/81 Passed**（2026-11-05，全量）。
 
 ### PlayMode
 
-现有 PlayMode 测试不依赖 Settings 场景对象；全量回归 **33/33 Passed**（2026-11-04）。
+现有 PlayMode 测试不依赖 Settings 场景对象；全量回归 **34/34 Passed**（2026-11-05）。
 
 ### 构建
 

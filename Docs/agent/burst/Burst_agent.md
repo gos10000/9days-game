@@ -123,13 +123,13 @@ Unity.exe -batchmode -nographics -projectPath <项目> -runTests -testPlatform E
 Unity.exe -batchmode -projectPath <项目> -runTests -testPlatform PlayMode
 ```
 
-2026-11-04 实测：
+2026-11-05 实测：
 
 | 项 | 结果 |
 |---|---|
 | `BuildPrefabsBatch` / `BuildAllBatch` | `BUILD_OK`，结构校验通过 |
-| EditMode | **76/76 Passed** |
-| PlayMode | **33/33 Passed** |
+| EditMode | **81/81 Passed** |
+| PlayMode | **34/34 Passed** |
 
 新增关键用例：
 

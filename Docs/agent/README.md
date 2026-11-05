@@ -1,6 +1,6 @@
 # Agent 文档索引
 
-> 最后同步：2026-11-04。全量验收：`BuildAllBatch` = `BUILD_OK`，EditMode `76/76`，PlayMode `33/33`。
+> 最后同步：2026-11-05。全量验收：`BuildAllBatch` = `BUILD_OK`，EditMode `81/81`，PlayMode `34/34`。
 
 ## 配置与操作先看这里
 
@@ -14,6 +14,8 @@
 | 改场地地形 | `ArenaAuthoring` 场景摆层 → `9Days/Arena/Bake Terrain` | 已有 `ArenaConfig` 不会被默认生成器覆盖 |
 | 加 UI 页面 | `UIPage` + `UIPageConfig` + `UIPageCatalog` | 页面 prefab 根节点必须有 `CanvasGroup` + `UIPage` |
 | 调镜头手感 | `TestArena` 主相机的 `CameraRig` / `CameraDirector` | 其他场景需手动挂组件，见 `camera/Camera.md` |
+| 改鼠标 / 键盘输入 | `Assets/Scripts/Input/` | 业务只走 `GameInput`；手柄/重绑定换 `IInputSource` |
+| 新增运行时模块 / asmdef | `Assets/Scripts/` 对应目录 + `Docs/agent/asmdef/Asmdef.md` | 先确认依赖方向，避免新增 asmdef 循环 |
 | 改测试场景布局 | `Scripts/Editor/ArenaBuilder.cs` | `Build/All` 会重建并覆盖 `TestArena.unity` |
 
 ## 配置边界
@@ -21,6 +23,8 @@
 - `Assets/Scripts/Config` + `Assets/Data/*`：角色、子弹、战斗、地形等**内容定义**，运行时只读；
 - `Assets/Scripts/Settings` + `Assets/Data/Settings`：**玩家偏好**，玩家可改并持久化；
 - `Assets/Scripts/UI`：页面框架，不负责玩法数值；
+- `Assets/Scripts/Input`：设备输入与输入路由，不参与回合规则；
+- `Assets/Scripts/Battle`：回合/对局/战斗输入路由，单向依赖 Game；
 - `Assets/Scripts/Camera`：场景镜头控制，参数在 Inspector；
 - `Docs/program/**`：人维护的设计方案，agent 不修改。
 
@@ -36,6 +40,8 @@
 | UI 框架 | `ui/UI.md` | `ui/UI_agent.md` | UIRoot、Canvas 五层、页面栈/弹窗、缓存、过渡 |
 | 场景地形 | `arena/Arena.md` | `arena/Arena_agent.md` | 分层遮罩、Bake、运行时重建、破坏/追加 |
 | 镜头控制 | `camera/Camera.md` | `camera/Camera_agent.md` | 2D 正交取景、回合/子弹目标、边界、震动 |
+| 输入 | `input/Input.md` | `input/Input_agent.md` | 设备快照、GameInput、战斗输入路由、调试动作 |
+| 程序集拆分 | `asmdef/Asmdef.md` | `asmdef/Asmdef_agent.md` | 7 个编译单元、依赖方向、Game 聚合层边界 |
 | 玩家设置 | `settings/Settings.md` | `settings/Settings_agent.md` | 默认值 SO、JSON、Service、Applier、版本迁移 |
 | 资源生成与调试 | `tooling/Tooling.md` | `tooling/Tooling_agent.md` | 菜单/batchmode、生成顺序、测试场景、HUD、校验 |
 

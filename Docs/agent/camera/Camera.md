@@ -284,8 +284,8 @@ director.AddShake(0.5f);
 
 当前结果：
 
-- EditMode **76/76**
-- PlayMode **33/33**
+- EditMode **81/81**
+- PlayMode **34/34**
 - `BuildAllBatch`：`BUILD_OK`，`BuildCheck` 通过
 
 已知限制：

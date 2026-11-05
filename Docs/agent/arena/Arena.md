@@ -331,8 +331,8 @@ arena.AppendTerrainBox("Stone", center, size);
 
 当前结果（全量基线）：
 
-- EditMode **76/76**
-- PlayMode **33/33**
+- EditMode **81/81**
+- PlayMode **34/34**
 
 ### 手动验收
 

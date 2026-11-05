@@ -112,6 +112,7 @@ battleController.RequestExtraTurn(Team.Player1, false, 2);  // 一次追加 2 �
 ## 8. 场景与调试
 
 - 场景里放：`TurnController`（`autoStart=false`、`autoAdvance=false`）+ `BattleController`（引用 `BattleConfig`、`TurnController`、两个 `Character`）
+- `BattleInputController` 单独负责把输入转发给当前行动角色；`TurnController` 不读取输入
 - `BattleController` 在 `Awake` 里调用 `TurnController.UseExternalDriver()`，由对局层决定行动者
 - HUD 顶栏：`Round: x/9`、当前行动方、`HP 当前/最大`、结算/回合日志、胜负
 - **回合提示横幅**（`Scripts/UI/TurnBanner.cs`）：屏幕中央显示 `第 n / 9 轮` + `PlayerX 的回合 · 拖拽松开发射`，P1 白 / P2 蓝；另有 `BATTLE START`、`结算中…`、`WINNER / DRAW`；淡入淡出可调
@@ -130,7 +131,7 @@ Unity.exe -batchmode -projectPath <项目> ^
   -runTests -testPlatform PlayMode -testResults Temp\playmode.xml -logFile Temp\playmode.log
 ```
 
-当前结果（全量基线）：**EditMode 76/76、PlayMode 33/33**。
+当前结果（全量基线）：**EditMode 81/81、PlayMode 34/34**。
 
 ## 10. 常见问题
 

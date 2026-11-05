@@ -28,6 +28,7 @@
 | `Docs/agent/battle/Battle.md` / `Battle_agent.md` | 战斗轮：血量制、先手、额外行动、验收 |
 | `Docs/agent/skin/Skin.md` / `Skin_agent.md` | 皮肤与动画体系（配置、切换、Animator 契约） |
 | `Docs/agent/tooling/Tooling.md` / `Tooling_agent.md` | 资源生成、层配置、测试场景、HUD、结构校验 |
+| `Docs/agent/input/Input.md` / `Input_agent.md` | 输入设备层、`BattleInputController`、调试动作 |
 | `Docs/agent/README.md` | 索引 |
 | `Docs/program/**` | **人写**，agent 不修改 |
 
@@ -35,8 +36,8 @@
 
 - **玩法**：双人对战，两人轮流用鼠标
 - 角色模块最初只实现预制体、受击击退、撞击事件；后续已接入血量、战斗轮、皮肤/动画、对象池和测试框架。
-- **当前程序集**：`Assets/Scripts/NineDays.Game.asmdef`；Editor 工具在 `Assets/Scripts/Editor/NineDays.Editor.asmdef`；测试在 `Assets/Tests`。
-- 当前自动化基线：EditMode `76/76`、PlayMode `33/33`，`BuildAllBatch` = `BUILD_OK`。
+- **当前程序集**：运行时已拆为 `NineDays.Game` / `Input` / `Settings` / `UI` / `Battle` / `Camera` / `Debug`；Editor 工具在 `Assets/Scripts/Editor/NineDays.Editor.asmdef`；测试在 `Assets/Tests`。详见 `Docs/agent/asmdef/Asmdef.md`。
+- 当前自动化基线：EditMode `81/81`、PlayMode `34/34`，`BuildAllBatch` = `BUILD_OK`。
 - prefab、内容配置、测试场景仍以代码生成为主；手工改数值只改 SO，不要随手重跑生成器。
 
 ## 1. 最终文件清单
@@ -51,10 +52,12 @@
 | `Scripts/Character/CharacterHealth.cs` | 血量、扣血、战败 | 战斗轮血量制使用 |
 | `Scripts/Character/CharacterVisual.cs` | 皮肤实例化/切换、翻面、闪白、Animator 桥 | 翻容器镜像朝向；无 Animator 时用代码倾斜兜底 |
 | `Scripts/Character/SkinAnimator.cs` | 皮肤动画阶段机（状态名驱动 + 轻受击 / 死亡表现） | 阈值读 `Config.hitThreshold`；详见 `Skin_agent.md` |
-| `Scripts/Character/CharacterLauncher.cs` | 拖拽瞄准 + 发射 | 受 `CanAct` 门控 |
+| `Scripts/Character/CharacterLauncher.cs` | 拖拽瞄准 + 发射 | 实现 `IAimInputReceiver`；受 `CanAct` 门控 |
+| `Scripts/Input/GameInput.cs` | 输入门面 | 快照、取消消费、测试注入 |
+| `Scripts/Battle/BattleInputController.cs` | 战斗输入路由 | 只转发给当前回合角色；归 `NineDays.Battle` |
 | `Scripts/Bullet/Projectile.cs` | 子弹原型 | 出膛忽略 owner，命中构造 `HitInfo` |
 | `Scripts/Bullet/ShotSpawner.cs` | 出膛点解析 | 身体中心 + 避障平移 |
-| `Scripts/Battle/TurnController.cs` | 回合流程 + `InputRouter` | 结算超时兜底 |
+| `Scripts/Battle/TurnController.cs` | 回合流程 | 不读取输入；结算超时兜底 |
 | `Scripts/Scene/ArenaBounds.cs` | 边界 / 空气墙 / 出界兜底 | 完全不依赖场景里的墙 |
 | `Scripts/Config/CharacterConfig.cs` | 角色数值 SO（含 `Skin` 嵌套结构） | 皮肤表 + 出膛避障参数 |
 | `Scripts/Config/ProjectileConfig.cs` | 子弹数值 SO | — |
@@ -130,7 +133,7 @@ force   = impulse / Time.fixedDeltaTime           // 近似力度 N
 
 ### 2.7 asmdef 与测试
 
-当前已有 `Assets/Scripts/NineDays.Game.asmdef`、`Assets/Scripts/Editor/NineDays.Editor.asmdef` 和 `Assets/Tests` 下的 EditMode / PlayMode 测试程序集。
+当前运行时已拆为 `NineDays.Game`、`NineDays.Input`、`NineDays.Settings`、`NineDays.UI`、`NineDays.Battle`、`NineDays.Camera`、`NineDays.Debug`；Editor 工具和 `Assets/Tests` 下的 EditMode / PlayMode 测试程序集分别引用所需模块。详见 `Docs/agent/asmdef/Asmdef.md`。
 角色相关测试由 `BattleSessionTests`、`ProjectileHitTests`、`TerrainTests` 等覆盖；不要再按"无 asmdef、测试延后"的旧假设开发。
 
 ## 3. 实现细节 接手必读
@@ -292,14 +295,14 @@ Unity.exe -batchmode -quit -projectPath <项目> ^
 
 ## 6. 验证记录
 
-当前全量基线（2026-11-04）：
+当前全量基线（2026-11-05）：
 
 | 项 | 方式 | 结果 |
 |---|---|---|
 | 资源生成 | batchmode `BuildAllBatch` | `BUILD_OK`，`BuildCheck` 通过 |
-| EditMode | 全量测试 | **76/76 Passed** |
-| PlayMode | 全量测试 | **33/33 Passed** |
-| 场景结构 | 读 YAML / `BuildCheck` | P1/P2、BattleController、UIRoot、ProjectilePool、相机组件存在；地形由 ArenaController 重建 |
+| EditMode | 全量测试 | **81/81 Passed** |
+| PlayMode | 全量测试 | **34/34 Passed** |
+| 场景结构 | 读 YAML / `BuildCheck` | P1/P2、BattleController、BattleInputController、UIRoot、ProjectilePool、相机组件存在；地形由 ArenaController 重建 |
 | 变体覆盖 | 读 `Character_P2.prefab` 的 `m_Modifications` | `team: 2`、`initialSkinIndex: 1` |
 
 > 具体测试用例和数字会随全项目变化；不要在本文件里写死旧的单模块数字，统一使用全量基线。
@@ -327,7 +330,7 @@ Unity.exe -batchmode -quit -projectPath <项目> ^
 - 血量、战斗轮、重开；
 - 皮肤与动画（`CharacterVisual` / `SkinAnimator`）；
 - 子弹出膛、对象池、命中链路；
-- `NineDays.Game` / `NineDays.Editor` / EditMode / PlayMode asmdef 与自动化测试。
+- `NineDays.Game` / `NineDays.Input` / `NineDays.Battle` 等运行时 asmdef、`NineDays.Editor` 与 EditMode / PlayMode 测试程序集；详见 `../asmdef/Asmdef.md`。
 
 ### 仍待办
 
@@ -358,5 +361,5 @@ Unity.exe -batchmode -quit -projectPath <项目> ^
 4. 改**数值**：只改 `Assets/Data/**` 下的 SO，不碰代码，也不要跑 `Build/Prefabs`；
 5. 改**玩法**：优先在 `GameEvents` 加事件，避免模块间直接引用；
 6. 每次改完：关闭 Editor → batchmode 生成/校验 → 看 `Temp/build.log` 是否有 `BUILD_OK`；
-7. 跑 EditMode / PlayMode 全量测试，当前基线 `76/76`、`33/33`。
+7. 跑 EditMode / PlayMode 全量测试，当前基线 `81/81`、`34/34`。
 

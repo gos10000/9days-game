@@ -158,7 +158,7 @@ AnimParams.State / Grounded / AimPower / Hit / GetUp   // StringToHash 常量
 
 ## 9. 已知限制
 
-1. **无自动化契约测试**：没有 asmdef，测试程序集无法引用运行时程序集；当前只靠 `BuildCheck` 验结构
+1. **无自动化契约测试**：项目已有 asmdef 和测试程序集，但尚未覆盖 Animator 参数契约；当前只靠 `BuildCheck` 验结构
 2. **骨骼皮肤未实测**：`spriteLibrary` 只在代码里写入了 `SpriteLibrary.spriteLibraryAsset`，没有真实骨骼资源验证过
 3. **`ApplySkin` 每次都会 `Instantiate`**：频繁换皮肤（选人界面来回切）建议后续加对象池
 4. `character.StateChanged` 只在状态"变化"时触发；`ApplySkin` 内部主动调用一次 `OnStateChanged` 来补齐初值
@@ -178,7 +178,7 @@ AnimParams.State / Grounded / AimPower / Hit / GetUp   // StringToHash 常量
 
 - [ ] 真实美术接入（序列帧 + 骨骼各一套）
 - [ ] 骨骼皮肤实测（`SpriteLibraryAsset` 切换 + Sprite Skin 表现）
-- [ ] 皮肤契约自动校验（补 asmdef 后写成 EditMode 测试）
+- [ ] 皮肤契约自动校验（补 EditMode 测试）
 - [ ] 选人界面：预览 + `ApplySkin` + `icon`
 - [ ] 皮肤资源按需加载（Addressables）与对象池
 

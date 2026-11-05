@@ -29,11 +29,11 @@
 | `Scripts/Editor/PrefabFactory.cs` | 生成器 | 皮肤 → 内容配置 → 子弹 → 材质 → 角色 → 变体 |
 | `Scripts/Editor/UIFactory.cs` | 生成器 | UIRoot / 占位页 / UIPageCatalog |
 | `Scripts/Editor/SettingsFactory.cs` | 生成器 | 玩家设置默认值资产；已存在不覆盖 |
-| `Scripts/Editor/ArenaBuilder.cs` | 生成器 | 重建 `TestArena.unity`，接入 UI 与相机组件 |
+| `Scripts/Editor/ArenaBuilder.cs` | 生成器 | 重建 `TestArena.unity`，接入 UI / 相机 / `BattleInputController` |
 | `Scripts/Editor/BuildCheck.cs` | 校验 | 生成后断言，失败抛 `UnityException` |
 | `Scripts/Editor/BuildPipeline.cs` | 入口 | 3 个菜单 + `BuildPrefabsBatch` / `BuildAllBatch` |
 
-> 编辑脚本在 `Assets/Scripts/Editor/`，由 `NineDays.Editor.asmdef` 编入 Editor-only 程序集，并引用 `NineDays.Game`；不是旧版的 `Assembly-CSharp-Editor`。
+> 编辑脚本在 `Assets/Scripts/Editor/`，由 `NineDays.Editor.asmdef` 编入 Editor-only 程序集，并引用所有运行时程序集；不是旧版的 `Assembly-CSharp-Editor`。完整拆分见 `../asmdef/Asmdef.md`。
 
 ## 1. ProjectSetup
 
@@ -133,10 +133,11 @@ ArenaBuilder.Build()   // 菜单：9Days/Build/Test Arena
 6. 角色实例：`PrefabUtility.InstantiatePrefab`，P1 `(-5,-3.7)` / P2 `(5,-3.7)`；
 7. `TurnController`：角色列表、`firstTeam = Player1`、`autoStart = false`、`autoAdvance = false`；
 8. `BattleController`：`BattleConfig` + `TurnController` + `ArenaController` + 角色；
-9. `DebugHUD` / `TurnBanner`：调试 HUD、回合提示；
-10. `UIRoot`：实例化 prefab，`startupPageId = Placeholder`；
-11. `ProjectilePool`：预热 `TestBall`；
-12. `SaveScene` + `OpenScene`。
+9. `BattleInputController`：引用 `TurnController`，启用玩法输入；
+10. `DebugHUD` / `TurnBanner`：调试 HUD、回合提示；
+11. `UIRoot`：实例化 prefab，`startupPageId = Placeholder`；
+12. `ProjectilePool`：预热 `TestBall`；
+13. `SaveScene` + `OpenScene`。
 
 **覆盖行为**：每次执行都会重建场景，**场景里的手动修改会丢失**。日常只用 `BuildPrefabsBatch`。
 
@@ -144,7 +145,7 @@ ArenaBuilder.Build()   // 菜单：9Days/Build/Test Arena
 
 ## 5. BuildCheck
 
-`ValidateAll()` 覆盖角色、皮肤、子弹、内容配置、玩家设置默认值、UI、地形和 TestArena 场景（含相机组件）。
+`ValidateAll()` 覆盖角色、皮肤、子弹、内容配置、玩家设置默认值、UI、地形和 TestArena 场景（含相机组件、`BattleInputController`）。
 
 ### 角色（对 Base / P1 / P2 都跑）
 
@@ -175,7 +176,8 @@ ArenaBuilder.Build()   // 菜单：9Days/Build/Test Arena
 
 - 玩家设置默认值资产存在，且 `PlayerSettingsValidator.Normalize` 能通过；
 - UI catalog、页面 prefab、`UIRoot.catalog` 引用有效；
-- TestArena 主相机是正交、Tag = MainCamera，含 `CameraRig` / `CameraDirector` / `BattleCameraController` 与完整引用。
+- TestArena 主相机是正交、Tag = MainCamera，含 `CameraRig` / `CameraDirector` / `BattleCameraController` 与完整引用；
+- TestArena 有 `BattleInputController`，且 `turnController` 引用非空。
 
 失败统一 `throw new UnityException("[BuildCheck] ...")`。
 
@@ -269,11 +271,11 @@ dotnet "<Unity>\Editor\Data\DotNetSdkRoslyn\csc.dll" `
 
 ### 当前测试基线
 
-- EditMode **76/76 Passed**
-- PlayMode **33/33 Passed**
-- `BuildAllBatch` = `BUILD_OK`，`BuildCheck` 覆盖角色/配置/UI/场景/玩家设置默认值/相机组件
+- EditMode **81/81 Passed**
+- PlayMode **34/34 Passed**
+- `BuildAllBatch` = `BUILD_OK`，`BuildCheck` 覆盖角色/配置/UI/场景/玩家设置默认值/相机组件/输入路由
 
-测试程序集位于 `Assets/Tests`，已有 Editor-only / PlayMode 两个 asmdef；旧文档中"无 asmdef、测试延后"的说法已失效。
+测试程序集位于 `Assets/Tests`，已有 Editor-only / PlayMode 两个 asmdef，且已引用拆分后的运行时程序集；旧文档中"无 asmdef、测试延后"的说法已失效。
 
 ## 12. 接手检查清单
 

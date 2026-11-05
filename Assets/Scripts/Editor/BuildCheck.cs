@@ -24,6 +24,7 @@ namespace NineDays.EditorTools
             ValidateSceneArena();
             ValidateSceneUI();
             ValidateSceneCamera();
+            ValidateSceneInput();
             Debug.Log("[BuildCheck] 结构校验全部通过");
         }
 
@@ -230,6 +231,18 @@ namespace NineDays.EditorTools
             Require(battleCamera != null, "TestArena 的 Main Camera 缺 BattleCameraController");
             Require(EditorAssets.GetRef(battleCamera, "director") != null, "BattleCameraController.director 为空");
             Require(EditorAssets.GetRef(battleCamera, "turnController") != null, "BattleCameraController.turnController 为空");
+        }
+
+        /// <summary>测试场景必须有独立输入路由，并连到回合控制器。</summary>
+        private static void ValidateSceneInput()
+        {
+            Scene active = SceneManager.GetActiveScene();
+            if (active.path != EditorAssets.TestArenaScenePath) return;
+
+            BattleInputController input = UnityEngine.Object.FindAnyObjectByType<BattleInputController>();
+            Require(input != null, "TestArena 缺 BattleInputController");
+            Require(EditorAssets.GetRef(input, "turnController") != null,
+                    "BattleInputController.turnController 为空");
         }
 
         /// <summary>测试场景必须在场时检查对象池；只跑 Prefab 构建时跳过。</summary>
