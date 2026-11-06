@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Reflection;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -19,10 +20,10 @@ namespace NineDays.Tests.PlayMode
         [UnitySetUp]
         public IEnumerator SetUp()
         {
-            player1 = CreateCharacter("InputTest_P1");
+            player1 = CreateCharacter("InputTest_P1", Team.Player1);
             player1Launcher = player1.GetComponent<CharacterLauncher>();
 
-            player2 = CreateCharacter("InputTest_P2");
+            player2 = CreateCharacter("InputTest_P2", Team.Player2);
             player2Launcher = player2.GetComponent<CharacterLauncher>();
 
             turnGo = new GameObject("InputTest_Turn");
@@ -72,11 +73,15 @@ namespace NineDays.Tests.PlayMode
             Assert.IsFalse(player2Launcher.IsAiming);
         }
 
-        private static GameObject CreateCharacter(string name)
+        /// <summary>创建测试角色并显式指定队伍，避免 TurnController 自动收集顺序不确定。</summary>
+        private static GameObject CreateCharacter(string name, Team team)
         {
             var go = new GameObject(name);
             go.AddComponent<Rigidbody2D>();
-            go.AddComponent<Character>();
+            Character character = go.AddComponent<Character>();
+            FieldInfo teamField = typeof(Character).GetField("team",
+                BindingFlags.Instance | BindingFlags.NonPublic);
+            if (teamField != null) teamField.SetValue(character, team);
             go.AddComponent<CharacterLauncher>();
             return go;
         }

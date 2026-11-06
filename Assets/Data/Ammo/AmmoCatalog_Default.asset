@@ -9,8 +9,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2c64b24019232f447b9b7f2983047ce8, type: 3}
-  m_Name: UIPageCatalog_Playmode
+  m_Script: {fileID: 11500000, guid: e5514f0b358ce2b458b354e629943164, type: 3}
+  m_Name: AmmoCatalog_Default
   m_EditorClassIdentifier: 
-  pages:
-  - {fileID: 11400000, guid: 45aa66408b177ed40a0c7fa6d09673d5, type: 2}
+  ammo:
+  - {fileID: 11400000, guid: 5db4f9100a4936b42904471154df72ff, type: 2}
+  - {fileID: 11400000, guid: 4bdade2815d032d498069f0c03ac563d, type: 2}

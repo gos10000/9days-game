@@ -1,0 +1,19 @@
+{
+    "name": "NineDays.Flow",
+    "rootNamespace": "NineDays",
+    "references": [
+        "NineDays.Battle",
+        "NineDays.Game",
+        "NineDays.UI",
+        "NineDays.Input"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

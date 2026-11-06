@@ -6,6 +6,7 @@
         "NineDays.Battle",
         "NineDays.Camera",
         "NineDays.Debug",
+        "NineDays.Flow",
         "NineDays.Input",
         "NineDays.Settings",
         "NineDays.UI"

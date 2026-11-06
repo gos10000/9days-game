@@ -23,6 +23,9 @@ namespace NineDays
         [Tooltip("结算最长等待时间，超时强制换人")]
         [SerializeField] private float resolveTimeout = 3f;
 
+        [Tooltip("找不到对手角色时（如开始页只有一名角色），结算后仍由当前队继续行动")]
+        [SerializeField] private bool repeatWhenOpponentMissing;
+
         private float resolveTimer;
         private Team turnActor = Team.None;
         private bool shotFiredThisTurn;
@@ -184,7 +187,12 @@ namespace NineDays
             TurnResolved?.Invoke(result);
             GameEvents.RaiseTurnEnded(finished);
 
-            if (autoAdvance) BeginTurn(OpponentOf(finished));
+            if (autoAdvance)
+            {
+                Team next = OpponentOf(finished);
+                if (repeatWhenOpponentMissing && GetCharacter(next) == null) next = finished;
+                BeginTurn(next);
+            }
         }
 
         /// <summary>结算完成：场上没有子弹，且双方都停稳。</summary>

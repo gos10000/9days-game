@@ -31,10 +31,25 @@ namespace NineDays
         private Vector2 dragOrigin;
         private Vector2 pointerWorld;
         private float aimPower;
+        private Projectile selectedPrefab;
 
         public bool IsAiming => aiming;
         public float AimPower => aimPower;
         public Camera TargetCamera => targetCamera != null ? targetCamera : Camera.main;
+        public Projectile ActiveProjectilePrefab =>
+            selectedPrefab != null ? selectedPrefab : projectilePrefab;
+
+        /// <summary>选弹后覆盖本角色默认发射 prefab；null 表示回退默认。</summary>
+        public void SetProjectilePrefab(Projectile prefab)
+        {
+            selectedPrefab = prefab;
+        }
+
+        /// <summary>清除选弹覆盖，下一发使用 Inspector 默认 prefab。</summary>
+        public void ResetProjectilePrefab()
+        {
+            selectedPrefab = null;
+        }
 
         private void Awake()
         {
@@ -103,7 +118,8 @@ namespace NineDays
             aiming = false;
             HideAimLine();
 
-            if (projectilePrefab == null)
+            Projectile prefab = ActiveProjectilePrefab;
+            if (prefab == null)
             {
                 CancelAim();
                 return;
@@ -119,7 +135,7 @@ namespace NineDays
             Vector2 direction = -pull.normalized;
             float speed = Mathf.Lerp(minLaunchSpeed, maxLaunchSpeed, aimPower);
 
-            Projectile projectile = ShotSpawner.Spawn(projectilePrefab, character, direction, speed);
+            Projectile projectile = ShotSpawner.Spawn(prefab, character, direction, speed);
             if (projectile == null)
             {
                 CancelAim();
