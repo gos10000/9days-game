@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 namespace NineDays
 {
@@ -12,8 +11,8 @@ namespace NineDays
     public sealed class RockReset : MonoBehaviour
     {
         [Header("重置")]
-        [Tooltip("重开键；Key 是 Input System 的枚举，不是 KeyCode")]
-        [SerializeField] private Key resetKey = Key.R;
+        [Tooltip("重开键由输入层统一映射：GameInputAction.Restart → R 键（见 UnityInputSource）")]
+        [SerializeField] private bool enableKeyboardReset = true;
 
         private Projectile projectile;
 
@@ -24,7 +23,8 @@ namespace NineDays
 
         private void Update()
         {
-            if (InputRouter.KeyPressed(resetKey)) ResetNow();
+            if (!enableKeyboardReset) return;
+            if (GameInput.WasPressed(GameInputAction.Restart)) ResetNow();
         }
 
         /// <summary>也可以给 UI 按钮或调试热键调用。</summary>

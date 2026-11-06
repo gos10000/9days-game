@@ -28,13 +28,13 @@ namespace NineDays
         [SerializeField] private bool toggleWithEscape = true;
 
         /// <summary>暂停中：其它输入入口（瞄准/发射）应据此屏蔽。</summary>
-        public static bool IsPaused { get; private set; }
+        public static bool IsPaused => GamePause.IsPaused;
 
         private float cachedTimeScale = 1f;
 
         private void Awake()
         {
-            IsPaused = false;
+            GamePause.IsPaused = false;
 
             if (battleController == null) battleController = FindAnyObjectByType<BattleController>();
 
@@ -53,13 +53,13 @@ namespace NineDays
 
             // 场景切换 / 停止播放时不要把 timeScale 留在 0
             if (IsPaused) RestoreTimeScale();
-            IsPaused = false;
+            GamePause.IsPaused = false;
         }
 
         private void Update()
         {
             if (!toggleWithEscape) return;
-            if (InputRouter.EscapePressed) Toggle();
+            if (GameInput.ConsumeCancel()) Toggle();
         }
 
         public void Toggle()
@@ -72,7 +72,7 @@ namespace NineDays
         {
             if (IsPaused) return;
 
-            IsPaused = true;
+            GamePause.IsPaused = true;
             cachedTimeScale = Time.timeScale > 0f ? Time.timeScale : 1f;
             Time.timeScale = 0f;
 
@@ -83,7 +83,7 @@ namespace NineDays
         {
             if (!IsPaused) return;
 
-            IsPaused = false;
+            GamePause.IsPaused = false;
             RestoreTimeScale();
 
             if (panelRoot != null) panelRoot.SetActive(false);
@@ -107,7 +107,7 @@ namespace NineDays
         public void ReturnToStartScene()
         {
             Time.timeScale = 1f;
-            IsPaused = false;
+            GamePause.IsPaused = false;
 
             if (string.IsNullOrEmpty(startSceneName))
             {

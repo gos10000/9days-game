@@ -55,7 +55,7 @@ namespace NineDays
             if (character == null) return;
 
             // 暂停只停物理与 timeScale，Update 仍会跑，所以这里必须显式挡掉瞄准与发射
-            if (PauseMenu.IsPaused)
+            if (GamePause.IsPaused)
             {
                 if (aiming) CancelAim();
                 return;
