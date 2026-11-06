@@ -58,7 +58,7 @@
 | 文件 | 修改 |
 |---|---|
 | `Scripts/Editor/EditorAssets.cs` | 新增 `PlayerSettingsDefaultsPath` |
-| `Scripts/Editor/BuildPipeline.cs` | BuildPrefabs / BuildAll / 两个 Batch 路径调用 `SettingsFactory` |
+| `Scripts/Editor/BuildPipeline.cs` | BuildPrefabs / BuildAll / BuildArena / 两个 Batch 路径调用 `SettingsFactory` |
 | `Scripts/Editor/BuildCheck.cs` | 新增 `ValidateSettings()`，检查默认值资产与规范化 |
 | `Docs/agent/README.md` | 新增 Settings 索引 |
 
@@ -215,7 +215,8 @@ public interface ISettingsApplier
 - `BuildCheck.ValidateSettings()`：
   - 默认资产存在；
   - `audio/display` 分组存在；
-  - `PlayerSettingsValidator.Normalize` 成功。
+  - `PlayerSettingsValidator.Normalize` 成功；
+- `SettingsFactory` 只创建缺失默认资产，不覆盖已有默认值；内容配置生成仍由 `PrefabFactory` 负责，二者的覆盖行为不要混淆。
 
 ---
 
@@ -237,11 +238,11 @@ public interface ISettingsApplier
 10. Applier 按 `Order` 执行；
 11. 未初始化访问 `Current` 抛异常。
 
-结果：**EditMode 76/76 Passed**（2026-11-04，含镜头模块新增 6 个用例）。
+结果：**EditMode 81/81 Passed**（2026-11-05，全量）。
 
 ### PlayMode
 
-现有 PlayMode 测试不依赖 Settings 场景对象；全量回归 **33/33 Passed**（2026-11-04，含镜头模块新增 3 个用例）。
+现有 PlayMode 测试不依赖 Settings 场景对象；全量回归 **34/34 Passed**（2026-11-05）。
 
 ### 构建
 
@@ -258,7 +259,8 @@ public interface ISettingsApplier
 - [ ] `PlayerSettingsDefaults.SetValues` 是公开方法，运行时按约定不应调用；
 - [ ] Bootstrap 未自动放入 TestArena，因为当前没有设置页面；
 - [ ] 新增数据结构后，旧 JSON 缺字段会得到 C# 默认值；需要时补 `PlayerSettingsMigration`；
-- [ ] 没有测试实际 `Screen.SetResolution` 与音频效果，避免编辑器/CI 环境副作用。
+- [ ] 没有测试实际 `Screen.SetResolution` 与音频效果，避免编辑器/CI 环境副作用；
+- [ ] `PrefabFactory` 仍会重写内容配置（角色/战斗/子弹）；玩家设置默认值不受影响，但调内容数值时不要顺手跑 `Build/Prefabs`。
 
 ---
 

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 namespace NineDays
 {
@@ -248,34 +247,6 @@ namespace NineDays
                 if (c != null && !c.IsSettled) return false;
             }
             return true;
-        }
-    }
-
-    /// <summary>输入路由：所有鼠标 / 键盘读取都走这里，将来换手柄只改这一个类。</summary>
-    public static class InputRouter
-    {
-        public static bool HasPointer => Mouse.current != null;
-        public static Vector2 PointerScreen => Mouse.current != null ? Mouse.current.position.ReadValue() : Vector2.zero;
-        public static bool LeftPressed => Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame;
-        public static bool LeftReleased => Mouse.current != null && Mouse.current.leftButton.wasReleasedThisFrame;
-        public static bool LeftHeld => Mouse.current != null && Mouse.current.leftButton.isPressed;
-        public static bool RightPressed => Mouse.current != null && Mouse.current.rightButton.wasPressedThisFrame;
-        public static bool EscapePressed => Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame;
-
-        /// <summary>屏幕坐标 → 世界坐标（假设玩法平面在 z = 0）。</summary>
-        public static Vector2 PointerWorld(Camera cam)
-        {
-            if (cam == null) cam = Camera.main;
-            if (cam == null) return Vector2.zero;
-
-            Vector3 screen = PointerScreen;
-            screen.z = Mathf.Abs(cam.transform.position.z);
-            return cam.ScreenToWorldPoint(screen);
-        }
-
-        public static bool KeyPressed(Key key)
-        {
-            return Keyboard.current != null && Keyboard.current[key].wasPressedThisFrame;
         }
     }
 }

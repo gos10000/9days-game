@@ -6,7 +6,7 @@ namespace NineDays
     /// 拖拽瞄准 + 发射（两人轮流用鼠标）。只有当前回合角色（CanAct）才能操作。
     /// 瞄准方向 = 从鼠标指向角色的反方向（拉弓手感），力度 = 拖拽距离。
     /// </summary>
-    public class CharacterLauncher : MonoBehaviour
+    public class CharacterLauncher : MonoBehaviour, IAimInputReceiver
     {
         [Header("引用")]
         [SerializeField] private Character character;
@@ -34,6 +34,7 @@ namespace NineDays
 
         public bool IsAiming => aiming;
         public float AimPower => aimPower;
+        public Camera TargetCamera => targetCamera != null ? targetCamera : Camera.main;
 
         private void Awake()
         {
@@ -48,7 +49,8 @@ namespace NineDays
             }
         }
 
-        private void Update()
+        /// <summary>由 BattleInputController 在按下左键时调用；只允许当前可操作角色进入瞄准。</summary>
+        public void BeginAim(Vector2 pointerWorld)
         {
             if (character == null) return;
 
@@ -61,33 +63,29 @@ namespace NineDays
 
             if (targetCamera == null) targetCamera = Camera.main;
 
-            pointerWorld = InputRouter.PointerWorld(targetCamera);
+            // 只有当前回合可操作、且尚未处于瞄准中的角色才能起手
+            if (aiming || !character.CanAct) return;
 
-            if (!character.CanAct)
-            {
-                if (aiming) CancelAim();
-                return;
-            }
-
-            if (!aiming && InputRouter.LeftPressed) BeginAim();
-            if (!aiming) return;
-
-            UpdateAim();
-
-            if (InputRouter.LeftReleased) Fire();
-            else if (InputRouter.RightPressed || InputRouter.EscapePressed) CancelAim();
-        }
-
-        private void BeginAim()
-        {
+            this.pointerWorld = pointerWorld;
             aiming = true;
             dragOrigin = pointerWorld;
             aimPower = 0f;
             character.BeginAim();
         }
 
-        private void UpdateAim()
+        /// <summary>拖拽过程中更新拉拽方向、力度和瞄准线。</summary>
+        public void UpdateAim(Vector2 pointerWorld)
         {
+            if (!aiming) return;
+
+            if (character == null || !character.CanAct)
+            {
+                CancelAim();
+                return;
+            }
+
+            this.pointerWorld = pointerWorld;
+
             Vector2 pull = GetPullVector(out float distance);
             aimPower = Mathf.Clamp01(distance / Mathf.Max(maxDragDistance, 0.01f));
 
@@ -95,6 +93,21 @@ namespace NineDays
             character.FaceTo((Vector2)character.AimPivot.position - pull);
 
             UpdateAimLine(pull);
+        }
+
+        /// <summary>松开左键时调用；距离过短或没有子弹 prefab 会取消瞄准。</summary>
+        public void ReleaseAim(Vector2 pointerWorld)
+        {
+            if (!aiming) return;
+
+            if (character == null || !character.CanAct)
+            {
+                CancelAim();
+                return;
+            }
+
+            this.pointerWorld = pointerWorld;
+            Fire();
         }
 
         private void Fire()
@@ -161,7 +174,8 @@ namespace NineDays
             if (aimLine != null) aimLine.enabled = false;
         }
 
-        private void CancelAim()
+        /// <summary>取消当前瞄准并清理角色瞄准状态和瞄准线。</summary>
+        public void CancelAim()
         {
             aiming = false;
             aimPower = 0f;

@@ -2,11 +2,10 @@
     "name": "NineDays.Game",
     "rootNamespace": "NineDays",
     "references": [
-        "Unity.InputSystem",
+        "NineDays.Input",
         "Unity.2D.Animation.Runtime",
         "Unity.2D.Common.Runtime",
-        "Unity.VisualScripting.Core",
-        "UnityEngine.UI"
+        "Unity.VisualScripting.Core"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

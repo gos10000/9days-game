@@ -119,6 +119,8 @@ ContinueAfterTurn()  等待行动后间隔 → NextTurn()
 
 `EndTurn` 现在会先把 `CurrentTeam = Team.None`，再发 `TurnResolved` / `TurnEnded`，最后按 `autoAdvance` 决定是否自己开下一回合。
 
+输入已从本文件抽离：`TurnController` 不再包含 `InputRouter`，改由 `Battle/BattleInputController` 把鼠标/键盘转发给当前回合的 `CharacterLauncher`。
+
 ## 4. BattleController 场景接入
 
 - `Awake`：解析 `TurnController` 并调用 `UseExternalDriver()`
@@ -149,14 +151,18 @@ ContinueAfterTurn()  等待行动后间隔 → NextTurn()
 
 ## 6. 自动验收 asmdef 规则
 
-### 三个 asmdef
+### 程序集分工
 
-| 文件 | 关键设置 | 作用 |
+战斗相关代码在 `NineDays.Battle`；`Game` 是玩法聚合层，`Input` 是独立设备层。完整清单和依赖图见 `Docs/agent/asmdef/Asmdef.md`。
+
+| 程序集 | 关键设置 | 作用 |
 |---|---|---|
-| `Assets/Scripts/NineDays.Game.asmdef` | 引用 InputSystem / 2D Animation / VisualScripting；`autoReferenced: true` | 运行时代码（含队友脚本） |
-| `Assets/Scripts/Editor/NineDays.Editor.asmdef` | `includePlatforms: ["Editor"]`；引用 Game | 编辑器工具 |
-| `Assets/Tests/EditMode/NineDays.Tests.asmdef` | `includePlatforms: ["Editor"]` + `optionalUnityReferences: ["TestAssemblies"]` + 只引用 `NineDays.Game` | EditMode 测试 |
-| `Assets/Tests/PlayMode/NineDays.Tests.PlayMode.asmdef` | `includePlatforms: []`（全平台）+ 同样的 marker | PlayMode 测试 |
+| `NineDays.Game` | 引用 `NineDays.Input` / 2D Animation；`autoReferenced: true` | Character / Bullet / Burst / Scene / Config / Events |
+| `NineDays.Battle` | 引用 `NineDays.Game` + `NineDays.Input` | BattleController / TurnController / BattleInputController |
+| `NineDays.Input` | 引用 `Unity.InputSystem` | 输入设备层 |
+| `NineDays.Editor` | `includePlatforms: ["Editor"]`；引用所有运行时程序集 | 编辑器工具 |
+| `NineDays.Tests` | `includePlatforms: ["Editor"]` + `optionalUnityReferences: ["TestAssemblies"]` + 引用被测模块 | EditMode 测试 |
+| `NineDays.Tests.PlayMode` | `includePlatforms: []`（全平台）+ 同样的 marker | PlayMode 测试 |
 
 **判定规则（Test Framework 源码 `EditorLoadedTestAssemblyProvider`）**：
 先按是否引用 `nunit.framework` / `UnityEngine.TestRunner` 过滤，再按 **程序集是否带 `EditorOnly` 标记** 分类：
@@ -172,7 +178,7 @@ Unity.exe -batchmode -projectPath <项目> ^
   -runTests -testPlatform PlayMode -testResults Temp\playmode.xml -logFile Temp\playmode.log
 ```
 
-结果：**EditMode 21/21、PlayMode 1/1**（2026-11-02 实测，退出码 0）。
+结果（全量基线）：**EditMode 81/81、PlayMode 34/34**（2026-11-05 实测）。
 
 ### PlayMode 用例内容
 

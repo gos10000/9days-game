@@ -89,6 +89,11 @@ namespace NineDays.EditorTools
             });
             EditorAssets.SetBool(battle, "autoStart", true);
 
+            var inputGo = new GameObject("BattleInputController");
+            var battleInput = inputGo.AddComponent<BattleInputController>();
+            EditorAssets.SetRef(battleInput, "turnController", turn);
+            EditorAssets.SetBool(battleInput, "enableGameplayInput", true);
+
             var hudGo = new GameObject("DebugHUD");
             var hud = hudGo.AddComponent<CombatDebugHud>();
             GameObject ballPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(EditorAssets.TestBallPath);

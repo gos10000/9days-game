@@ -264,7 +264,7 @@ TerrainBreakResult
 
 ### 5.2 与爆发的关系
 
-场景模块**不实现爆发**。以后爆发效果只需要构造 `TerrainBreakRequest` 调用 `ApplyTerrainBreak`：
+场景模块**不实现爆发逻辑**；`BurstTerrainEffect` 已通过 `TerrainBreakRequest` 调用 `ApplyTerrainBreak`，其他调用方也走同一入口：
 
 ```csharp
 arena.ApplyTerrainBreak(new TerrainBreakRequest(
@@ -329,10 +329,10 @@ arena.AppendTerrainBox("Stone", center, size);
 | EditMode | 轮廓提取、挖洞双轮廓、RDP 简化、破坏范围 Profile、默认配置搭建 |
 | PlayMode | 搭建层、破坏力门槛、不可破坏层、范围大小、追加、重开恢复、射线命中边界 |
 
-当前结果：
+当前结果（全量基线）：
 
-- EditMode **45/45**
-- PlayMode **19/19**
+- EditMode **81/81**
+- PlayMode **34/34**
 
 ### 手动验收
 
@@ -347,7 +347,8 @@ arena.AppendTerrainBox("Stone", center, size);
 6. 调用 `AppendTerrainCircle` 验证补地形。
 7. 按 `R` 重开，地形恢复。
 
-> 当前 `Projectile` 还没有接地形破坏；场景模块只提供接口，子弹/爆发接入后再从碰撞点调用。
+> 当前 `Projectile` 直接命中还没有接地形破坏；场景模块只提供接口。
+> `BurstTerrainEffect` 已通过 `ArenaController.ApplyTerrainBreak` 接入；以后子弹命中效果也走同一入口。
 
 ---
 

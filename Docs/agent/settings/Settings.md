@@ -3,19 +3,45 @@
 > 一句话：**玩家设置 = 默认值 SO + 本地 JSON + Service + Applier 接口**。  
 > 它不管理子弹、角色、皮肤等内容配置；内容仍由 prefab / `Assets/Scripts/Config` 承载。设置页面暂未实现。
 
+## 快速接入（先看）
+
+```text
+1. 默认值：Assets/Data/Settings/PlayerSettingsDefaults.asset
+2. 启动场景新建空物体，挂 PlayerSettingsBootstrap
+3. Bootstrap.defaults 指向默认值资产
+4. 需要显示设置时，在 Bootstrap 子节点挂 DisplaySettingsApplier
+5. 业务代码通过 PlayerSettingsService.Current / Update 读写
+```
+
+当前 `TestArena` 没有放置 `PlayerSettingsBootstrap`；要验证设置，需要手动放入启动场景。
+
+### 配置操作速查
+
+| 我想做什么 | 去哪里 | 是否重跑生成器 |
+|---|---|---|
+| 改默认音量 / 默认分辨率 | `Assets/Data/Settings/PlayerSettingsDefaults.asset` | 否 |
+| 改玩家当前值 | 运行时不会写回 SO；改 `persistentDataPath/NineDays/player-settings.json` 或调用 `ResetToDefaults()` | 否 |
+| 新增一个音量字段 | 数据类 + 默认值资产 + Validator + Applier | 否；新字段要补迁移 |
+| 新增一个设置分组 | 新数据类 + `PlayerSettingsData` 字段 + `Clone()` + Validator + Applier | 否 |
+| 替换存档方式 | 实现 `ISettingsStore`，初始化时注入 | 否 |
+| 接音频音量 | 新增 `AudioSettingsApplier`，读 `data.audio` | 否 |
+| 做设置页面 | 页面读取 `Current`，调用 `Update` / `Apply` | 否 |
+
 ## 目录
 
-1. [模块定位](#1-模块定位)
-2. [文件与职责](#2-文件与职责)
-3. [数据模型](#3-数据模型)
-4. [默认值资产](#4-默认值资产)
-5. [存档](#5-存档)
-6. [PlayerSettingsService](#6-playersettingsservice)
-7. [Applier 扩展点](#7-applier-扩展点)
-8. [Bootstrap](#8-bootstrap)
-9. [新增设置项 / 分组](#9-新增设置项--分组)
-10. [已知限制](#10-已知限制)
-11. [验收](#11-验收)
+- [快速接入](#快速接入先看)
+- [1. 模块定位](#1-模块定位)
+- [2. 文件与职责](#2-文件与职责)
+- [3. 数据模型](#3-数据模型)
+- [4. 默认值资产](#4-默认值资产)
+- [5. 存档](#5-存档)
+- [6. PlayerSettingsService](#6-playersettingsservice)
+- [7. Applier 扩展点](#7-applier-扩展点)
+- [8. Bootstrap](#8-bootstrap)
+- [9. 新增设置项 / 分组](#9-新增设置项--分组)
+- [10. 已知限制](#10-已知限制)
+- [11. 验收](#11-验收)
+- [常见问题](#常见问题)
 
 ---
 
@@ -92,10 +118,11 @@
 
 路径：`Assets/Data/Settings/PlayerSettingsDefaults.asset`
 
-- 由 `SettingsFactory.EnsureDefaultSettings()` 在 `Build/All` 或 `Build/Prefabs` 时创建；
-- 已存在时不覆盖，手调默认值不会被生成器重置；
+- 由 `SettingsFactory.EnsureDefaultSettings()` 创建；`Build/Prefabs`、`Build/All`、`Build/Test Arena` 以及两个 batchmode 入口都会调用；
+- 资产不存在时才创建；已存在时不覆盖，手调默认值不会被重置；
 - 资产内是一份 `PlayerSettingsData`，直接在 Inspector 修改；
-- `PlayerSettingsDefaults.CreateDefault()` 返回副本。
+- `PlayerSettingsDefaults.CreateDefault()` 返回副本；
+- `SetValues()` 只供编辑器生成器/测试使用，运行时应只读。
 
 默认值只作为“第一次启动 / 重置”的来源，**玩家当前值保存在本地 JSON，不写回 SO**。
 
@@ -225,7 +252,7 @@ Service 会按 `Order` 升序执行，单个 Applier 抛异常只会记录错误
 2. 在 `PlayerSettingsDefaults.asset` 里改默认值；
 3. 在 `PlayerSettingsValidator.Normalize` 里加范围钳制；
 4. 在对应 Applier 里应用；
-5. 设置页面（以后做）绑定控件；
+5. 设置页面（暂缓）绑定控件；
 6. 如果数据结构变化导致旧存档不兼容，在 `PlayerSettingsMigration.Upgrade` 里按版本补默认值。
 
 ### 新增一个分组（例如语言 / 键位）
@@ -263,5 +290,17 @@ Unity.exe -batchmode -quit -projectPath <项目> ^
 
 - 日志出现 `BUILD_OK`；
 - `Assets/Data/Settings/PlayerSettingsDefaults.asset` 存在；
-- EditMode 测试通过；
-- PlayMode 现有测试通过。
+- EditMode **81/81**、PlayMode **34/34**（当前全量基线）；
+- `BuildCheck` 会校验默认值资产和 `audio/display` 分组。
+
+## 常见问题
+
+| 现象 | 原因 / 处理 |
+|---|---|
+| 调用 `Current` 抛 `InvalidOperationException` | 场景没有 `PlayerSettingsBootstrap`，或 Bootstrap 的 `defaults` 为空 |
+| 改了默认值资产但启动没变化 | 本地 JSON 已存在，优先读玩家存档；删掉 JSON 或调用 `ResetToDefaults()` |
+| 改了默认值但 Build/Prefabs 后没变 | `SettingsFactory` 只创建缺失资产，不会覆盖已有默认值；检查是否改的是另一个资产 |
+| 音量滑条没效果 | 当前没有音频 Applier；音频系统接好后新增 `AudioSettingsApplier` |
+| 设置写入失败 | 看 `[Settings]` 警告；确认 `persistentDataPath/NineDays` 可写，检查 `.corrupt` 备份 |
+| 新增字段后旧存档是 0/false | JSON 缺字段会得到 C# 默认值；在 `PlayerSettingsMigration.Upgrade` 里按版本补默认值 |
+| 设置页面数据不刷新 | 页面订阅 `PlayerSettingsService.Changed`，并在回调重新读取 `Current` |

@@ -3,14 +3,6 @@ using System.Collections.Generic;
 
 namespace NineDays
 {
-    /// <summary>战斗中的一方（角色或测试替身）。</summary>
-    public interface IBattleParticipant
-    {
-        Team Team { get; }
-        float CurrentHealth { get; }
-        bool IsDefeated { get; }
-    }
-
     /// <summary>一次行动的驱动方：真实实现是 TurnController，测试用 Fake。</summary>
     public interface ITurnActionRunner
     {

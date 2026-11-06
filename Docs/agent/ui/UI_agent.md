@@ -23,13 +23,13 @@
 
 修改：
 
-- `Assets/Scripts/NineDays.Game.asmdef`：新增 `UnityEngine.UI` 引用
+- `Assets/Scripts/UI/NineDays.UI.asmdef`：新增 UI 程序集，引用 `NineDays.Input` / `Unity.InputSystem` / `UnityEngine.UI`
 - `Assets/Scripts/Editor/EditorAssets.cs`：新增 UI prefab / 数据路径常量
 - `Assets/Scripts/Editor/PrefabFactory.cs`：构建结束时调用 `UIFactory.BuildAll()`
 - `Assets/Scripts/Editor/BuildPipeline.cs`：`Build/Test Arena` 前先生成 UI 资源
 - `Assets/Scripts/Editor/ArenaBuilder.cs`：在 `TestArena` 实例化 `UIRoot.prefab`，并把 `startupPageId` 设为 `Placeholder`
 - `Assets/Scripts/Editor/BuildCheck.cs`：新增 `ValidateUI()`、`ValidateSceneUI()`
-- `Assets/Tests/PlayMode/NineDays.Tests.PlayMode.asmdef`：新增 `UnityEngine.UI` 引用
+- `Assets/Tests/PlayMode/NineDays.Tests.PlayMode.asmdef`：引用 `NineDays.UI` 和 `UnityEngine.UI`
 
 生成资源：
 
@@ -74,7 +74,7 @@
 
 - `UIRoot` 在 `EventSystem.current == null` 时创建 `EventSystem + InputSystemUIInputModule`
 - `InputSystemUIInputModule.AssignDefaultActions()` 确保运行时可用
-- `UIRoot.Update` 只在 `Router.CanGoBack` 时消费 Esc，避免抢角色的 Esc
+- `UIRoot.Update` 只在 `Router.CanGoBack` 时通过 `GameInput.ConsumeCancel()` 消费 Esc；`UIRoot` 执行顺序为 -100，先于角色输入
 
 ### 弹窗遮罩
 
@@ -131,8 +131,8 @@
 | 项 | 结果 |
 |---|---|
 | `BuildAllBatch` | `BUILD_OK`，`[BuildCheck] 结构校验全部通过` |
-| EditMode | **76/76 Passed** |
-| PlayMode | **33/33 Passed** |
+| EditMode | **81/81 Passed** |
+| PlayMode | **34/34 Passed** |
 
 新增测试覆盖：
 
@@ -151,12 +151,12 @@ Unity.exe -batchmode -projectPath <项目> -runTests -testPlatform PlayMode -tes
 
 ## 已知限制 / 待办
 
-1. 正式页面未实现：MainMenu、BattleHUD、Pause、Result、Settings 仍是 TODO
-2. `TurnBanner` 仍是 OnGUI（常驻顶部回合 HUD，无淡入淡出，`topMargin` / `panelWidth` / `panelHeight` 可调）；后续应迁移为 `BattleHUD` 页面
+1. 正式游戏页面未实现：MainMenu、BattleHUD、Pause、Result 仍是 TODO；Settings 页面按产品安排暂缓，但设置服务框架已在 `Docs/agent/settings/Settings.md`
+2. `TurnBanner` 仍是 OnGUI；后续应迁移为 `BattleHUD` 页面
 3. 页面资源同步 `Instantiate`；未接 Addressables/异步加载
 4. 占位页使用 legacy `Text`；正式 UI 建议 TMP
 5. `UIPageConfig.closeOnBack` 已参与 `Back()` 判断，但 `CloseAll` / 页面内显式 `Close()` 不受它限制
 6. 同一 pageId 只有一个实例；同页多实例需要改 `pageCache` 键
-7. `UIRoot.Update` 的 Esc 与角色输入目前是“UI 可返回时优先”，复杂输入上下文后续细化
+7. `UIRoot.Update` 的 Esc 统一走 `GameInput.ConsumeCancel()`，仍是“UI 可返回时优先”，复杂输入上下文后续细化
 8. `UIRoot` 销毁时不会逐个调用页面 `OnDispose`（页面随 GameObject 销毁）；需要释放非 Unity 资源时应显式 `Router.CloseAll()`
 9. `UIRoot` 的 Canvas 在运行时创建；编辑器场景里看不到 Canvas 预览，这是刻意的代码生成方式

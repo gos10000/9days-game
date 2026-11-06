@@ -18,7 +18,7 @@
 - [10. 验证记录](#10-验证记录)
 - [11. 待办](#11-待办)
 - [12. 接手检查清单](#12-接手检查清单)
-- [13. SkinAnimator 阶段机（2026-11-03 增补）](#13-skinanimator-阶段机2026-11-03-增补)
+- [13. SkinAnimator 阶段机](#13-skinanimator-阶段机)
 
 ---
 
@@ -113,8 +113,8 @@ AnimParams.State / Grounded / AimPower / Hit / GetUp   // StringToHash 常量
 
 - `CacheAnimatorParams()` 遍历 `animator.parameters`，把 `nameHash` 存入 `HashSet<int>`
 - 写入前判断 `Contains(hash)`，**缺参数静默跳过**（避免 Unity 刷警告、也支持空控制器）
-- 这是"软契约"：**没有自动化测试校验**（当前无 asmdef），只能靠文档 + 运行时表现
-- 将来补测试时建议：遍历所有 `CharacterSkin`，断言 `controller` 含这 5 个参数且类型正确
+- 这是"软契约"：当前自动化测试集中在框架/物理层，尚未逐个校验皮肤控制器的 5 个参数
+- 将来补测试时建议：遍历所有带有控制的皮肤资产，断言 `controller` 含这 5 个参数且类型正确；项目已有 EditMode / PlayMode 测试程序集
 
 ## 6. 占位皮肤的生成规格
 
@@ -158,7 +158,7 @@ AnimParams.State / Grounded / AimPower / Hit / GetUp   // StringToHash 常量
 
 ## 9. 已知限制
 
-1. **无自动化契约测试**：没有 asmdef，测试程序集无法引用运行时程序集；当前只靠 `BuildCheck` 验结构
+1. **无自动化契约测试**：项目已有 asmdef 和测试程序集，但尚未覆盖 Animator 参数契约；当前只靠 `BuildCheck` 验结构
 2. **骨骼皮肤未实测**：`spriteLibrary` 只在代码里写入了 `SpriteLibrary.spriteLibraryAsset`，没有真实骨骼资源验证过
 3. **`ApplySkin` 每次都会 `Instantiate`**：频繁换皮肤（选人界面来回切）建议后续加对象池
 4. `character.StateChanged` 只在状态"变化"时触发；`ApplySkin` 内部主动调用一次 `OnStateChanged` 来补齐初值
@@ -178,7 +178,7 @@ AnimParams.State / Grounded / AimPower / Hit / GetUp   // StringToHash 常量
 
 - [ ] 真实美术接入（序列帧 + 骨骼各一套）
 - [ ] 骨骼皮肤实测（`SpriteLibraryAsset` 切换 + Sprite Skin 表现）
-- [ ] 皮肤契约自动校验（补 asmdef 后写成 EditMode 测试）
+- [ ] 皮肤契约自动校验（补 EditMode 测试）
 - [ ] 选人界面：预览 + `ApplySkin` + `icon`
 - [ ] 皮肤资源按需加载（Addressables）与对象池
 
@@ -190,7 +190,7 @@ AnimParams.State / Grounded / AimPower / Hit / GetUp   // StringToHash 常量
 4. 改完跑 `9Days/Build/Prefabs`（会重新生成占位皮肤并覆盖 `Skin_Default/Alt`；**新增的皮肤文件不会被删**）
 5. 若手工改了 `Skin_Default.prefab` 后被重建覆盖，把改法固化到 `PrefabFactory.BuildSkin`
 
-## 13. SkinAnimator 阶段机（2026-11-03 增补）
+## 13. SkinAnimator 阶段机
 
 皮肤动画由 `SkinAnimator` 驱动（与 `Animator` 同挂皮肤 prefab 根，`RequireComponent(typeof(Animator))`），
 **按状态名 CrossFade，不依赖 `AnimParams`**（`AnimParams.Hit` 等仍是未接线的预留）。

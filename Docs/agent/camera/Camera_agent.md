@@ -261,7 +261,7 @@ Main Camera
 5. 视野大于场地时居中；
 6. `Expand` 的边界扩展。
 
-结果：**76/76 Passed**（含既有 70 个测试）。
+结果：**81/81 Passed**（全量基线；其中相机新增 6 个测试，后续另有输入测试 5 个）。
 
 ### PlayMode
 
@@ -271,7 +271,7 @@ Main Camera
 2. `CameraDirector` 双目标取景、`TargetCount`/`IsOverview`，之后回全景；
 3. `AddShake` 增加 trauma。
 
-结果：**33/33 Passed**（含既有 30 个测试）。
+结果：**34/34 Passed**（含既有 30 个测试）。
 
 ### 构建
 
