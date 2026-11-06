@@ -35,6 +35,8 @@
 | `9Days/Build/Prefabs (角色 + 皮肤 + 子弹)` | 生成皮肤 / 配置 / 子弹 / 角色 / 变体 + 地形默认配置 + 结构校验 | 改了 `PrefabFactory` |
 | `9Days/Build/Test Arena` | 重建 `TestArena.unity` | 改了 `ArenaBuilder`（**会覆盖场景手改**） |
 | `9Days/Build/All (Setup + Prefabs + Arena)` | 全量 | 从零搭环境 |
+| `9Days/UI/Build Battle Canvas (当前场景)` | 只在当前场景增量生成 `UICanvas`（HUD + 暂停菜单 + EventSystem），不重建场景 | 只想加/刷新战斗 UI |
+| `9Days/UI/Build Battle Canvas (TestArena)` | 先保存当前改动 → 打开 `TestArena` → 生成 `UICanvas` → 保存场景 | 常规刷新战斗 UI |
 
 ## 3. batchmode Unity 关闭时
 

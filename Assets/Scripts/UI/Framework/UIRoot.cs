@@ -138,7 +138,9 @@ namespace NineDays
 
         private void EnsureEventSystem()
         {
-            if (EventSystem.current != null) return;
+            // 用场景查找而不是 EventSystem.current：Awake 阶段 current 可能还没被 OnEnable 赋值，
+            // 会和场景里已有的 EventSystem 撞车（两个 EventSystem 会互相抢输入）
+            if (EventSystem.current != null || FindAnyObjectByType<EventSystem>() != null) return;
 
             createdEventSystem = new GameObject("EventSystem", typeof(EventSystem),
                                                  typeof(InputSystemUIInputModule));

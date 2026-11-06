@@ -3,7 +3,9 @@
     "rootNamespace": "NineDays.EditorTools",
     "references": [
         "NineDays.Game",
-        "Unity.2D.Animation.Runtime"
+        "Unity.2D.Animation.Runtime",
+        "Unity.InputSystem",
+        "UnityEngine.UI"
     ],
     "includePlatforms": [
         "Editor"

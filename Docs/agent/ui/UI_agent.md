@@ -152,7 +152,7 @@ Unity.exe -batchmode -projectPath <项目> -runTests -testPlatform PlayMode -tes
 ## 已知限制 / 待办
 
 1. 正式页面未实现：MainMenu、BattleHUD、Pause、Result、Settings 仍是 TODO
-2. `TurnBanner` 仍是 OnGUI；后续应迁移为 `BattleHUD` 页面
+2. `TurnBanner` 仍是 OnGUI（常驻顶部回合 HUD，无淡入淡出，`topMargin` / `panelWidth` / `panelHeight` 可调）；后续应迁移为 `BattleHUD` 页面
 3. 页面资源同步 `Instantiate`；未接 Addressables/异步加载
 4. 占位页使用 legacy `Text`；正式 UI 建议 TMP
 5. `UIPageConfig.closeOnBack` 已参与 `Back()` 判断，但 `CloseAll` / 页面内显式 `Close()` 不受它限制

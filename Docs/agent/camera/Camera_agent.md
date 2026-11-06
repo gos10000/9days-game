@@ -106,6 +106,16 @@ CameraRig（平滑 + 震动 + Camera 写入）
 - 每帧只写 x/y 和 `orthographicSize`；
 - 不做旋转、倾斜、透视。
 
+### 2.5 开场介绍（追加）
+
+- 需求：进场景后先分别特写双方（P1 → P2），中间平滑移动，然后回到常规回合镜头；
+- 方案：在适配层 `BattleCameraController` 播协程，`CameraDirector` 只增加「临时缩放覆盖 + 单目标」的能力，
+  保持「Director 不认玩法事件」的分层；
+- 第一个目标 **snap**（硬切），第二个 **平滑**——如果第一个也平滑，会先看到一段无意义的推镜；
+- 特写**不做边界夹取**，否则贴边的角色会被推到画面侧边（主场景 P1 在 `x≈-5.66`，紧贴 `playArea` 左边）；
+- `CameraDirector.Start` 增加守卫，避免它自己的全景初始化把抢先设置的特写覆盖掉
+  （`StartCoroutine` 在 `Start` 里同步执行到第一个 yield 之前，两个 `Start` 的先后不确定）。
+
 ---
 
 ## 3. 取景数学
@@ -156,13 +166,23 @@ size = max(bounds.height/2, bounds.width/(2*aspect)) + overviewPadding
 
 - `rig` 为空时自动 `GetComponent<CameraRig>()`；
 - `bounds` 为空时 `FindAnyObjectByType<ArenaBounds>()`；
-- `Start` 若有 bounds 则 `ShowOverview(true)`；
+- `Start` 仅在 `targets.Count == 0 && !sizeOverride` 时 `ShowOverview(true)`（避免覆盖外部抢先设置的开场特写）；
 - `LateUpdate` 清理销毁目标，空列表自动全景，重新计算姿态；
-- `SetTargets` 最多保留 `maxTargets` 个；
+- `SetTargets` 最多保留 `maxTargets` 个，并清掉特写缩放覆盖；
 - `AddTarget` / `RemoveTarget` 供子弹跟踪；
 - `AddShake` 转发给 Rig。
 
-无边界场景当前不会更新姿态；这是限制，不是 bug。
+特写相关（开场介绍引入）：
+
+| 成员 | 说明 |
+|---|---|
+| `sizeOverride` / `overrideSize`（私有） | 临时缩放覆盖，常规取景时为 false |
+| `FocusSingle(Transform, float size, bool snap)` | 单目标特写；`RefreshPose` 命中该分支时**直接 `CameraPose(target.position, overrideSize)`，不做边界夹取** |
+| `ClearSizeOverride()` | 清覆盖并重算一次；`SetTargets` / `ShowOverview` 也会隐式清掉 |
+
+`RefreshPose` 里特写分支被放在 `bounds == null` 检查**之前**——所以没有 `ArenaBounds` 的场景也能播特写，常规取景仍然需要边界。
+
+特写不夹取边界是有意的：主场景 P1 在 `x≈-5.66`，紧贴 `playArea` 左边（`x=-10`），按 `ClampCenter` 算会被推进约 1 个单位，角色就不在画面正中，特写会歪。
 
 ---
 
@@ -191,6 +211,17 @@ turnTargets（双方）
 ```
 
 `turnController` 为空时从 `characters` 列表按 Team 查找，兼容非 BattleController 场景。
+
+### 开场介绍（`IntroRoutine`）
+
+- `Start()` → `StartIntro()`；`playIntro` 为 false 或 `director` 为空则跳过；
+- 序列：`FocusSingle(first, introOrthographicSize, snap=true)` → 停 `introHoldSeconds` →
+  `FocusSingle(second, …, snap=false)`（平滑由 `CameraRig` 的 `positionSmoothTime/sizeSmoothTime` 决定） →
+  停 `introMoveSeconds + introHoldSeconds` → `ClearSizeOverride()` → `RestoreNormalTargets()`；
+- `RestoreNormalTargets()`：`CurrentTeam != None` 就重进 `OnTurnStarted(team)`（恢复「行动者 + 对手」构图），否则 `ApplyTargets(false)`；
+- `introPlaying` 期间：`OnBattleStarted` / `OnTurnStarted` / `ApplyTargets` 全部提前 return，避免被回合事件抢镜；
+- `OnDisable` → `StopIntro()`：停协程、复位 `introPlaying`、清缩放覆盖；
+- 协程里结束用的是 `yield break;`（迭代器里写 `return;` 会报 `CS1622`）。
 
 ---
 
@@ -251,11 +282,14 @@ Main Camera
 ## 9. 已知限制与待办
 
 - [ ] 没有瞄准 look-ahead、命中点短暂聚焦、结算专属构图；
+- [x] 开场介绍（P1 → P2 特写）已实现，见 §6 `IntroRoutine`；
+- [ ] 开场介绍期间不锁输入：玩家仍可拖拽发射，只是镜头还在播序列；需要时在 `TurnController` 加临时的 `introLock`；
+- [ ] 开场介绍只在场景启动播一次；`RestartBattle()` 走 `BattleStarted` → 全景，需要每局都播就把 `OnBattleStarted` 改成调用 `StartIntro()`；
 - [ ] 没有 Cinemachine / Timeline；
 - [ ] 取景只用 Transform 点，不按角色 SpriteRenderer / Collider 包围盒计算；
 - [ ] 震动按冲量粗略映射，未接玩家设置；
-- [ ] `CameraDirector` 无 `ArenaBounds` 时不更新，纯自定义场景要手动指定；
-- [ ] `CameraDirector.Start` 会强制全景，若外部在 Start 前设置自定义姿态会被覆盖；
+- [ ] `CameraDirector` 常规取景无 `ArenaBounds` 时不更新；特写（`FocusSingle`）不依赖边界；
+- [x] `CameraDirector.Start` 已加守卫（`targets.Count == 0 && !sizeOverride` 才播全景），不会再覆盖外部抢先设置的特写姿态；
 - [ ] 多个 CameraDirector 同时存在会争抢 CameraRig，当前没有单例约束；
 - [ ] `CameraRig` 假设相机 z 固定，不支持旋转/跟随父节点；
 - [ ] 未在真实 16:10 / 4:3 / 手机分辨率下人工验收，只做了数学测试。

@@ -81,6 +81,7 @@ Main Camera (Tag = MainCamera)
 
 | 时机 | 行为 |
 |---|---|
+| 场景启动（可选） | **开场介绍**：先特写 `introFirstTeam`（默认 P1），停留后平滑移到对手，再交回常规逻辑 |
 | `BattleStarted` | 立即回到整个场地全景 |
 | `TurnStarted` | 平滑框住当前行动角色 + 对手 |
 | `ShotFired` | 把飞行中的子弹加入取景 |
@@ -197,6 +198,8 @@ void ShowOverview(bool snap = true);
 void SetTargets(IReadOnlyList<Transform> targets, bool snap = false);
 void AddTarget(Transform target, bool snap = false);
 void RemoveTarget(Transform target, bool snap = false);
+void FocusSingle(Transform target, float orthographicSize, bool snap = false);  // 特写
+void ClearSizeOverride();
 void AddShake(float strength);
 bool IsOverview { get; }
 int TargetCount { get; }
@@ -207,7 +210,10 @@ int TargetCount { get; }
 - 目标列表为空 → 自动全景；
 - 目标被销毁 → `LateUpdate` 自动剔除；
 - 目标数量超过 `maxTargets` → 只取前几个；
-- `SetTargets` 会替换列表，`AddTarget`/`RemoveTarget` 用于子弹临时目标。
+- `SetTargets` 会替换列表，`AddTarget`/`RemoveTarget` 用于子弹临时目标；
+- `FocusSingle` 走「临时缩放覆盖」：`sizeOverride = true`、`overrideSize = 传入值`，`RefreshPose` 会**直接把中心对准该目标**（不做边界夹取），且**不依赖 `ArenaBounds`**；
+- `ClearSizeOverride` 清掉覆盖；任何 `SetTargets` / `ShowOverview` 也会自动清掉，避免常规镜头继承特写缩放；
+- `Start` 只在「没有已设目标且没有特写覆盖」时才播全景，防止把开场介绍抢掉。
 
 ---
 
@@ -221,12 +227,28 @@ int TargetCount { get; }
 | `turnController` | 取当前行动角色和对手 |
 | `characters` | `TurnController` 为空时的兜底列表 |
 | `followProjectiles` | 是否跟踪飞行子弹 |
+| `playIntro` | 是否播开场介绍（默认开） |
+| `introFirstTeam` | 先特写哪一方（默认 `Player1`，对手自动算） |
+| `introOrthographicSize` | 特写缩放（默认 3.2） |
+| `introHoldSeconds` | 每个角色停留时间（默认 0.9s） |
+| `introMoveSeconds` | 从第一个角色平滑移到第二个的等待时间（默认 0.8s） |
 | `hitShakeBase` / `hitShakePerImpulse` | 命中震动 |
 | `strongImpactShakeBase` / `strongImpactShakePerImpulse` | 撞障碍震动 |
 | `defeatedShake` | 击败震动 |
 | `burstShake` | 爆发震动 |
 
 它只订阅 `GameEvents`，不直接修改相机；相机核心可在其他场景复用。
+
+开场介绍（`Start()` 里启动协程）：
+
+```text
+snap 到 first（introFirstTeam） → 停 introHoldSeconds
+→ 平滑移到对手（snap=false，由 CameraRig 的 smoothTime 过渡）
+→ 停 introMoveSeconds + introHoldSeconds
+→ ClearSizeOverride → 按 TurnController.CurrentTeam 重算常规目标
+```
+
+开场期间 `introPlaying = true`，`OnBattleStarted` / `OnTurnStarted` / `ApplyTargets` 全部提前返回，避免回合事件把镜头抢回双人构图；`OnDisable` 会 `StopIntro()` 并清掉缩放覆盖。
 
 ---
 
@@ -260,6 +282,13 @@ director.AddShake(0.5f);
 
 在 `BattleCameraController` 里订阅新事件，调用 `director.SetTargets` / `AddTarget` / `ShowOverview`。  
 不要在 `CameraRig` 里写具体玩法判断。
+
+### 调整 / 关闭开场介绍
+
+1. 关掉：`BattleCameraController.playIntro` 取消勾选；
+2. 换顺序：改 `introFirstTeam`；
+3. 拉近拉远：改 `introOrthographicSize`（角色约 2 单位高，2.2 已经很近，4.0 较宽松）；
+4. 停留更久：改 `introHoldSeconds`；想更快滑过去改 `CameraRig.positionSmoothTime`（不改 `introMoveSeconds`，它只是等待时长）。
 
 ### 调整手感
 
@@ -295,5 +324,7 @@ director.AddShake(0.5f);
 - 没有独立的结算镜头和剧情镜头；
 - 取景使用角色根节点位置，没有按角色碰撞体/美术边界精确计算；
 - 震动只按冲量粗略映射，未接玩家设置；
-- `CameraDirector` 需要 `ArenaBounds`；没有边界时不会更新姿态；
-- `TestArena` 已接入，其他场景需要手动挂组件。
+- `CameraDirector` 的常规取景（全景/目标包围盒）需要 `ArenaBounds`；没有边界时不更新。**特写（`FocusSingle`）是例外**，不依赖边界；
+- 开场介绍期间**不锁输入**：玩家仍可拖拽发射，镜头照常播完；
+- 开场介绍**只在场景启动播一次**，`RestartBattle()` 触发的 `BattleStarted` 走全景，不会重播；
+- `TestArena` / `MainScene` 已接入，其他场景需要手动挂组件。

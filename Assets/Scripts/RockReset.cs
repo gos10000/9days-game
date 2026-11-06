@@ -1,82 +1,55 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
-/// <summary>
-/// 按 R 把 Rock 重置回弹弓初始状态。
-/// 挂在 Rock 物体上（和 rock.cs 同一个物体）。
-/// </summary>
-[RequireComponent(typeof(Rigidbody2D))]
-public class RockReset : MonoBehaviour
+namespace NineDays
 {
-    [Header("重置按键")]
-    public KeyCode resetKey = KeyCode.R;
-
-    [Header("是否跟随弹弓锚点（玩家移动后也能正确复位）")]
-    public bool followJointAnchor = true;
-
-    [Header("指定复位点（留空则按上面两项自动决定）")]
-    public Transform resetPoint;
-
-    private Rigidbody2D rb;
-    private SpringJoint2D joint;
-    private Rock rockScript;
-
-    private Vector3 homePosition;
-    private float homeRotationZ;
-    private RigidbodyType2D homeBodyType;
-
-    void Awake()
+    /// <summary>
+    /// 开始界面专用：按 R 把这一枪作废——收回场上的石头，把发射权还给角色。
+    /// 只复位「石头在哪」和「能不能再投」，不移动角色、不推进回合。
+    /// 挂在 Rock 预制体上，这颗石头只在开始界面使用。
+    /// </summary>
+    [RequireComponent(typeof(Projectile))]
+    public sealed class RockReset : MonoBehaviour
     {
-        rb = GetComponent<Rigidbody2D>();
-        joint = GetComponent<SpringJoint2D>();
-        rockScript = GetComponent<Rock>();
+        [Header("重置")]
+        [Tooltip("重开键；Key 是 Input System 的枚举，不是 KeyCode")]
+        [SerializeField] private Key resetKey = Key.R;
 
-        // 记录场景里摆放的初始状态
-        homePosition = transform.position;
-        homeRotationZ = transform.eulerAngles.z;
-        homeBodyType = rb.bodyType;
-    }
+        private Projectile projectile;
 
-    void Update()
-    {
-        if (Input.GetKeyDown(resetKey))
-            ResetRock();
-    }
+        private void Awake()
+        {
+            projectile = GetComponent<Projectile>();
+        }
 
-    public void ResetRock()
-    {
-        Vector3 pos = GetResetPosition();
-        float rotZ = resetPoint != null ? resetPoint.eulerAngles.z : homeRotationZ;
+        private void Update()
+        {
+            if (InputRouter.KeyPressed(resetKey)) ResetNow();
+        }
 
-        // 先恢复刚体类型，否则 Kinematic 状态下写速度会被忽略
-        rb.bodyType = homeBodyType;
+        /// <summary>也可以给 UI 按钮或调试热键调用。</summary>
+        public void ResetNow()
+        {
+            Character owner = projectile != null ? projectile.Owner : null;
 
-        // 用 Rigidbody2D 的接口移动，比改 transform 更可靠
-        rb.position = new Vector2(pos.x, pos.y);
-        rb.rotation = rotZ;
+            // 1) 收回场上所有石头。子弹是池化的，Despawn 等于“位置复位”——
+            //    下一次拖拽发射时，ShotSpawner 会从角色身上重新生成一颗。
+            Projectile[] projectiles = FindObjectsByType<Projectile>(FindObjectsSortMode.None);
+            for (int i = 0; i < projectiles.Length; i++)
+                if (projectiles[i] != null) projectiles[i].Despawn(ExpireReason.Aborted);
 
-        // 清空速度，避免带着旧速度飞出去
-        rb.linearVelocity = Vector2.zero;
-        rb.angularVelocity = 0f;
+            // 2) 取消这一枪的结算：IsResolving 归零、发射权还给当前队，回合和角色位置都不动
+            TurnController turn = FindFirstObjectByType<TurnController>();
+            if (turn != null)
+            {
+                turn.CancelShot();
+                return;
+            }
 
-        if (joint != null)
-            joint.enabled = true;
-
-        // 交给 rock.cs 清理拖拽状态、并重新忽略与发射者的碰撞
-        if (rockScript != null)
-            rockScript.ResetRock();
-
-        Debug.Log($"[RockReset] Rock 已重置到 {pos}");
-    }
-
-    Vector3 GetResetPosition()
-    {
-        if (resetPoint != null)
-            return resetPoint.position;
-
-        // 弹弓锚点会跟着玩家移动，所以优先回到锚点当前位置
-        if (followJointAnchor && joint != null && joint.connectedBody != null)
-            return joint.connectedBody.transform.TransformPoint(joint.connectedAnchor);
-
-        return homePosition;
+            // 兜底：场景里没有回合控制器时，自己把发射权还回去
+            if (owner == null) return;
+            owner.SetCanAct(true);
+            owner.CancelAim();
+        }
     }
 }

@@ -353,7 +353,7 @@ GameObject:
   - component: {fileID: 240586355}
   - component: {fileID: 240586354}
   - component: {fileID: 240586353}
-  - component: {fileID: 240586352}
+  - component: {fileID: 240586358}
   m_Layer: 0
   m_Name: Box_Exit
   m_TagString: Untagged
@@ -361,19 +361,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &240586352
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 240586351}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d6248a47d35ab2f41bb17b05c90f13e6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  targetScene: MainScene
 --- !u!61 &240586353
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -575,6 +562,18 @@ Transform:
   - {fileID: 2074668870}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &240586358
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 240586351}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 402fa6906b0962b4faab1bd765557ed3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &368749173
 GameObject:
   m_ObjectHideFlags: 0
@@ -988,6 +987,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 1062724766134562269, guid: 1620b308e31f7874fba1f36651191b56, type: 3}
+      propertyPath: projectilePrefab
+      value: 
+      objectReference: {fileID: 7146620456902133341, guid: bfe684a71c5e2b046bcb284292fcbdd2, type: 3}
     - target: {fileID: 3513164460459421164, guid: 1620b308e31f7874fba1f36651191b56, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -2393,9 +2396,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 4476440562252067150}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 402fa6906b0962b4faab1bd765557ed3, type: 3}
+  m_Script: {fileID: 11500000, guid: d6248a47d35ab2f41bb17b05c90f13e6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  targetScene: MainScene
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
