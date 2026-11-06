@@ -1,0 +1,17 @@
+{
+    "name": "NineDays.Camera",
+    "rootNamespace": "NineDays",
+    "references": [
+        "NineDays.Game",
+        "NineDays.Battle"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

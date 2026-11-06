@@ -30,10 +30,12 @@ Assets/Scripts/
 ├─ Character/Character.cs          状态机 / 队伍 / 接地检测
 ├─ Character/CharacterCombat.cs    受击、击退、撞障碍冲量上报
 ├─ Character/CharacterVisual.cs    皮肤实例化、翻面、闪白、Animator 参数
-├─ Character/CharacterLauncher.cs  拖拽瞄准与发射
+├─ Character/CharacterLauncher.cs  拖拽瞄准与发射（实现 IAimInputReceiver）
+├─ Input/GameInput.cs              设备输入门面
+├─ Battle/BattleInputController.cs 把输入转发给当前行动角色
 ├─ Bullet/Projectile.cs            子弹原型（命中上报、忽略发射者）
 ├─ Bullet/ShotSpawner.cs           出膛点计算（身体中心 + 避障）
-├─ Battle/TurnController.cs        回合流程 + InputRouter
+├─ Battle/TurnController.cs        回合流程（不读取输入）
 ├─ Scene/ArenaBounds.cs            场地边界、空气墙、出界兜底
 ├─ Config/CharacterConfig.cs       角色数值（ScriptableObject）
 ├─ Config/ProjectileConfig.cs      子弹数值（ScriptableObject）
@@ -93,7 +95,13 @@ Assets/Scripts/
 | 成员 | 说明 |
 |---|---|
 | `bool IsAiming` / `float AimPower` | 只读，调试用 |
-| ※ 无 public 方法，靠鼠标输入驱动 | 左键拖拽 → 松开发射，右键 / Esc 取消 |
+| `Camera TargetCamera` | 瞄准平面使用的相机 |
+| `void BeginAim(Vector2 pointerWorld)` | 开始拖拽瞄准；仅 `CanAct` 时有效 |
+| `void UpdateAim(Vector2 pointerWorld)` | 更新方向、力度和瞄准线 |
+| `void ReleaseAim(Vector2 pointerWorld)` | 松手发射 |
+| `void CancelAim()` | 取消瞄准 |
+
+输入来源由 `BattleInputController` 负责；`CharacterLauncher` **不再自己轮询鼠标**。详见 `Docs/agent/input/Input.md`。
 
 ### Projectile
 
@@ -126,15 +134,6 @@ Assets/Scripts/
 |---|---|
 | `Rect PlayArea` | 只读，逻辑边界 |
 | `bool Contains(Vector2 worldPosition)` | 点是否在边界内 |
-
-### InputRouter（静态类，鼠标 / 键盘统一入口）
-
-| 成员 | 说明 |
-|---|---|
-| `bool LeftPressed / LeftReleased / LeftHeld / RightPressed / EscapePressed` | 鼠标按键状态 |
-| `Vector2 PointerScreen` / `PointerWorld(Camera cam)` | 屏幕 / 世界坐标（假设玩法平面 z = 0） |
-| `bool KeyPressed(Key key)` | 键盘，`Key` 来自 `UnityEngine.InputSystem` |
-| `bool HasPointer` | 是否有鼠标设备 |
 
 ### CombatDebugHud（仅测试场景）
 
@@ -176,7 +175,7 @@ void OnHit(Character c, HitInfo info)
 
 1. **场景里放**：直接拖 `Assets/Prefabs/Characters/Character_P1.prefab`（或 `_P2`）进场景
 2. **配回合**：场景中放一个空物体挂 `TurnController`，把两个角色拖进 `characters` 列表
-3. **调数值**：改 `Assets/Data/Characters/CharacterConfig_Default.asset`
+3. **调数值**：改 `Assets/Data/Characters/CharacterConfig_Default.asset`；只改 SO 时不要跑 `Build/Prefabs`，内容生成器会重写部分配置字段
 
 测试场景 `Assets/Scenes/TestArena.unity` 已经按上面配好，可直接 Play。
 

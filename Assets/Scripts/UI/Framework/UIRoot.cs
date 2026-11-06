@@ -1,13 +1,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.UI;
 using UnityEngine.UI;
 
 namespace NineDays
 {
     /// <summary>UI 根节点：创建 Canvas 五层、EventSystem，并持有 Router。</summary>
+    [DefaultExecutionOrder(-100)]
     [DisallowMultipleComponent]
     public sealed class UIRoot : MonoBehaviour
     {
@@ -59,8 +59,7 @@ namespace NineDays
         private void Update()
         {
             if (!handleBackInput || Router == null || !Router.CanGoBack) return;
-            if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame)
-                Router.Back();
+            if (GameInput.ConsumeCancel()) Router.Back();
         }
 
         /// <summary>场景/测试配置入口；可重复调用刷新 catalog。</summary>
