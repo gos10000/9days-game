@@ -1418,6 +1418,7 @@ GameObject:
   - component: {fileID: 2712454279190858595}
   - component: {fileID: 3072668970823256021}
   - component: {fileID: 4489363273815787040}
+  - component: {fileID: 6712384501928374611}
   m_Layer: 0
   m_Name: PlayerCharacterSkin2
   m_TagString: Untagged
@@ -1494,3 +1495,23 @@ MonoBehaviour:
   lightHitDurationOverride: 0
   deathDurationOverride: 0
   logPhaseChanges: 0
+--- !u!114 &6712384501928374611
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9055727090848596740}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5a1f7c93d20b4e6a8f3c91b47d582e0a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  outlineWidth: 2
+  glowStrength: 1.6
+  hueSpeed: 0.35
+  hueOffset: 0.5
+  saturation: 1
+  brightness: 1
+  alpha: 1
+  includeChildren: 1
