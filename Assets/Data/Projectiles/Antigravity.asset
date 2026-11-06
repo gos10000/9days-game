@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bc110cc8d6ae21546af85d00d1d5775f, type: 3}
+  m_Name: Antigravity
+  m_EditorClassIdentifier: 
+  mass: 0.5
+  radius: 0.25
+  initialSpeed: 15
+  lifeTime: 5
+  ignoreOwnerTime: 0.15
+  gravityScale: 1
+  linearDamping: 0.3
+  damage: 10
+  destroyOnHit: 1
+  friendlyFire: 0
+  traits:
+  - {fileID: 11400000, guid: b47c95e3d2a1f8409c6e3b7d5a2f81c4, type: 2}
+  impactViewPrefab: {fileID: 336881222488894599, guid: a3eea3e606ed4f645b6b6da6ef01e362, type: 3}
+  bursts:
+  - {fileID: 11400000, guid: 3b8f1c6d9e2a4705f8c1e3b7d6a92504, type: 2}

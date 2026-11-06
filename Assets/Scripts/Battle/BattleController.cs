@@ -41,6 +41,7 @@ namespace NineDays
             if (arena == null) arena = FindAnyObjectByType<ArenaController>();
 
             EnsureTurnBanner();
+            BurstViewSpawner.EnsureExists();
         }
 
         /// <summary>场景里没有 TurnBanner 时自动补一个（默认关闭，回合显示由 UICanvas 的 BattleHud 负责）。</summary>

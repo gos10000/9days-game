@@ -1721,6 +1721,10 @@ PrefabInstance:
       propertyPath: targetCamera
       value: 
       objectReference: {fileID: 136363492}
+    - target: {fileID: 1062724766134562269, guid: 1620b308e31f7874fba1f36651191b56, type: 3}
+      propertyPath: projectilePrefab
+      value: 
+      objectReference: {fileID: 8207526128195810767, guid: 471d47ad96264054b9b1c42f08be9df3, type: 3}
     - target: {fileID: 3513164460459421164, guid: 1620b308e31f7874fba1f36651191b56, type: 3}
       propertyPath: m_LocalPosition.x
       value: -5.6581707
@@ -2167,6 +2171,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Character_P2
       objectReference: {fileID: 0}
+    - target: {fileID: 6859054217681502348, guid: e61327e1fad3d5244a731cc033ecae17, type: 3}
+      propertyPath: projectilePrefab
+      value: 
+      objectReference: {fileID: 8207526128195810767, guid: 471d47ad96264054b9b1c42f08be9df3, type: 3}
     - target: {fileID: 7011695075764535485, guid: e61327e1fad3d5244a731cc033ecae17, type: 3}
       propertyPath: m_LocalPosition.x
       value: 5.39

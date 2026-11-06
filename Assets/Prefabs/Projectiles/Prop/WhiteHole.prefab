@@ -4940,6 +4940,8 @@ MonoBehaviour:
     m_Bits: 4294967295
   affectPlayer1: 1
   affectPlayer2: 1
+  ambienceClip: {fileID: 8300000, guid: d3c6a9e47f5b0128c3d6a9e47f5b0128, type: 3}
+  ambienceVolume: 0.52
   strength: -10
   radius: 1.5
   maxAcceleration: 60
