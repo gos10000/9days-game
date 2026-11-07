@@ -9,14 +9,8 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 01295fd7b89f504449533c5ad925bf00, type: 3}
-  m_Name: ArenaConfig_Default
+  m_Script: {fileID: 11500000, guid: 2c64b24019232f447b9b7f2983047ce8, type: 3}
+  m_Name: UIPageCatalog_Battle_Scene
   m_EditorClassIdentifier: 
-  worldRect:
-    serializedVersion: 2
-    x: -8
-    y: -5
-    width: 16
-    height: 10
-  pixelsPerUnit: 16
-  layers: []
+  pages:
+  - {fileID: 11400000, guid: 20c63c212d4dc8d4d94449345d5e4675, type: 2}
