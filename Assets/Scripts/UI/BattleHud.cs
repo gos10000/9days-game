@@ -13,6 +13,12 @@ namespace NineDays
         [SerializeField] private Text roundText;
         [SerializeField] private Text actorText;
 
+        [Tooltip("留空则自动在场景里找；用于「事件漏收」时按真实状态纠正显示")]
+        [SerializeField] private TurnController turnController;
+
+        [Tooltip("检测到事件没更新、改由运行时状态纠正时，在 Console 打一条日志")]
+        [SerializeField] private bool logCorrections = true;
+
         [Header("文案")]
         [Tooltip("未开局 / 无回合时的占位文字")]
         [SerializeField] private string idleText = "准备中";
@@ -31,6 +37,42 @@ namespace NineDays
         private int totalRounds;
         private Team actor = Team.None;
         private bool ended;
+
+        private void Awake()
+        {
+            if (turnController == null) turnController = FindAnyObjectByType<TurnController>();
+        }
+
+        private void Update()
+        {
+            SyncFromRuntime();
+        }
+
+        /// <summary>
+        /// 兜底刷新：事件（TurnStarted）可能因为 UI 重建、订阅被清空、或流程中途被打断而漏收，
+        /// 此时文字会永远停在上一个行动方。这里每帧比对 TurnController 的真实状态并纠正。
+        ///
+        /// 只在「运行时确实有一个行动方」且与当前显示不同时才改：
+        /// 结算间隙 CurrentTeam 会被置成 None，直接镜像会把文字闪成空白，所以不跟 None。
+        /// </summary>
+        private void SyncFromRuntime()
+        {
+            if (turnController == null)
+            {
+                turnController = FindAnyObjectByType<TurnController>();
+                if (turnController == null) return;
+            }
+
+            Team live = turnController.CurrentTeam;
+            if (live == Team.None || live == actor) return;
+
+            if (logCorrections && !ended)
+                Debug.Log($"[BattleHud] 未收到 TurnStarted，已按运行时状态纠正为 {live}", this);
+
+            actor = live;
+            ended = false;
+            Refresh();
+        }
 
         private void OnEnable()
         {

@@ -8,7 +8,7 @@ namespace NineDays
     /// 战斗镜头适配层：把回合 / 发射 / 子弹结束 / 命中事件翻译成 CameraDirector 的目标和震动。
     /// 核心取景逻辑不在这里。
     /// </summary>
-    public sealed class BattleCameraController : MonoBehaviour
+    public sealed class BattleCameraController : MonoBehaviour, IBattleIntroState
     {
         [Header("引用")]
         [SerializeField] private CameraDirector director;
@@ -27,6 +27,10 @@ namespace NineDays
 
         [Tooltip("特写时的相机 orthographicSize（越小越近）")]
         [SerializeField] private float introOrthographicSize = 3.2f;
+
+        [Header("结算")]
+        [Tooltip("战斗结束时聚焦获胜方的特写缩放；越小越近")]
+        [SerializeField] private float winnerFocusSize = 3.2f;
 
         [Tooltip("每个角色特写停留时间（秒）")]
         [SerializeField] private float introHoldSeconds = 0.9f;
@@ -51,10 +55,17 @@ namespace NineDays
         public CameraDirector Director => director;
         public bool FollowProjectiles => followProjectiles;
 
+        /// <summary>开场特写是否还在演；流程层据此延后抽取。</summary>
+        public bool IntroPlaying => introPlaying;
+
         private void Awake()
         {
             if (director == null) director = GetComponent<CameraDirector>();
             if (turnController == null) turnController = FindAnyObjectByType<TurnController>();
+
+            // 在 Awake 就置位：Start 的执行顺序不确定，抽选流程可能比 StartIntro 更早跑，
+            // 那时读到的必须是「开场还没结束」。
+            introPlaying = playIntro && director != null;
         }
 
         private void Start()
@@ -101,6 +112,7 @@ namespace NineDays
 
             if (first == null && second == null)
             {
+                introPlaying = false;
                 introRoutine = null;
                 yield break;
             }
@@ -240,6 +252,15 @@ namespace NineDays
         {
             trackedProjectiles.Clear();
             turnTargets.Clear();
+
+            // 结束时把镜头给获胜方一个特写；胜负未分才退回全景
+            Character winner = result.Winner != Team.None ? FindCharacter(result.Winner) : null;
+            if (winner != null && director != null)
+            {
+                director.FocusSingle(winner.transform, winnerFocusSize, false);
+                return;
+            }
+
             director?.ShowOverview(false);
         }
 
@@ -266,6 +287,8 @@ namespace NineDays
                 }
             }
 
+            // 边缘余量只按角色算：子弹只是取景对象，不该因为它贴近屏幕而拉远
+            director.SetAimTargets(turnTargets);
             director.SetTargets(targets, snap);
         }
 

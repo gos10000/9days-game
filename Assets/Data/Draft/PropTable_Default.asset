@@ -1,0 +1,45 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2b8e4a6c0d3f7159b2e5a7c9d1f46038, type: 3}
+  m_Name: PropTable_Default
+  m_EditorClassIdentifier: 
+  rows:
+  - icon: {fileID: -2526808576478101902, guid: c36e5fc459eb3a6478294928fba3e924, type: 3}
+    prefab: {fileID: 7775341351074907826, guid: d7e6b74406682b44883d79e9e352f74a, type: 3}
+    displayName: "\u9ED1\u6D1E"
+    description: "\n\u6301\u7EED\u628A\u9644\u8FD1\u89D2\u8272\u548C\u5B50\u5F39\u5438\u5411\u4E2D\u5FC3"
+    count: 1
+  - icon: {fileID: 7947512633697854159, guid: f12303f5084b12e4d81ba483eca6e12d, type: 3}
+    prefab: {fileID: 4605920682551171366, guid: ac6264ab6940f7a4bbc711053d8e787e, type: 3}
+    displayName: "\u589E\u5F3A\u9ED1\u6D1E"
+    description: "\n\u5F15\u529B\u66F4\u5F3A\u3001\u8303\u56F4\u66F4\u5927\u7684\u9ED1\u6D1E"
+    count: 1
+  - icon: {fileID: -816681270425375808, guid: 70ebfba7303f58449ac7d9a7b3e66b1f, type: 3}
+    prefab: {fileID: 3122058985101813271, guid: 5f52f837aea7fb4438694f2f6ea1fb21, type: 3}
+    displayName: "\u767D\u6D1E"
+    description: "\n\u6301\u7EED\u628A\u9644\u8FD1\u89D2\u8272\u548C\u5B50\u5F39\u63A8\u79BB\u4E2D\u5FC3"
+    count: 1
+  - icon: {fileID: 6164353772493181741, guid: 44d95e75ae5007c4b8b90036152e0f47, type: 3}
+    prefab: {fileID: 8595272829198329490, guid: e6bf28457a322944290758f8e1b07fbd, type: 3}
+    displayName: "\u589E\u5F3A\u767D\u6D1E"
+    description: "\n\u63A8\u529B\u66F4\u5F3A\u3001\u8303\u56F4\u66F4\u5927\u7684\u767D\u6D1E"
+    count: 1
+  - icon: {fileID: -5194113284105170258, guid: a910c1dc2c6e3264cbe57481eee3faa5, type: 3}
+    prefab: {fileID: 3745486522393444557, guid: 98b72735f04a4e24a9fdb38938a8dd9f, type: 3}
+    displayName: "\u91CD\u529B\u573A"
+    description: "\n\u6539\u5199\u533A\u57DF\u5185\u7684\u91CD\u529B\u65B9\u5411"
+    count: 1
+  - icon: {fileID: -5538817656221729762, guid: ac747e67266ea954fb24a8b585c19005, type: 3}
+    prefab: {fileID: 2043202688763408067, guid: 954a634f31bb9ab4f897e6c0580b7d41, type: 3}
+    displayName: "\u53CD\u91CD\u529B\u573A"
+    description: "\n\u533A\u57DF\u5185\u91CD\u529B\u53CD\u8F6C\uFF0C\u5B50\u5F39\u5411\u4E0A\u6F02\u6D6E"
+    count: 1

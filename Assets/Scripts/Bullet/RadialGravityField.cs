@@ -9,7 +9,7 @@ namespace NineDays
         [Tooltip("正数吸引、负数排斥")]
         [SerializeField] private float strength = 30f;
 
-        [Tooltip("作用半径")]
+        [Tooltip("作用半径（本地单位，实际半径会乘上物体缩放）")]
         [SerializeField] private float radius = 4f;
 
         [Tooltip("单颗子弹每帧受到的加速度上限")]
@@ -20,9 +20,14 @@ namespace NineDays
 
         public override void Accumulate(Projectile projectile, ref ProjectileInfluence influence, float deltaTime)
         {
+            // 作用半径要跟着物体缩放走，否则「看起来这么大、实际只吸中心一小圈」：
+            // 预制体的碰撞体是用本地尺寸 × Transform 缩放得到的，这里必须一致。
+            float scale = Mathf.Max(Mathf.Abs(transform.lossyScale.x), Mathf.Abs(transform.lossyScale.y));
+            float worldRadius = radius * Mathf.Max(0.0001f, scale);
+
             Vector2 acceleration = ComputeAcceleration(
                 projectile.transform.position, transform.position,
-                strength, radius, maxAcceleration, minDistance);
+                strength, worldRadius, maxAcceleration, minDistance);
 
             influence.Acceleration += acceleration;
         }

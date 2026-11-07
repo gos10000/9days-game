@@ -51,6 +51,9 @@ namespace NineDays
         [Tooltip("勾选后忽略发射者的所有道具 / 装备 / Buff 修改器（ProjectileModifier）")]
         public bool ignoreModifiers;
 
+        [Tooltip("勾选后免疫场上所有道具场（黑洞 / 白洞 / 重力场 / 反重力场，即 ProjectileField）的作用")]
+        public bool ignoreFields;
+
         [Header("表现")]
         [Tooltip("撞击特效：子弹撞到任何东西时生成，所有子弹都该配")]
         public GameObject impactViewPrefab;

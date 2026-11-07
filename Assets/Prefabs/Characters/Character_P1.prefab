@@ -12,6 +12,22 @@ PrefabInstance:
       propertyPath: m_Name
       value: Character_P1
       objectReference: {fileID: 0}
+    - target: {fileID: 6053314858678698817, guid: f093658c1fcb2cf4797774c611889a89, type: 3}
+      propertyPath: previewColor.a
+      value: 0.78431374
+      objectReference: {fileID: 0}
+    - target: {fileID: 6053314858678698817, guid: f093658c1fcb2cf4797774c611889a89, type: 3}
+      propertyPath: previewColor.b
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6053314858678698817, guid: f093658c1fcb2cf4797774c611889a89, type: 3}
+      propertyPath: previewColor.g
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6053314858678698817, guid: f093658c1fcb2cf4797774c611889a89, type: 3}
+      propertyPath: previewColor.r
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7673987766440641392, guid: f093658c1fcb2cf4797774c611889a89, type: 3}
       propertyPath: m_LocalPosition.x
       value: -5.6581707

@@ -14,15 +14,23 @@ namespace NineDays
         [SerializeField] private ArenaBounds bounds;
 
         [Header("取景")]
-        [SerializeField] private float minOrthographicSize = 4.5f;
-        [SerializeField] private float maxOrthographicSize = 7f;
-        [SerializeField] private float framingPadding = 1f;
+        [SerializeField] private float minOrthographicSize = 5.6f;
+        [SerializeField] private float maxOrthographicSize = 8.5f;
+        [SerializeField] private float framingPadding = 2.5f;
+
+        [Tooltip("目标（通常是角色）距屏幕边缘至少保留的世界距离；不足会自动拉远，保证拉弹弓有足够行程")]
+        [SerializeField] private float edgeMargin = 3f;
+
         [SerializeField] private float overviewPadding = 0.5f;
         [SerializeField] private float boundsPadding = 0.25f;
         [SerializeField] private int maxTargets = 4;
 
         private readonly List<Transform> targets = new List<Transform>();
+
+        // 只有这些目标参与「边缘余量」计算：子弹也在 targets 里，但不该因为它而拉远镜头
+        private readonly List<Transform> aimTargets = new List<Transform>();
         private readonly List<Vector2> points = new List<Vector2>();
+        private readonly List<Vector2> marginPoints = new List<Vector2>();
         private bool overview;
 
         // 临时缩放覆盖：开场介绍等「单目标特写」用，常规逻辑下为 false
@@ -71,6 +79,20 @@ namespace NineDays
 
             overview = targets.Count == 0;
             RefreshPose(snap);
+        }
+
+        /// <summary>
+        /// 指定「必须留出屏幕边缘余量」的目标（通常就是两名角色）。
+        /// 只影响取景的最小缩放，不参与取景框本身；传 null 或空则关闭该约束。
+        /// 需在 <see cref="SetTargets"/> 之前调用，才会在同一帧生效。
+        /// </summary>
+        public void SetAimTargets(IReadOnlyList<Transform> newTargets)
+        {
+            aimTargets.Clear();
+            if (newTargets == null) return;
+
+            for (int i = 0; i < newTargets.Count; i++)
+                if (newTargets[i] != null) aimTargets.Add(newTargets[i]);
         }
 
         /// <summary>追加一个目标；用于飞行中的子弹。</summary>
@@ -163,8 +185,12 @@ namespace NineDays
             for (int i = 0; i < targets.Count; i++)
                 if (targets[i] != null) points.Add(targets[i].position);
 
+            marginPoints.Clear();
+            for (int i = 0; i < aimTargets.Count; i++)
+                if (aimTargets[i] != null) marginPoints.Add(aimTargets[i].position);
+
             rig.SetPose(CameraFramer.Frame(points, framingPadding, minOrthographicSize,
-                                           maxOrthographicSize, aspect, area), snap);
+                                           maxOrthographicSize, aspect, area, 0f, edgeMargin, marginPoints), snap);
         }
     }
 }

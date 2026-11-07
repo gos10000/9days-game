@@ -41,6 +41,36 @@ namespace NineDays
             return zone;
         }
 
+        private bool registered;
+
+        private void OnEnable()
+        {
+            // 记进「活跃效果」：回合结算要等它结束，否则下一位玩家会在牵引还在演的时候开始抽卡
+            if (!registered)
+            {
+                registered = true;
+                ActiveEffects.Register();
+            }
+
+            GameEvents.BattleStarted -= HandleBattleStarted;
+            GameEvents.BattleStarted += HandleBattleStarted;
+        }
+
+        private void OnDisable()
+        {
+            GameEvents.BattleStarted -= HandleBattleStarted;
+
+            if (!registered) return;
+            registered = false;
+            ActiveEffects.Unregister();
+        }
+
+        /// <summary>新一场战斗：上一局残留的牵引区不该继续生效。</summary>
+        private void HandleBattleStarted(int rounds)
+        {
+            Destroy(gameObject);
+        }
+
         private void Update()
         {
             if (effect == null)
@@ -62,6 +92,8 @@ namespace NineDays
             {
                 tickTimer -= effect.tickInterval;
                 DamageTick();
+                // 每牵引一次播一次音效；拖尾的收尾爆炸走 Finish 里的 BurstTriggered
+                GameEvents.RaiseTractionPulled(gameObject);
             }
 
             if (elapsed >= effect.duration) Finish();

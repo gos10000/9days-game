@@ -48,6 +48,9 @@ namespace NineDays
         {
             if (body == null) body = GetComponent<Rigidbody2D>();
             if (bodyCollider == null) bodyCollider = GetComponent<Collider2D>();
+            // 预制体上没填引用时自己拿一个：否则 Launch 的 Clear、Despawn 的停止发射全被跳过，
+            // 回收进池的旧轨迹会留到下一发（5 秒拖尾的曳光弹尤其明显）。
+            if (trail == null) trail = GetComponent<TrailRenderer>();
             if (stats == null) stats = ProjectileStats.From(config);
             burstDefinitions = CopyBursts(config != null ? config.bursts : null);
             BuildBurstRuntimes();

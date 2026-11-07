@@ -24,6 +24,7 @@ MonoBehaviour:
   friendlyFire: 0
   traits: []
   ignoreModifiers: 1
+  ignoreFields: 1
   impactViewPrefab: {fileID: 336881222488894599, guid: a3eea3e606ed4f645b6b6da6ef01e362, type: 3}
   bursts:
   - {fileID: 11400000, guid: 3b8f1c6d9e2a4705f8c1e3b7d6a92504, type: 2}

@@ -4940,10 +4940,13 @@ MonoBehaviour:
     m_Bits: 4294967295
   affectPlayer1: 1
   affectPlayer2: 1
+  placementBlockRadius: 1
   ambienceClip: {fileID: 8300000, guid: d3c6a9e47f5b0128c3d6a9e47f5b0128, type: 3}
   ambienceVolume: 0.52
-  strength: -10
-  radius: 1.5
+  spatialBlend: 0.85
+  pitchRange: {x: 0.94, y: 1.06}
+  strength: -30
+  radius: 1
   maxAcceleration: 60
   minDistance: 0.5
 --- !u!58 &1893228854453999438
@@ -4976,7 +4979,7 @@ CircleCollider2D:
   m_CallbackLayers:
     serializedVersion: 2
     m_Bits: 4294967295
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0

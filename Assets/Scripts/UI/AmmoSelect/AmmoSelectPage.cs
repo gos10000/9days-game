@@ -11,13 +11,20 @@ namespace NineDays
         [SerializeField] private RectTransform optionRoot;
         [SerializeField] private AmmoOptionView optionTemplate;
 
+        /// <summary>选卡页显示 / 隐藏时触发：true = 正在显示。顶部木牌据此在 up panel 与 CHOOSE 之间切换。</summary>
+        public static event System.Action<bool> VisibilityChanged;
+
         private readonly List<AmmoOptionView> optionViews = new List<AmmoOptionView>();
 
         public override void OnShow(UIPageArgs args)
         {
+            VisibilityChanged?.Invoke(true);
+
             ClearOptions();
-            if (titleText != null) titleText.text = "选择子弹";
             if (!(args is AmmoSelectArgs selectArgs)) return;
+
+            // 标题由参数决定：选子弹 / 选道具共用一个页面
+            if (titleText != null) titleText.text = selectArgs.Title;
             if (optionRoot == null || optionTemplate == null) return;
 
             IReadOnlyList<AmmoOption> options = selectArgs.Options;
@@ -35,11 +42,13 @@ namespace NineDays
 
         public override void OnHide()
         {
+            VisibilityChanged?.Invoke(false);
             ClearOptions();
         }
 
         public override void OnDispose()
         {
+            VisibilityChanged?.Invoke(false);
             ClearOptions();
         }
 

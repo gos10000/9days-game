@@ -1,0 +1,44 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1a7d3f5b9c2e6048a1d4f6b8c0e35927, type: 3}
+  m_Name: AmmoTable_Default
+  m_EditorClassIdentifier: 
+  rows:
+  - icon: {fileID: -2933421469416415853, guid: 0cfe070a712edfc4a90869888ef8f68c, type: 3}
+    prefab: {fileID: 6850794944490371737, guid: c52e8f1a94b3d74f8e6a2c5d1b9f0347, type: 3}
+    displayName: "\u53CD\u91CD\u529B\u5F39"
+    description: "\n\u91CD\u529B\u53CD\u8F6C\uFF0C\u5F39\u9053\u5411\u4E0A"
+  - icon: {fileID: -1263167371753384596, guid: d54327507731d7e45a0becffa37c0272, type: 3}
+    prefab: {fileID: 6850794944490371737, guid: d4b8e26f1a95c7302f8e6d4b9c1a5f38, type: 3}
+    displayName: "\u4F24\u5BB3\u63D0\u5347\u5F39"
+    description: "\n\u76F4\u4F24\u4E0E\u7206\u70B8\u4F24\u5BB3\u90FD\u662F\u666E\u901A\u5F39\u7684\u4E24\u500D"
+  - icon: {fileID: 5873908281364127489, guid: 86ea75d2562e1314280679749f7c302b, type: 3}
+    prefab: {fileID: 6850794944490371737, guid: 9a6c2e8f4b1d7305c8e2f6a4d9b3e710, type: 3}
+    displayName: "\u66F3\u5149\u5F39"
+    description: "\n\u4E94\u79D2\u957F\u62D6\u5C3E\uFF0C\u7528\u6765\u89C2\u5BDF\u5F39\u9053"
+  - icon: {fileID: 5164771149061325361, guid: ed4f42dbf341271429f5833ca8db18b9, type: 3}
+    prefab: {fileID: 6850794944490371737, guid: 8f3d6a1c9b5e2704d1f8b3c6a9e40752, type: 3}
+    displayName: "\u589E\u5F3A\u7206\u70B8\u8303\u56F4\u5F39"
+    description: "\n\u7206\u70B8\u534A\u5F84\u4E3A\u5176\u4F59\u5B50\u5F39\u7684\u4E24\u500D"
+  - icon: {fileID: 8712748534019873026, guid: d6f2dcfaa7f749c488e91fede32d70ee, type: 3}
+    prefab: {fileID: 6850794944490371737, guid: a4e9c2f7b1d6830509c7e4f2a8b1d630, type: 3}
+    displayName: "\u4E2D\u548C\u91CD\u529B\u5F39"
+    description: "\n\u76F4\u7EBF\u98DE\u884C\u4E0D\u53D7\u91CD\u529B\uFF0C\u4E14\u514D\u75AB\u9053\u5177\u5F71\u54CD"
+  - icon: {fileID: 1482582423961004200, guid: bb9d0068385ace042980da41b30d503c, type: 3}
+    prefab: {fileID: 6850794944490371737, guid: 3e9b6c1f8a4d2705b6e1c9a3f7d28450, type: 3}
+    displayName: "\u79FB\u9664\u5F39"
+    description: "\n\u98DE\u8FC7\u9053\u5177\u65F6\u628A\u8BE5\u9053\u5177\u6E05\u9664"
+  - icon: {fileID: 5613406413458526452, guid: a4ec0e03771205c43b62d18d6d33f899, type: 3}
+    prefab: {fileID: 6850794944490371737, guid: 1c6f9b3e7a2d5804f1c6b9e3a7d25840, type: 3}
+    displayName: "\u7275\u5F15\u5F39"
+    description: "\n\u547D\u4E2D\u540E\u7275\u5F15\u8303\u56F4\u5185\u89D2\u8272
+      2 \u79D2\u5E76\u6301\u7EED\u6263\u8840"

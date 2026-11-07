@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using UnityEngine;
 
 namespace NineDays
@@ -216,6 +216,15 @@ namespace NineDays
         /// <summary>地形被追加。</summary>
         public static event Action<string, int> TerrainAppended;
 
+        /// <summary>道具被放到场上；instance 为实际生成的物体。</summary>
+        public static event Action<PropSpec, GameObject> PropPlaced;
+
+        /// <summary>道具被子弹清除（消除类子弹）；参数是被销毁 / 失效的那个道具物体。</summary>
+        public static event Action<GameObject> PropCleared;
+
+        /// <summary>牵引区结算了一次牵引（每 tickInterval 一次）；参数是牵引区物体。</summary>
+        public static event Action<GameObject> TractionPulled;
+
         public static void RaiseCharacterHit(Character character, in HitInfo info) => CharacterHit?.Invoke(character, info);
         public static void RaiseCharacterKnockedBack(Character character, in HitInfo info) => CharacterKnockedBack?.Invoke(character, info);
         public static void RaiseImpactDetected(Character character, in ImpactInfo info) => ImpactDetected?.Invoke(character, info);
@@ -241,6 +250,9 @@ namespace NineDays
         public static void RaiseTerrainBuilt(ArenaController arena) => TerrainBuilt?.Invoke(arena);
         public static void RaiseTerrainBroken(in TerrainBreakRequest request, in TerrainBreakResult result) => TerrainBroken?.Invoke(request, result);
         public static void RaiseTerrainAppended(string layerId, int pixels) => TerrainAppended?.Invoke(layerId, pixels);
+        public static void RaisePropPlaced(PropSpec spec, GameObject instance) => PropPlaced?.Invoke(spec, instance);
+        public static void RaisePropCleared(GameObject instance) => PropCleared?.Invoke(instance);
+        public static void RaiseTractionPulled(GameObject zone) => TractionPulled?.Invoke(zone);
 
         /// <summary>退出 Play / 关闭 Domain Reload 时清空静态订阅，避免事件翻倍。</summary>
         public static void ClearAll()
@@ -270,6 +282,9 @@ namespace NineDays
             TerrainBuilt = null;
             TerrainBroken = null;
             TerrainAppended = null;
+            PropPlaced = null;
+            PropCleared = null;
+            TractionPulled = null;
         }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]

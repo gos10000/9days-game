@@ -1,0 +1,43 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7e634e886395b7047be6a6a48701172b, type: 3}
+  m_Name: AudioTable_Default
+  m_EditorClassIdentifier: 
+  hoverClick: {fileID: 8300000, guid: 54ca0330efd563c4c843f992e0272e4b, type: 3}
+  hoverVolume: 0.5
+  throwClip: {fileID: 8300000, guid: 73418bbd1a64bcf48b152f5187307964, type: 3}
+  throwVolume: 0.2
+  burstClip: {fileID: 8300000, guid: f62dd015d5147cf4fbe667b78c76345d, type: 3}
+  burstVolume: 0.3
+  clearClip: {fileID: 8300000, guid: 9913bded1c7e0a6469de0c370ffe6b8b, type: 3}
+  clearVolume: 0.8
+  tractionClip: {fileID: 8300000, guid: e92a79a51973fe841a0eced16499fcd0, type: 3}
+  tractionVolume: 0.8
+  props:
+  - prefab: {fileID: 7775341351074907826, guid: d7e6b74406682b44883d79e9e352f74a, type: 3}
+    clip: {fileID: 8300000, guid: 930ee7b4dc967e441acb1d426c97e746, type: 3}
+    volume: 0.2
+  - prefab: {fileID: 4605920682551171366, guid: ac6264ab6940f7a4bbc711053d8e787e, type: 3}
+    clip: {fileID: 8300000, guid: 930ee7b4dc967e441acb1d426c97e746, type: 3}
+    volume: 0.4
+  - prefab: {fileID: 3122058985101813271, guid: 5f52f837aea7fb4438694f2f6ea1fb21, type: 3}
+    clip: {fileID: 8300000, guid: 1d00e04cfd212964cacb7e92e228848a, type: 3}
+    volume: 0.2
+  - prefab: {fileID: 8595272829198329490, guid: e6bf28457a322944290758f8e1b07fbd, type: 3}
+    clip: {fileID: 8300000, guid: 1d00e04cfd212964cacb7e92e228848a, type: 3}
+    volume: 0.4
+  - prefab: {fileID: 3745486522393444557, guid: 98b72735f04a4e24a9fdb38938a8dd9f, type: 3}
+    clip: {fileID: 8300000, guid: f117c78bf3bd0634fa40975573f927c2, type: 3}
+    volume: 0.8
+  - prefab: {fileID: 2043202688763408067, guid: 954a634f31bb9ab4f897e6c0580b7d41, type: 3}
+    clip: {fileID: 8300000, guid: f117c78bf3bd0634fa40975573f927c2, type: 3}
+    volume: 0.8

@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 namespace NineDays
 {
@@ -15,11 +16,18 @@ namespace NineDays
 
         private Character cachedActor;
         private CharacterLauncher activeLauncher;
+        private int suppressPressFrame = -1;
 
         public bool InputEnabled
         {
             get => enableGameplayInput;
-            set => enableGameplayInput = value;
+            set
+            {
+                // 关闭 → 打开的那一帧，把同一次点击吃掉：
+                // 否则「放置道具 / 点选卡片」的按下事件会在解锁后立刻被当成开始瞄准。
+                if (value && !enableGameplayInput) suppressPressFrame = Time.frameCount;
+                enableGameplayInput = value;
+            }
         }
 
         private void Awake()
@@ -34,6 +42,13 @@ namespace NineDays
 
         private void Update()
         {
+            // 暂停中不接受任何战斗输入：否则点「停止」那一帧会顺手开镜，松手还会把弹投出去
+            if (GamePause.IsPaused)
+            {
+                CancelActiveAim();
+                return;
+            }
+
             if (!enableGameplayInput)
             {
                 CancelActiveAim();
@@ -53,6 +68,10 @@ namespace NineDays
             if (!launcher.IsAiming)
             {
                 if (!input.PrimaryPressed) return;
+                if (Time.frameCount <= suppressPressFrame) return;
+
+                // 点在 UI 上（比如角落的停止键）不开镜；已经开镜时不受影响
+                if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject()) return;
 
                 activeLauncher = launcher;
                 launcher.BeginAim(pointer);

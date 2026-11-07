@@ -8,7 +8,8 @@ namespace NineDays
     {
         /// <summary>根据目标点计算姿态；目标为空时返回全景姿态。</summary>
         public static CameraPose Frame(IReadOnlyList<Vector2> points, float padding, float minSize,
-                                       float maxSize, float aspect, Rect bounds, float overviewPadding = 0f)
+                                       float maxSize, float aspect, Rect bounds, float overviewPadding = 0f,
+                                       float edgeMargin = 0f, IReadOnlyList<Vector2> marginPoints = null)
         {
             aspect = Mathf.Max(0.01f, aspect);
             minSize = Mathf.Max(0.01f, minSize);
@@ -46,8 +47,49 @@ namespace NineDays
             }
 
             size = Mathf.Clamp(size, minSize, maxSize);
-            if (IsValid(bounds)) center = ClampCenter(center, size, aspect, bounds);
+            bool clampToBounds = IsValid(bounds);
+            if (clampToBounds) center = ClampCenter(center, size, aspect, bounds);
+
+            // 中心被夹回场地后，目标可能贴到屏幕边缘（贴墙、站在地面时最常见）。
+            // 这里按「目标距边缘至少 edgeMargin」反解缩放，用拉远把空间补回来。
+            // 场地比视野矮时相机 y 被锁死，只能靠缩放；横向同样用缩放，避免两套策略混用。
+            IReadOnlyList<Vector2> margin = marginPoints ?? points;
+            if (edgeMargin > 0f && margin != null && margin.Count > 0)
+            {
+                // 拉远会收窄可平移范围，中心可能再次移动，所以迭代求解；
+                // 目标数很少，2~3 轮即收敛，这里给 6 轮上限兜底。
+                for (int pass = 0; pass < 6; pass++)
+                {
+                    float required = MinSizeForMargin(margin, center, edgeMargin, aspect);
+                    if (required <= size + 0.0001f) break;
+
+                    size = Mathf.Clamp(required, minSize, maxSize);
+                    if (clampToBounds) center = ClampCenter(center, size, aspect, bounds);
+
+                    // 已经顶到上限，再迭代也补不出更多空间
+                    if (size >= maxSize - 0.0001f) break;
+                }
+            }
+
             return new CameraPose(center, size);
+        }
+
+        /// <summary>
+        /// 让目标点距屏幕四边都至少有 margin 所需的最小 orthographicSize。
+        /// 横向 halfWidth = size × aspect，纵向 halfHeight = size，故两者换算不同。
+        /// </summary>
+        private static float MinSizeForMargin(IReadOnlyList<Vector2> points, Vector2 center,
+                                             float margin, float aspect)
+        {
+            float required = 0f;
+            for (int i = 0; i < points.Count; i++)
+            {
+                Vector2 delta = points[i] - center;
+                required = Mathf.Max(required, (Mathf.Abs(delta.x) + margin) / aspect);
+                required = Mathf.Max(required, Mathf.Abs(delta.y) + margin);
+            }
+
+            return required;
         }
 
         /// <summary>计算完整场地取景。</summary>

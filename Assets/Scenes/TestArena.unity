@@ -246,9 +246,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   rig: {fileID: 327752638}
   bounds: {fileID: 960029114}
-  minOrthographicSize: 4.5
-  maxOrthographicSize: 7
-  framingPadding: 1
+  minOrthographicSize: 5.6
+  maxOrthographicSize: 8.5
+  framingPadding: 2.5
+  edgeMargin: 3
   overviewPadding: 0.5
   boundsPadding: 0.25
   maxTargets: 4
