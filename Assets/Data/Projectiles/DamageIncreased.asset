@@ -22,8 +22,12 @@ MonoBehaviour:
   damage: 10
   destroyOnHit: 1
   friendlyFire: 0
+  breakTerrain: 1
+  terrainBreakPower: 1
+  terrainBreakRadius: 0.5
   traits:
   - {fileID: 11400000, guid: f2a7c94e1d6b83a05c4f9e7d2b836154, type: 2}
+  ignoreModifiers: 0
   impactViewPrefab: {fileID: 336881222488894599, guid: a3eea3e606ed4f645b6b6da6ef01e362, type: 3}
   bursts:
   - {fileID: 11400000, guid: 6f2b8d4e9a1c3507d4b8e6a2c9f18347, type: 2}

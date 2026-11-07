@@ -178,6 +178,9 @@ namespace NineDays.EditorTools
             config.damage = 10f;
             config.destroyOnHit = true;
             config.friendlyFire = false;
+            config.breakTerrain = true;
+            config.terrainBreakPower = 1f;
+            config.terrainBreakRadius = 0.5f;
             config.gravityScale = 1f;
             config.linearDamping = 0f;
             if (config.traits == null) config.traits = new List<ProjectileTrait>();

@@ -347,8 +347,8 @@ arena.AppendTerrainBox("Stone", center, size);
 6. 调用 `AppendTerrainCircle` 验证补地形。
 7. 按 `R` 重开，地形恢复。
 
-> 当前 `Projectile` 直接命中还没有接地形破坏；场景模块只提供接口。
-> `BurstTerrainEffect` 已通过 `ArenaController.ApplyTerrainBreak` 接入；以后子弹命中效果也走同一入口。
+> `Projectile` 现已在 `OnCollisionEnter2D` 中按 `ProjectileConfig` 的 `breakTerrain/terrainBreakPower/terrainBreakRadius` 调用 `ArenaController.ApplyTerrainBreak`（`TerrainBreakKind.Impact`）。
+> `BurstTerrainEffect` 仍走同一入口；两者都只依赖场景模块接口。
 
 ---
 

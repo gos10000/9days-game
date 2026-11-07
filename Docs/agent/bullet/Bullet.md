@@ -1,6 +1,6 @@
 # 子弹模块（人读版）
 
-> 一句话：**一个 `Projectile` 原型脚本 + 配置资产 + 可组合特性**；发射时构建数值，飞行中可被区域场/技能实时影响，命中统一走 `Character.ReceiveHit(HitInfo)`。
+> 一句话：**一个 `Projectile` 原型脚本 + 配置资产 + 可组合特性**；发射时构建数值，飞行中可被区域场/技能实时影响，命中统一走 `Character.ReceiveHit(HitInfo)`；碰撞时可按配置破坏地形。
 > 爆发（定时/碰撞后的多效果）见 `Docs/agent/burst/Burst.md`。
 > 详细实现见同目录 `Bullet_agent.md`；战斗流程见 `Docs/agent/battle/Battle.md`。
 
@@ -18,6 +18,7 @@
 10. [对象池](#10-对象池)
 11. [测试与验收](#11-测试与验收)
 12. [常见问题](#12-常见问题)
+13. [地形破坏](#13-地形破坏)
 
 ---
 
@@ -61,7 +62,8 @@ Projectile.AddAcceleration(...) ──►        │
                                 Rigidbody2D.linearVelocity
 
 【命中时】
-OnCollisionEnter2D → 友军过滤 → traits.OnHit 投票 → ProjectileHitResolver
+OnCollisionEnter2D → 构建 ProjectileHit → 可选 ApplyTerrainBreak
+                   → 友军过滤 → traits.OnHit 投票 → ProjectileHitResolver
                    → Character.ReceiveHit(HitInfo) → Despawn(Consume)
 ```
 
@@ -131,6 +133,9 @@ OnCollisionEnter2D → 友军过滤 → traits.OnHit 投票 → ProjectileHitRes
 | `damage` | 10 | 命中伤害 |
 | `destroyOnHit` | true | 没有特性投票时的默认处置 |
 | `friendlyFire` | false | 是否打自己人 |
+| `breakTerrain` | true | 碰撞时是否调用地形破坏接口 |
+| `terrainBreakPower` | 1 | 破坏力；低于地形层门槛时不生效 |
+| `terrainBreakRadius` | 0.5 | 破坏半径（世界单位） |
 | `traits` | 空 | 可组合特性列表，按顺序生效 |
 | `bursts` | 空 | 爆发定义列表；见 `Docs/agent/burst/Burst.md` |
 
@@ -263,7 +268,7 @@ Unity.exe -batchmode -nographics -projectPath <项目> -runTests -testPlatform E
 Unity.exe -batchmode -projectPath <项目> -runTests -testPlatform PlayMode
 ```
 
-当前结果：**EditMode 81/81、PlayMode 34/34、`BUILD_OK` + 结构校验通过**。
+本次地形破坏改动未跑 EditMode/PlayMode 全量（按要求），只做了 Unity 脚本编译检查；最近一次全量基线见 `Docs/agent/README.md`（90/44），下方为历史用例记录。
 
 关键用例：`ProjectileBuildTests`（构建顺序/修改器/穿透）、`ProjectileInfluenceTests`（积分/引力数学）、`ProjectileTraitTests`（穿透、引力 Trigger 路径）、`ProjectilePoolTests`（复用/预热/事件/回合判定）。
 
@@ -285,4 +290,41 @@ A：物理碰撞已经产生反弹，若不恢复，穿透弹会被第一个目�
 
 **Q：场上子弹一直不消失会怎样？**
 A：`TurnController` 以“场上无子弹”结束行动；`lifeTime` 是兜底，默认 5 秒。
+
+---
+
+## 13. 地形破坏
+
+子弹的地形破坏数据放在 `ProjectileConfig`，因此每种子弹 prefab 独立配置；`AmmoDefinition` 只负责选弹展示，不重复存数值。
+
+| 字段 | 默认 | 含义 |
+|---|---|---|
+| `breakTerrain` | true | 关闭后完全跳过地形接口 |
+| `terrainBreakPower` | 1 | 传给 `TerrainBreakRequest.BreakPower`；由地形层门槛决定能否抹除 |
+| `terrainBreakRadius` | 0.5 | 圆形破坏半径（世界单位），最终还会受 `ArenaController.maxBreakRadius` 限制 |
+
+调用链：
+
+```text
+Projectile.OnCollisionEnter2D
+  └─ BuildProjectileHit（取接触点）
+       └─ ApplyTerrainBreak(hit)
+            └─ ArenaController.Instance.ApplyTerrainBreak(
+                   TerrainBreakRequest.Circle(power, radius, point, gameObject, TerrainBreakKind.Impact))
+```
+
+行为约定：
+
+- **碰撞即尝试**：在友军/穿透过滤之前调用；碰撞对象是角色、墙体还是道具都一样，只要是非 Trigger 的物理碰撞。
+- **没有场景就跳过**：`ArenaController.Instance` 为空、地形尚未搭建、或配置关闭/半径或破坏力为 0 时直接返回，不报错、不阻塞子弹。
+- **范围与门槛独立**：`terrainBreakPower` 决定能破坏哪些层；`terrainBreakRadius` 决定洞的大小。
+- **不新增事件**：地形变化仍由场景模块的 `GameEvents.TerrainBroken` 广播；子弹本身不负责表现。
+- **每次碰撞各自结算**：没有“每发只触发一次”的锁；可穿透/反弹子弹可能多次触发，需要时在配置或特性层限制。
+
+手动验收：
+
+1. 打开 `Battle Scene`，选中子弹配置资产（例如 `Assets/Data/Projectiles/SimpleBulletConfig.asset`）。
+2. 确认 Inspector 的“地形破坏”组：`Break Terrain` 勾选，`Terrain Break Power` / `Radius` 可调。
+3. Play，朝地面射击；命中点应出现洞，Wood 默认门槛 1，Stone 默认门槛 3。
+4. 关闭 `Break Terrain` 或把半径设为 0，再射击，地形应保持不变。
 

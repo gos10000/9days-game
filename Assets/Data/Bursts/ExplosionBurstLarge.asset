@@ -17,7 +17,7 @@ MonoBehaviour:
   delay: 0
   cooldown: 0.5
   maxTriggers: 1
-  impactFilter: 7
+  impactFilter: -1
   minImpactSpeed: 0
   destroyOnTrigger: 0
   viewPrefab: {fileID: 834610452419655542, guid: 20ac7b8f08cfb144cbfdd1bfeb755637, type: 3}

@@ -1,6 +1,6 @@
 # Agent 文档索引
 
-> 最后同步：2026-11-06。全量验收：EditMode `90/90`，PlayMode `44/44`（含战斗关卡初始化 7 个 + 战斗选弹 9 EditMode / 3 PlayMode）；`BuildAllBatch` 本次未运行，见 `battleinit/BattleInit_agent.md`。
+> 最后同步：2026-11-07。历史全量验收：EditMode `90/90`，PlayMode `44/44`（含战斗关卡初始化 7 个 + 战斗选弹 9 EditMode / 3 PlayMode）；2026-11-07 子弹地形破坏改动仅做编译检查，未跑全量测试。`BuildAllBatch` 本次未运行，见 `battleinit/BattleInit_agent.md`。
 
 ## 配置与操作先看这里
 
@@ -37,7 +37,7 @@
 | 战斗背景/场地/关卡初始化 | `battleinit/BattleInit.md` | `battleinit/BattleInit_agent.md` | 背景/场地/关卡 prefab、出生点、Inspector 覆盖 |
 | 战斗选弹 | `battleammo/BattleAmmo.md` | `battleammo/BattleAmmo_agent.md` | 随机抽选、数量可调、测试全选、AmmoSelectPage |
 | 皮肤与动画 | `skin/Skin.md` | `skin/Skin_agent.md` | 皮肤配置、切换、Animator 契约、序列帧/骨骼 |
-| 子弹 | `bullet/Bullet.md` | `bullet/Bullet_agent.md` | 原型、数值副本、特性、发射修改器、对象池 |
+| 子弹 | `bullet/Bullet.md` | `bullet/Bullet_agent.md` | 原型、数值副本、特性、发射修改器、对象池、地形破坏 |
 | 子弹爆发 | `burst/Burst.md` | `burst/Burst_agent.md` | 触发/冷却/重复、伤害/牵引/地形效果、事件接口 |
 | UI 框架 | `ui/UI.md` | `ui/UI_agent.md` | UIRoot、Canvas 五层、页面栈/弹窗、缓存、过渡 |
 | 场景地形 | `arena/Arena.md` | `arena/Arena_agent.md` | 分层遮罩、Bake、运行时重建、破坏/追加 |
