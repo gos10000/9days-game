@@ -10,9 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: d6b787e03ccf33646bef7d5769fa84d4, type: 3}
-  m_Name: AmmoDefinition_Simple
+  m_Name: AmmoDefinition_ Neutralize_gravity
   m_EditorClassIdentifier: 
-  prefab: {fileID: 3031434504941241906, guid: ad8ede4d762e02e479f3c909f0a5220e, type: 3}
-  displayName: "\u666E\u901A\u5B50\u5F39"
-  description: "\u7A33\u5B9A\u3001\u901A\u7528\u7684\u57FA\u7840\u5B50\u5F39\u3002"
-  icon: {fileID: 6036910054078009439, guid: f1f88f78083825a4aba9bf49b3796a03, type: 3}
+  prefab: {fileID: 3227756951177577933, guid: a4e9c2f7b1d6830509c7e4f2a8b1d630, type: 3}
+  displayName: neutralize gravity ammo
+  description: 
+  icon: {fileID: 8712748534019873026, guid: d6f2dcfaa7f749c488e91fede32d70ee, type: 3}

@@ -13,5 +13,12 @@ MonoBehaviour:
   m_Name: AmmoCatalog_Default
   m_EditorClassIdentifier: 
   ammo:
-  - {fileID: 11400000, guid: 5db4f9100a4936b42904471154df72ff, type: 2}
   - {fileID: 11400000, guid: 4bdade2815d032d498069f0c03ac563d, type: 2}
+  - {fileID: 11400000, guid: 82e45d25010f46446b6313cdde89033e, type: 2}
+  - {fileID: 11400000, guid: e6c8a635ba9e1b045a3b5486c7e1d9c7, type: 2}
+  - {fileID: 11400000, guid: b7d5899adc5e31741bd3858b772ae3d4, type: 2}
+  - {fileID: 11400000, guid: ee225f3110b20c64fa03ae367dd9dda1, type: 2}
+  - {fileID: 11400000, guid: c3c37957b4fe6c94d82454660c21749d, type: 2}
+  - {fileID: 11400000, guid: b6366101a4d12314684e847e935ee67b, type: 2}
+  - {fileID: 11400000, guid: b12156977e6a1b2478add46ae0591f9b, type: 2}
+  - {fileID: 11400000, guid: 599dfc52a23fcbe48bce80cec3306e59, type: 2}
