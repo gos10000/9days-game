@@ -5,6 +5,7 @@
         "NineDays.Input",
         "Unity.2D.Animation.Runtime",
         "Unity.2D.Common.Runtime",
+        "Unity.InputSystem",
         "Unity.VisualScripting.Core"
     ],
     "includePlatforms": [],

@@ -1,0 +1,66 @@
+{ "frames": {
+   "精灵-0001 0.aseprite": {
+    "frame": { "x": 2, "y": 2, "w": 640, "h": 360 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 640, "h": 360 },
+    "sourceSize": { "w": 640, "h": 360 },
+    "duration": 100
+   },
+   "精灵-0001 1.aseprite": {
+    "frame": { "x": 644, "y": 2, "w": 640, "h": 360 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 640, "h": 360 },
+    "sourceSize": { "w": 640, "h": 360 },
+    "duration": 100
+   },
+   "精灵-0001 2.aseprite": {
+    "frame": { "x": 1286, "y": 2, "w": 640, "h": 360 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 640, "h": 360 },
+    "sourceSize": { "w": 640, "h": 360 },
+    "duration": 100
+   },
+   "精灵-0001 3.aseprite": {
+    "frame": { "x": 1928, "y": 2, "w": 640, "h": 360 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 640, "h": 360 },
+    "sourceSize": { "w": 640, "h": 360 },
+    "duration": 100
+   },
+   "精灵-0001 4.aseprite": {
+    "frame": { "x": 2570, "y": 2, "w": 640, "h": 360 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 640, "h": 360 },
+    "sourceSize": { "w": 640, "h": 360 },
+    "duration": 100
+   },
+   "精灵-0001 5.aseprite": {
+    "frame": { "x": 3212, "y": 2, "w": 640, "h": 360 },
+    "rotated": false,
+    "trimmed": false,
+    "spriteSourceSize": { "x": 0, "y": 0, "w": 640, "h": 360 },
+    "sourceSize": { "w": 640, "h": 360 },
+    "duration": 100
+   }
+ },
+ "meta": {
+  "app": "https://www.aseprite.org/",
+  "version": "1.3.18.6-x64",
+  "image": "bg.png",
+  "format": "RGBA8888",
+  "size": { "w": 3854, "h": 364 },
+  "scale": "1",
+  "frameTags": [
+  ],
+  "layers": [
+   { "name": "图层 4", "opacity": 255, "blendMode": "normal" },
+   { "name": "人，球", "opacity": 255, "blendMode": "normal" },
+   { "name": "云", "opacity": 255, "blendMode": "normal" }
+  ]
+ }
+}

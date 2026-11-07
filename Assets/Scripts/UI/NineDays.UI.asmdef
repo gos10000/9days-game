@@ -2,6 +2,8 @@
     "name": "NineDays.UI",
     "rootNamespace": "NineDays",
     "references": [
+        "NineDays.Battle",
+        "NineDays.Game",
         "NineDays.Input",
         "Unity.InputSystem",
         "UnityEngine.UI"

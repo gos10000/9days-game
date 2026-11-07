@@ -279,6 +279,16 @@ namespace NineDays
             pendingInfluence.VelocityOverride = velocity;
         }
 
+        /// <summary>进入 Trigger：转发给特性（道具场等非实体碰撞不会走 OnCollisionEnter2D）。</summary>
+        private void OnTriggerEnter2D(Collider2D other)
+        {
+            if (!IsLaunched || despawning || other == null) return;
+            if (traits == null) return;
+
+            for (int i = 0; i < traits.Count; i++)
+                if (traits[i] != null) traits[i].OnTrigger(this, other);
+        }
+
         private void OnCollisionEnter2D(Collision2D collision)
         {
             if (!IsLaunched || despawning || collision.collider == null) return;
@@ -309,6 +319,11 @@ namespace NineDays
 
             bool hitTerrain = ArenaController.Instance != null &&
                               ArenaController.Instance.IsTerrainCollider(collision.collider);
+
+            // 撞击特效：任何子弹撞到任何东西都生成（爆炸特效由 BurstDefinition.viewPrefab 负责）
+            if (config != null && config.impactViewPrefab != null)
+                BurstViewSpawner.Spawn(config.impactViewPrefab, hit.Point);
+
             TriggerBursts(BurstTriggerType.OnImpact, hit.Point, hit.Normal, hit, hitTerrain);
 
             if (disposition == HitDisposition.Consume) Despawn(ExpireReason.Hit);

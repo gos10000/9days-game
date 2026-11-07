@@ -33,8 +33,36 @@
 | `UI/Framework/UIFadeTransition.cs` | 默认淡入淡出 |
 | `UI/Framework/UIRoot.cs` | Canvas 五层、EventSystem、Router 入口 |
 | `UI/PlaceholderPage.cs` | 框架占位页 |
+| `UI/BattleHud.cs` | 战斗回合 HUD（轮次 + 当前行动方），挂在 `UICanvas` 上 |
+| `UI/PauseMenu.cs` | 暂停菜单（ESC 开关、`Time.timeScale`、回到游戏 / 重新开始 / 回到开始界面） |
+| `Editor/BattleUIBuilder.cs` | 生成场景内实体 `UICanvas`（含 EventSystem、HUD、暂停面板） |
 
-`TurnBanner`、`CombatDebugHud` 仍是 `OnGUI` 调试 UI，不属于本框架；正式页面可以逐步替换它们。
+`CombatDebugHud` 仍是 `OnGUI` 调试 UI，不属于本框架。
+`TurnBanner` 同样保留为 `OnGUI` 占位横幅，但 `ArenaBuilder` 生成时已把 `showBanner` 设为 `false`——回合信息现在由 `UICanvas` 上的 `BattleHud` 负责，避免两份重复显示。
+`UI/StartBoxTrigger.cs` 是开始界面的出口触发器（`OnTriggerEnter2D` → `SceneManager.LoadScene`），也不属于本框架：它在 `targetScene` 为空、或 `LoadScene` 抛异常时会打红字并复位 `isLoading`，不再静默失效。
+
+### 1.1 `UICanvas`（战斗常驻 UI）
+
+与 UIRoot 的运行时 Canvas 是两套独立物体：
+
+```
+UICanvas  (Canvas Overlay, sortingOrder 200, CanvasScaler 1920×1080 match 0.5)
+├── RoundText       "第 1 / 9 轮"        顶部居中，锚点 (0.5,1)
+├── ActorText       "玩家 1 的回合"       顶部居中，锚点 (0.5,1)
+└── PausePanel      Image 全屏遮罩，默认 inactive
+    └── Panel       580×420 居中
+        ├── Title             "暂停"
+        ├── ResumeButton      "回到游戏"
+        ├── RestartButton     "重新开始"   → BattleController.RestartBattle()
+        └── QuitButton        "回到开始界面" → SceneManager.LoadScene("StartScene")
+```
+
+要点：
+
+- 生成入口：菜单 `9Days/UI/Build Battle Canvas (TestArena)`，或 `Build/Test Arena` 全量重建时自动包含
+- 字体用 `Assets/Art/Fonts/sarasa-gothic-sc-regular.ttf`（legacy `Text`，不是 TMP），中文可正常显示
+- `PauseMenu.IsPaused` 是静态标志，暂停期间 `CharacterLauncher` 会据此跳过瞄准与发射——只设 `timeScale = 0` 挡不住 `Update` 里的输入读取
+- 场景里必须有一个 `EventSystem` 且模块为 `InputSystemUIInputModule`（需 `AssignDefaultActions()`），否则按钮点不动
 
 ---
 
@@ -283,7 +311,7 @@ Assets/Data/UI/Pages/PlaceholderPage.asset
 ## 11. 已知限制
 
 - 正式页面（MainMenu / BattleHUD / Pause / Result）尚未实现，只提供占位页
-- `TurnBanner` 仍是 `OnGUI`，尚未迁移到页面
+- `TurnBanner` 仍是 `OnGUI`（已改为屏幕正上方的**常驻**回合 HUD，不再每次行动弹一次），尚未迁移到页面
 - 页面资源同步加载；尚未接入 Addressables/异步加载
 - 页面内容目前使用 legacy `Text`；正式 UI 可替换为 TMP
 - `CanGoBack()` 会遵循 `UIPageConfig.closeOnBack`；`Close(page)` / `CloseAll()` 是显式关闭，不受该字段限制

@@ -23,8 +23,9 @@ namespace NineDays
         [Tooltip("结算最长等待时间，超时强制换人")]
         [SerializeField] private float resolveTimeout = 3f;
 
-        [Tooltip("找不到对手角色时（如开始页只有一名角色），结算后仍由当前队继续行动")]
-        [SerializeField] private bool repeatWhenOpponentMissing;
+        [Header("调试")]
+        [Tooltip("每次开始回合在 Console 打印行动方、firstTeam 与各角色的队伍，用于排查「谁先手」")]
+        [SerializeField] private bool logTurns = true;
 
         private float resolveTimer;
         private Team turnActor = Team.None;
@@ -103,6 +104,18 @@ namespace NineDays
             }
 
             GameEvents.RaiseTurnStarted(team);
+
+            if (logTurns)
+            {
+                var sb = new System.Text.StringBuilder();
+                sb.Append($"[Turn] 第 {TurnIndex} 次 BeginTurn → 行动方 {team}（firstTeam={firstTeam}，autoAdvance={autoAdvance}）");
+                for (int i = 0; i < characters.Count; i++)
+                {
+                    Character c = characters[i];
+                    sb.Append(c == null ? " | <空引用>" : $" | {c.name}={c.Team}");
+                }
+                Debug.Log(sb.ToString(), this);
+            }
         }
 
         /// <summary>强制切换到某队（调试热键 1 / 2）。</summary>
@@ -171,6 +184,39 @@ namespace NineDays
         {
             if (turnActor == Team.None && CurrentTeam == Team.None) return;
             EndTurn();
+        }
+
+        /// <summary>
+        /// 取消本回合的这一次发射：回到「还没开枪」的状态。
+        /// 不推进回合（TurnIndex 不变）、不移动角色、不换队，只把发射权还给当前角色。
+        /// 用于开始界面的“无限重打”，以及调试时想重来一枪。
+        /// </summary>
+        public void CancelShot()
+        {
+            Team team = CurrentTeam != Team.None ? CurrentTeam
+                      : (turnActor != Team.None ? turnActor : firstTeam);
+
+            if (team == Team.None) return;
+
+            IsResolving = false;
+            resolveTimer = 0f;
+            CurrentTeam = team;
+            turnActor = team;
+
+            // 这几个标记是“本回合战果”，取消发射后应当一起清掉，否则回合结算会带着旧数据
+            shotFiredThisTurn = false;
+            hitLandedThisTurn = false;
+            damageThisTurn = 0f;
+            targetDefeatedThisTurn = false;
+
+            for (int i = 0; i < characters.Count; i++)
+            {
+                Character c = characters[i];
+                if (c == null) continue;
+
+                c.SetCanAct(c.Team == team);
+                if (c.Team == team) c.CancelAim();
+            }
         }
 
         private void EndTurn()

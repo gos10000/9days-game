@@ -27,7 +27,7 @@ namespace NineDays
         public float ignoreOwnerTime = 0.15f;
 
         [Header("运动")]
-        [Tooltip("重力倍率：1 = 抛物弹，0 = 直线弹")]
+        [Tooltip("重力倍率：1 = 抛物弹，0 = 直线弹，负数 = 反重力（重力方向朝上）")]
         public float gravityScale = 1f;
 
         [Tooltip("空气阻力（0 = 无阻力）")]
@@ -47,6 +47,14 @@ namespace NineDays
         [Tooltip("可组合的子弹特性，按列表顺序生效")]
         public List<ProjectileTrait> traits = new List<ProjectileTrait>();
 
+        [Header("道具")]
+        [Tooltip("勾选后忽略发射者的所有道具 / 装备 / Buff 修改器（ProjectileModifier）")]
+        public bool ignoreModifiers;
+
+        [Header("表现")]
+        [Tooltip("撞击特效：子弹撞到任何东西时生成，所有子弹都该配")]
+        public GameObject impactViewPrefab;
+
         [Header("爆发")]
         [Tooltip("子弹携带的爆发定义；按列表顺序触发")]
         public List<BurstDefinition> bursts = new List<BurstDefinition>();
@@ -60,7 +68,8 @@ namespace NineDays
             lifeTime = Mathf.Max(0.01f, lifeTime);
             ignoreOwnerTime = Mathf.Max(0f, ignoreOwnerTime);
             damage = Mathf.Max(0f, damage);
-            gravityScale = Mathf.Max(0f, gravityScale);
+            // 允许负值：反重力弹药（AntigravityTrait）用它把重力方向翻转为向上
+            if (float.IsNaN(gravityScale)) gravityScale = 0f;
             linearDamping = Mathf.Max(0f, linearDamping);
 
             if (traits == null) traits = new List<ProjectileTrait>();

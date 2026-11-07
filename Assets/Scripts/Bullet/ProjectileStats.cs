@@ -48,7 +48,8 @@ namespace NineDays
             lifeTime = Mathf.Max(0.01f, lifeTime);
             ignoreOwnerTime = Mathf.Max(0f, ignoreOwnerTime);
             damage = Mathf.Max(0f, damage);
-            gravityScale = Mathf.Max(0f, gravityScale);
+            // 允许负值：反重力弹药（AntigravityTrait）用它把重力方向翻转为向上
+            if (float.IsNaN(gravityScale)) gravityScale = 0f;
             linearDamping = Mathf.Max(0f, linearDamping);
             pierceCount = Mathf.Max(0, pierceCount);
             pierceRemaining = Mathf.Clamp(pierceRemaining, 0, pierceCount);

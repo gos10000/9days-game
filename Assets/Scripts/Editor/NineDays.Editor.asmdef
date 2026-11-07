@@ -11,6 +11,7 @@
         "NineDays.Settings",
         "NineDays.UI",
         "Unity.2D.Animation.Runtime",
+        "Unity.InputSystem",
         "UnityEngine.UI"
     ],
     "includePlatforms": [

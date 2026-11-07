@@ -24,9 +24,8 @@ namespace NineDays
         [Header("启动")]
         [SerializeField] private bool autoStart = true;
 
-        [Header("显示")]
-        [Tooltip("是否自动创建回合提示横幅；开始页等非战斗场景可关闭")]
-        [SerializeField] private bool showTurnBanner = true;
+        [Tooltip("场景里没有 TurnBanner 时自动补一个旧的 OnGUI 回合横幅。回合信息已交给 UICanvas 的 BattleHud，默认关闭")]
+        [SerializeField] private bool autoCreateTurnBanner;
 
         private BattleSession session;
         private Action<TurnResult> pendingCallback;
@@ -77,13 +76,14 @@ namespace NineDays
             ResolveTurnStartGate();
 
             EnsureTurnBanner();
+            BurstViewSpawner.EnsureExists();
         }
 
-        /// <summary>场景里没有 TurnBanner 时自动补一个，保证「轮到谁」始终可见。</summary>
+        /// <summary>场景里没有 TurnBanner 时自动补一个（默认关闭，回合显示由 UICanvas 的 BattleHud 负责）。</summary>
         private void EnsureTurnBanner()
         {
-            if (!showTurnBanner) return;
-            if (FindAnyObjectByType<TurnBanner>(FindObjectsInactive.Include) != null) return;
+            if (!autoCreateTurnBanner) return;
+            if (FindAnyObjectByType<TurnBanner>() != null) return;
             gameObject.AddComponent<TurnBanner>();
         }
 

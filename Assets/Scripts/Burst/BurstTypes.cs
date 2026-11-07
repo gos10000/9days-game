@@ -53,6 +53,23 @@ namespace NineDays
             HitTerrain = hitTerrain;
         }
 
+        /// <summary>没有子弹来源的爆发（持续区域到期结算等）。阵营与发射者直接传入，否则友军过滤会失效。</summary>
+        public BurstContext(Character owner, Team team, BurstDefinition definition, BurstTriggerType trigger,
+                            int triggerCount, Vector2 point, Vector2 normal,
+                            ProjectileHit hit, bool hitTerrain)
+        {
+            Projectile = null;
+            Owner = owner;
+            Team = team;
+            Definition = definition;
+            Trigger = trigger;
+            TriggerCount = triggerCount;
+            Point = point;
+            Normal = normal;
+            Hit = hit;
+            HitTerrain = hitTerrain;
+        }
+
         public GameObject Source => Projectile != null ? Projectile.gameObject : null;
         public Character HitCharacter => Hit.Character;
         public Collider2D HitCollider => Hit.Collider;

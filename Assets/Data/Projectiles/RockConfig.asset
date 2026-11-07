@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bc110cc8d6ae21546af85d00d1d5775f, type: 3}
+  m_Name: RockConfig
+  m_EditorClassIdentifier: 
+  mass: 0.5
+  radius: 0.25
+  initialSpeed: 15
+  lifeTime: 999
+  ignoreOwnerTime: 0.15
+  gravityScale: 1
+  linearDamping: 0.05
+  damage: 10
+  destroyOnHit: 0
+  friendlyFire: 0
+  traits: []
+  bursts: []

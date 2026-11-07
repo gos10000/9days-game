@@ -72,7 +72,10 @@ namespace NineDays
             int baseTraitCount = traits.Count;
             for (int i = 0; i < baseTraitCount; i++) traits[i].ApplyStats(stats);
 
-            if (modifiers != null)
+            // 免疫道具的子弹在建档时就跳过修改器，连特性追加也不给
+            bool ignoreModifiers = config != null && config.ignoreModifiers;
+
+            if (!ignoreModifiers && modifiers != null)
             {
                 for (int i = 0; i < modifiers.Count; i++)
                     if (modifiers[i] != null) modifiers[i].Modify(stats, context);

@@ -19,6 +19,10 @@ namespace NineDays
         [Tooltip("默认皮肤下标，-1 表示使用 CharacterConfig.defaultSkinIndex")]
         [SerializeField] private int initialSkinIndex = -1;
 
+        [Header("初始朝向")]
+        [Tooltip("0 = 按阵营自动（Player1 朝右、Player2 朝左）；1 = 强制朝右；-1 = 强制朝左")]
+        [SerializeField] private int initialFacing = 0;
+
         [Header("无动画时的兜底表现")]
         [SerializeField] private bool allowFallbackTilt = true;
         [SerializeField] private float fallbackTiltSpeed = 360f;
@@ -58,11 +62,25 @@ namespace NineDays
 
         private void Start()
         {
+            facing = ResolveInitialFacing();
+
             int index = initialSkinIndex >= 0
                 ? initialSkinIndex
                 : (config != null ? config.defaultSkinIndex : -1);
 
             if (index >= 0) ApplySkin(index);
+            else ApplyFacing();
+        }
+
+        /// <summary>
+        /// 初始朝向：显式配置优先；未配置时按阵营给默认值——Player2 面朝左，这样双人对峙时两人相对而立。
+        /// </summary>
+        private int ResolveInitialFacing()
+        {
+            if (initialFacing > 0) return 1;
+            if (initialFacing < 0) return -1;
+
+            return character != null && character.Team == Team.Player2 ? -1 : 1;
         }
 
         private void Update()
