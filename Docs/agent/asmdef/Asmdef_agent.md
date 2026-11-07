@@ -16,12 +16,13 @@
 
 ## 0. 本次改动
 
-目标：把单一运行时程序集拆成可编译的模块边界，采用上一轮确认的 7 模块方案：
+目标：把单一运行时程序集拆成可编译的模块边界，最初采用 7 模块方案，后续新增 `NineDays.Flow`：
 
 - 保留 `NineDays.Game` 作为 Character / Bullet / Burst / Scene / Config / Events / test 聚合层；
 - 拆出 `NineDays.Input`、`NineDays.Settings`、`NineDays.UI`、`NineDays.Battle`、`NineDays.Camera`、`NineDays.Debug`；
 - 现有 `NineDays.Editor` 引用所有运行时程序集；
-- EditMode / PlayMode 测试程序集引用所有被测运行时程序集。
+- EditMode / PlayMode 测试程序集引用所有被测运行时程序集；
+- 后续新增 `NineDays.Flow`（战斗流程编排，选弹门），依赖 `Battle + Game + UI + Input`，Battle 不反向引用 Flow/UI。
 
 本次**不改玩法逻辑**，只改编译边界和两个必要的类型归属。
 
@@ -34,6 +35,7 @@
 | `NineDays.UI` | `Assets/Scripts/UI/NineDays.UI.asmdef` | UI 框架 |
 | `NineDays.Game` | `Assets/Scripts/NineDays.Game.asmdef` | 玩法聚合层 |
 | `NineDays.Battle` | `Assets/Scripts/Battle/NineDays.Battle.asmdef` | 回合/对局/战斗输入路由 |
+| `NineDays.Flow` | `Assets/Scripts/Flow/NineDays.Flow.asmdef` | 选弹等高层流程编排 |
 | `NineDays.Camera` | `Assets/Scripts/Camera/NineDays.Camera.asmdef` | 镜头控制 |
 | `NineDays.Debug` | `Assets/Scripts/Debug/NineDays.Debug.asmdef` | 调试 HUD |
 | `NineDays.Editor` | `Assets/Scripts/Editor/NineDays.Editor.asmdef` | 生成器、Bake、BuildCheck、菜单 |
@@ -48,6 +50,7 @@ NineDays.Input.dll
 NineDays.Settings.dll
 NineDays.UI.dll
 NineDays.Battle.dll
+NineDays.Flow.dll
 NineDays.Camera.dll
 NineDays.Debug.dll
 NineDays.Editor.dll
@@ -140,10 +143,10 @@ Unity.exe -batchmode -quit -projectPath <项目> ^
 
 | 项 | 结果 |
 |---|---|
-| EditMode | **81/81 Passed** |
-| PlayMode | **34/34 Passed** |
-| `BuildCheck` | 通过 |
-| `Library/ScriptAssemblies` | 生成 10 个 `NineDays.*.dll` |
+| EditMode | **90/90 Passed** |
+| PlayMode | **44/44 Passed** |
+| `BuildCheck` | 通过（历史记录；本次新增功能未重跑 BuildAllBatch） |
+| `Library/ScriptAssemblies` | 生成 11 个 `NineDays.*.dll`（含 Flow） |
 
 > 本次没有重新跑 `BuildAllBatch`，因为 asmdef 拆分不改资源；`BuildCheck` 已验证 Editor 程序集和场景结构。之前的内容配置由 `BuildAll` 重写后已恢复，见 `../input/Input_agent.md` 第 8 节。
 

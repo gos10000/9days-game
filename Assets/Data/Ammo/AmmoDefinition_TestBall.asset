@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d6b787e03ccf33646bef7d5769fa84d4, type: 3}
+  m_Name: AmmoDefinition_TestBall
+  m_EditorClassIdentifier: 
+  prefab: {fileID: 8207526128195810767, guid: 471d47ad96264054b9b1c42f08be9df3, type: 3}
+  displayName: "\u6D4B\u8BD5\u7403"
+  description: "\u7528\u4E8E\u9A8C\u8BC1\u9009\u5F39\u4E0E\u53D1\u5C04\u6D41\u7A0B\u7684\u6D4B\u8BD5\u5B50\u5F39\u3002"
+  icon: {fileID: 5873908281364127489, guid: 86ea75d2562e1314280679749f7c302b, type: 3}

@@ -34,6 +34,17 @@ namespace NineDays
         private string resultText = string.Empty;
         private Color resultColor = Color.white;
 
+        /// <summary>运行时显隐；非战斗场景可强制关闭。</summary>
+        // public bool Visible
+        // {
+        //     get => showBanner;
+        //     set
+        //     {
+        //         showBanner = value;
+        //         if (!value) alpha = 0f;
+        //     }
+        // }
+
         private void OnEnable()
         {
             GameEvents.BattleStarted += OnBattleStarted;

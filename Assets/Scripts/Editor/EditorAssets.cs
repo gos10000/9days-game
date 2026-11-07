@@ -19,8 +19,11 @@ namespace NineDays.EditorTools
         internal const string SkinDefaultPath = PrefabRoot + "/Skins/Skin_Default.prefab";
         internal const string SkinAltPath = PrefabRoot + "/Skins/Skin_Alt.prefab";
         internal const string TestBallPath = PrefabRoot + "/Projectiles/TestBall.prefab";
+        internal const string SimpleBulletPath = PrefabRoot + "/Projectiles/Bullet/Simple Bullet.prefab";
+        internal const string TestBallBulletPath = PrefabRoot + "/Projectiles/Bullet/TestBall.prefab";
         internal const string UIRootPrefabPath = PrefabRoot + "/UI/UIRoot.prefab";
         internal const string UIPlaceholderPagePath = PrefabRoot + "/UI/Pages/PlaceholderPage.prefab";
+        internal const string AmmoSelectPagePath = PrefabRoot + "/UI/Pages/AmmoSelectPage.prefab";
 
         internal const string CharacterConfigPath = DataRoot + "/Characters/CharacterConfig_Default.asset";
         internal const string ProjectileConfigPath = DataRoot + "/Projectiles/TestBallConfig.asset";
@@ -28,6 +31,11 @@ namespace NineDays.EditorTools
         internal const string ArenaConfigPath = DataRoot + "/Arena/ArenaConfig_Default.asset";
         internal const string UIPageCatalogPath = DataRoot + "/UI/UIPageCatalog_Default.asset";
         internal const string UIPlaceholderConfigPath = DataRoot + "/UI/Pages/PlaceholderPage.asset";
+        internal const string AmmoSelectConfigPath = DataRoot + "/UI/Pages/AmmoSelectPage.asset";
+        internal const string AmmoDataRoot = DataRoot + "/Ammo";
+        internal const string AmmoSimplePath = AmmoDataRoot + "/AmmoDefinition_Simple.asset";
+        internal const string AmmoTestBallPath = AmmoDataRoot + "/AmmoDefinition_TestBall.asset";
+        internal const string AmmoCatalogPath = AmmoDataRoot + "/AmmoCatalog_Default.asset";
         internal const string PlayerSettingsDefaultsPath = DataRoot + "/Settings/PlayerSettingsDefaults.asset";
         internal const string ArenaMaskRoot = DataRoot + "/Arena/Masks";
         internal const string TerrainMaterialPath = MaterialRoot + "/TerrainMask.mat";

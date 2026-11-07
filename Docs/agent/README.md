@@ -1,6 +1,6 @@
 # Agent 文档索引
 
-> 最后同步：2026-11-05。全量验收：`BuildAllBatch` = `BUILD_OK`，EditMode `81/81`，PlayMode `34/34`。
+> 最后同步：2026-11-06。全量验收：EditMode `90/90`，PlayMode `44/44`（含战斗关卡初始化 7 个 + 战斗选弹 9 EditMode / 3 PlayMode）；`BuildAllBatch` 本次未运行，见 `battleinit/BattleInit_agent.md`。
 
 ## 配置与操作先看这里
 
@@ -34,6 +34,8 @@
 |---|---|---|---|
 | 角色 | `character/Character.md` | `character/Character_agent.md` | 角色 prefab、状态机、受击/击退、撞击、发射、回合 |
 | 战斗轮 | `battle/Battle.md` | `battle/Battle_agent.md` | 血量制、9 轮、先手、额外行动、行动/轮间间隔、验收 |
+| 战斗背景/场地/关卡初始化 | `battleinit/BattleInit.md` | `battleinit/BattleInit_agent.md` | 背景/场地/关卡 prefab、出生点、Inspector 覆盖 |
+| 战斗选弹 | `battleammo/BattleAmmo.md` | `battleammo/BattleAmmo_agent.md` | 随机抽选、数量可调、测试全选、AmmoSelectPage |
 | 皮肤与动画 | `skin/Skin.md` | `skin/Skin_agent.md` | 皮肤配置、切换、Animator 契约、序列帧/骨骼 |
 | 子弹 | `bullet/Bullet.md` | `bullet/Bullet_agent.md` | 原型、数值副本、特性、发射修改器、对象池 |
 | 子弹爆发 | `burst/Burst.md` | `burst/Burst_agent.md` | 触发/冷却/重复、伤害/牵引/地形效果、事件接口 |
@@ -41,8 +43,9 @@
 | 场景地形 | `arena/Arena.md` | `arena/Arena_agent.md` | 分层遮罩、Bake、运行时重建、破坏/追加 |
 | 镜头控制 | `camera/Camera.md` | `camera/Camera_agent.md` | 2D 正交取景、回合/子弹目标、边界、震动 |
 | 输入 | `input/Input.md` | `input/Input_agent.md` | 设备快照、GameInput、战斗输入路由、调试动作 |
-| 程序集拆分 | `asmdef/Asmdef.md` | `asmdef/Asmdef_agent.md` | 7 个编译单元、依赖方向、Game 聚合层边界 |
+| 程序集拆分 | `asmdef/Asmdef.md` | `asmdef/Asmdef_agent.md` | 8 个编译单元、依赖方向、Game 聚合层边界 |
 | 玩家设置 | `settings/Settings.md` | `settings/Settings_agent.md` | 默认值 SO、JSON、Service、Applier、版本迁移 |
+| 开始界面 | `startscene/StartScene.md` | `startscene/StartScene_agent.md` | 投球命中开始/退出盒、页面状态、场景切换、横幅开关 |
 | 资源生成与调试 | `tooling/Tooling.md` | `tooling/Tooling_agent.md` | 菜单/batchmode、生成顺序、测试场景、HUD、校验 |
 
 ## 文档约定

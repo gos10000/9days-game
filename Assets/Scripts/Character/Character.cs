@@ -216,6 +216,18 @@ namespace NineDays
             SetState(CharacterState.Defeated);
         }
 
+        /// <summary>设置战斗出生点；默认只写值，由 ResetForBattle 真正移动。</summary>
+        public void SetSpawnPoint(Vector3 point, bool moveImmediately = false)
+        {
+            spawnPoint = point;
+            if (!moveImmediately || body == null) return;
+
+            body.linearVelocity = Vector2.zero;
+            body.angularVelocity = 0f;
+            body.position = new Vector2(point.x, point.y);
+            body.rotation = 0f;
+        }
+
         /// <summary>战斗开始时重置：回满血、回出生点、清状态并交出操作权。</summary>
         public void ResetForBattle()
         {

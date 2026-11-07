@@ -1,11 +1,11 @@
 # 程序集拆分（人读版）
 
-> 一句话：**保留 `NineDays.Game` 作为玩法聚合程序集，拆出 Input / Settings / UI / Battle / Camera / Debug / Editor；先解决依赖方向，不强行细分 Character/Bullet/Burst。**
+> 一句话：**保留 `NineDays.Game` 作为玩法聚合程序集，拆出 Input / Settings / UI / Battle / Flow / Camera / Debug / Editor；先解决依赖方向，不强行细分 Character/Bullet/Burst。**
 > Agent 记录见同目录 `Asmdef_agent.md`。
 
 ## 目录
 
-1. [为什么运行时是 7 个程序集](#1-为什么运行时是-7-个程序集)
+1. [为什么运行时是 8 个程序集](#1-为什么运行时是-8-个程序集)
 2. [程序集清单](#2-程序集清单)
 3. [依赖方向](#3-依赖方向)
 4. [Game 里为什么还有 Character/Bullet/Burst](#4-game-里为什么还有-characterbulletburst)
@@ -16,7 +16,7 @@
 
 ---
 
-## 1. 为什么运行时是 7 个程序集
+## 1. 为什么运行时是 8 个程序集
 
 当前代码不是“每个目录都独立”就能编译，存在硬循环：
 
@@ -35,7 +35,8 @@
 | `NineDays.Settings` | `Scripts/Settings` | 玩家设置、存档、Applier | 无 |
 | `NineDays.UI` | `Scripts/UI` | UIRoot、页面栈、过渡、占位页 | `NineDays.Input`、`UnityEngine.UI` |
 | `NineDays.Game` | `Scripts/` 根 | Character / Bullet / Burst / Scene / Config / Events / test | `NineDays.Input`、2D Animation |
-| `NineDays.Battle` | `Scripts/Battle` | BattleController、TurnController、BattleSession、TurnQueue、BattleInputController | `NineDays.Game`、`NineDays.Input` |
+| `NineDays.Battle` | `Scripts/Battle` | BattleController、TurnController、BattleSession、TurnQueue、BattleInputController、ITurnStartGate | `NineDays.Game`、`NineDays.Input` |
+| `NineDays.Flow` | `Scripts/Flow` | 战斗流程编排（选弹门等） | `NineDays.Battle`、`NineDays.Game`、`NineDays.UI`、`NineDays.Input` |
 | `NineDays.Camera` | `Scripts/Camera` | CameraRig、CameraDirector、BattleCameraController | `NineDays.Game`、`NineDays.Battle` |
 | `NineDays.Debug` | `Scripts/Debug` | CombatDebugHud | `NineDays.Game`、`NineDays.Battle`、`NineDays.Input` |
 | `NineDays.Editor` | `Scripts/Editor` | 生成器、Bake、BuildCheck、菜单 | 所有运行时程序集 |
@@ -55,6 +56,8 @@ NineDays.Input        NineDays.Settings
              ↑       ↑
       NineDays.Camera  NineDays.Debug
 
+NineDays.Battle ←── NineDays.Flow ──► NineDays.UI / NineDays.Game
+
 NineDays.Editor → 所有运行时程序集
 Tests → 被测运行时程序集
 ```
@@ -63,9 +66,11 @@ Tests → 被测运行时程序集
 
 - `Input` 不引用 Battle / Character / UI；
 - `Game` 可以引用 Input（`CharacterLauncher` 实现 `IAimInputReceiver`）；
-- `Battle` 单向依赖 `Game` 和 `Input`；
+- `Battle` 单向依赖 `Game` 和 `Input`，不引用 UI/Flow；
+- `Flow` 是高层的流程编排层，依赖 `Battle + Game + UI + Input`，不写玩法数值；
 - `Camera`、`Debug` 是高层的，可以引用 Battle / Game；
-- `Editor` 只被 Editor 程序集使用，运行时不反向引用它。
+- `Editor` 只被 Editor 程序集使用，运行时不反向引用它；
+- Tests / Editor 需要显式引用 `Flow`。
 
 ## 4. Game 里为什么还有 Character/Bullet/Burst
 
@@ -118,7 +123,7 @@ Unity.exe -batchmode -quit -projectPath <项目> ^
   -logFile Temp\check.log
 ```
 
-当前结果：**EditMode 81/81、PlayMode 34/34、`BuildCheck` 通过**。
+当前结果：**EditMode 90/90、PlayMode 44/44**；`BuildCheck` 为历史记录，本次新增功能未重跑全量 `BuildAllBatch`。
 
 ## 8. 已知限制与后续
 
