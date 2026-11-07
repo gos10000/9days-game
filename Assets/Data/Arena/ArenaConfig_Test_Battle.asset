@@ -1,0 +1,53 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 01295fd7b89f504449533c5ad925bf00, type: 3}
+  m_Name: ArenaConfig_Test_Battle
+  m_EditorClassIdentifier: 
+  worldRect:
+    serializedVersion: 2
+    x: -12
+    y: -5
+    width: 24
+    height: 10
+  pixelsPerUnit: 16
+  layers:
+  - layerId: test_battle
+    destructible: 1
+    requiredBreakPower: 0
+    collisionEnabled: 1
+    alphaThreshold: 0.5
+    initialMask: {fileID: 2800000, guid: 0bf2dda5bb48e284d8f30444d2ed6607, type: 2}
+    art:
+    - sprite: {fileID: 7932798033344189819, guid: 7aa3d6bd5085b374abf9ac1cd815e010, type: 3}
+      position: {x: -0.5, y: -3.88, z: 0}
+      eulerAngles: {x: -0, y: 0, z: 0}
+      scale: {x: 6, y: 1, z: 1}
+      color: {r: 1, g: 1, b: 1, a: 1}
+      sortingLayerName: Background
+      sortingOrder: 5
+      flipX: 0
+      flipY: 0
+      drawMode: 0
+      size: {x: 6.4, y: 0.11}
+      tileMode: 0
+    - sprite: {fileID: -3878557786174838139, guid: 15f2531155d1e9d4782fa6acf16097c6, type: 3}
+      position: {x: -0.5, y: -4.65, z: 0}
+      eulerAngles: {x: -0, y: 0, z: 0}
+      scale: {x: 6, y: 8, z: 1}
+      color: {r: 1, g: 1, b: 1, a: 1}
+      sortingLayerName: Background
+      sortingOrder: 4
+      flipX: 0
+      flipY: 0
+      drawMode: 0
+      size: {x: 6.4, y: 0.22}
+      tileMode: 0

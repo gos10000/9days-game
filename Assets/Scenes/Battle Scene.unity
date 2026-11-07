@@ -215,14 +215,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   config: {fileID: 11400000, guid: 69d94a66e1518674080d9c9f2b1affe5, type: 2}
   turnController: {fileID: 1853841568}
-  arena: {fileID: 0}
+  arena: {fileID: 455730627}
   sceneInitializer: {fileID: 494338474}
   turnStartGateSource: {fileID: 38440657}
   characters:
   - {fileID: 1024260134}
   - {fileID: 838161479}
   autoStart: 1
-  showTurnBanner: 1
+  autoCreateTurnBanner: 0
 --- !u!4 &357570392
 Transform:
   m_ObjectHideFlags: 0
@@ -237,6 +237,74 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1013222357}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &371379855 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1267998091532356869, guid: 91bbcf1557af99b40860381e7a431e94, type: 3}
+  m_PrefabInstance: {fileID: 630268035}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e2e2b3ab646303e45aec74643c584f5b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!4 &371379856 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 3404152104861795914, guid: 91bbcf1557af99b40860381e7a431e94, type: 3}
+  m_PrefabInstance: {fileID: 630268035}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &455730626
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 455730628}
+  - component: {fileID: 455730627}
+  m_Layer: 0
+  m_Name: ArenaController
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &455730627
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 455730626}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aa9fb6e68841cb84897805a7904f4ed1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  config: {fileID: 11400000, guid: 3c7dad3047536c14a859419a2a51229a, type: 2}
+  bounds: {fileID: 1397334035}
+  terrainMaterial: {fileID: 0}
+  obstacleLayerName: Obstacle
+  simplifyTolerance: 0.02
+  edgeRadius: 0.01
+  maxBreakRadius: 6
+  logBuild: 0
+--- !u!4 &455730628
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 455730626}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.28519934, y: -1.7298241, z: 0.13887969}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &494338472
 GameObject:
@@ -282,13 +350,70 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: db7f1b88f961d0c42b0816be3cc76c6a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  level: {fileID: 1267998091532356869, guid: c19f857b7ec2c154b96363904fd21305, type: 3}
+  level: {fileID: 371379855}
   levelOverride: {fileID: 0}
   backgroundOverride: {fileID: 0}
   arenaOverride: {fileID: 0}
   backgroundSlot: {fileID: 0}
   arenaSlot: {fileID: 0}
   turnController: {fileID: 1853841568}
+--- !u!1001 &630268035
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1013222357}
+    m_Modifications:
+    - target: {fileID: 3404152104861795914, guid: 91bbcf1557af99b40860381e7a431e94, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3404152104861795914, guid: 91bbcf1557af99b40860381e7a431e94, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3404152104861795914, guid: 91bbcf1557af99b40860381e7a431e94, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3404152104861795914, guid: 91bbcf1557af99b40860381e7a431e94, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3404152104861795914, guid: 91bbcf1557af99b40860381e7a431e94, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3404152104861795914, guid: 91bbcf1557af99b40860381e7a431e94, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3404152104861795914, guid: 91bbcf1557af99b40860381e7a431e94, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3404152104861795914, guid: 91bbcf1557af99b40860381e7a431e94, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3404152104861795914, guid: 91bbcf1557af99b40860381e7a431e94, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3404152104861795914, guid: 91bbcf1557af99b40860381e7a431e94, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3428000176489021147, guid: 91bbcf1557af99b40860381e7a431e94, type: 3}
+      propertyPath: m_Name
+      value: Level_test_battle
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 91bbcf1557af99b40860381e7a431e94, type: 3}
 --- !u!1 &692296368
 GameObject:
   m_ObjectHideFlags: 0
@@ -468,7 +593,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1013222357}
   m_Layer: 0
-  m_Name: Battle Page
+  m_Name: Battle
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -487,6 +612,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 371379856}
   - {fileID: 732148743}
   - {fileID: 357570392}
   - {fileID: 692296370}
@@ -507,6 +633,64 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f1cb4dde77e32664a99641a56631940b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &1397334034
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1397334036}
+  - component: {fileID: 1397334035}
+  m_Layer: 0
+  m_Name: ArenaBounds
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1397334035
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1397334034}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8de6289598a3e24aba28e7ece2bd4a2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  playArea:
+    serializedVersion: 2
+    x: -8
+    y: -5
+    width: 16
+    height: 10
+  createInvisibleWalls: 1
+  obstacleLayerName: Obstacle
+  wallThickness: 1
+  wallExtend: 2
+  recoverOutOfBounds: 1
+  checkInterval: 0.2
+  showGizmos: 1
+  gizmoColor: {r: 0.2, g: 1, b: 0.6, a: 0.8}
+--- !u!4 &1397334036
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1397334034}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.28519934, y: -1.7298241, z: 0.13887969}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1443462567
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -725,6 +909,11 @@ MonoBehaviour:
   turnController: {fileID: 0}
   characters: []
   followProjectiles: 1
+  playIntro: 1
+  introFirstTeam: 1
+  introOrthographicSize: 3.2
+  introHoldSeconds: 0.9
+  introMoveSeconds: 0.8
   hitShakeBase: 0.12
   hitShakePerImpulse: 0.02
   strongImpactShakeBase: 0.2
@@ -811,7 +1000,7 @@ MonoBehaviour:
   autoStart: 0
   autoAdvance: 0
   resolveTimeout: 3
-  repeatWhenOpponentMissing: 0
+  logTurns: 1
 --- !u!4 &1853841569
 Transform:
   m_ObjectHideFlags: 0
@@ -932,3 +1121,5 @@ SceneRoots:
   - {fileID: 1013222357}
   - {fileID: 2048892803}
   - {fileID: 38440658}
+  - {fileID: 455730628}
+  - {fileID: 1397334036}

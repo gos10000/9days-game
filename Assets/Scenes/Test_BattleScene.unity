@@ -330,6 +330,9 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 1272303788}
+  - {fileID: 1182029866}
+  - {fileID: 1653767974}
   - {fileID: 1638143832}
   - {fileID: 1247778515}
   - {fileID: 1010687277}
@@ -594,11 +597,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playArea:
     serializedVersion: 2
-    x: -10
+    x: -12
     y: -5
-    width: 35
-    height: 12
-  createInvisibleWalls: 1
+    width: 24
+    height: 10
+  createInvisibleWalls: 0
   obstacleLayerName: Obstacle
   wallThickness: 1
   wallExtend: 2
@@ -2005,6 +2008,8 @@ MonoBehaviour:
   config: {fileID: 11400000, guid: 69d94a66e1518674080d9c9f2b1affe5, type: 2}
   turnController: {fileID: 1042617000}
   arena: {fileID: 1427969396}
+  sceneInitializer: {fileID: 0}
+  turnStartGateSource: {fileID: 0}
   characters:
   - {fileID: 1305896711}
   - {fileID: 747633511}
@@ -2120,7 +2125,7 @@ BoxCollider2D:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 845047035}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Density: 1
   m_Material: {fileID: 0}
@@ -2315,7 +2320,7 @@ BoxCollider2D:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1010687276}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Density: 1
   m_Material: {fileID: 0}
@@ -2672,12 +2677,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1182029864}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.24, y: 2.04, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 9.24, y: 2, z: 10}
   m_LocalScale: {x: 3, y: 3, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 111237534}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1240385319
 MonoBehaviour:
@@ -2788,7 +2793,7 @@ BoxCollider2D:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1247778514}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Density: 1
   m_Material: {fileID: 0}
@@ -2907,12 +2912,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1272303786}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -6.63, y: -0.14, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 2.37, y: -0.18, z: 10}
   m_LocalScale: {x: 4, y: 4, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 111237534}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1286086004
 GameObject:
@@ -3085,7 +3090,7 @@ BoxCollider2D:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1303581418}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Density: 1
   m_Material: {fileID: 0}
@@ -3175,7 +3180,7 @@ BoxCollider2D:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1353700950}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Density: 1
   m_Material: {fileID: 0}
@@ -3305,7 +3310,7 @@ MonoBehaviour:
   simplifyTolerance: 0.02
   edgeRadius: 0.01
   maxBreakRadius: 6
-  logBuild: 0
+  logBuild: 1
 --- !u!4 &1427969397
 Transform:
   m_ObjectHideFlags: 0
@@ -3503,7 +3508,7 @@ BoxCollider2D:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1638143831}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Density: 1
   m_Material: {fileID: 0}
@@ -3636,12 +3641,12 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1653767972}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.2, y: 1.73, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 8.8, y: 1.69, z: 10}
   m_LocalScale: {x: 3, y: 3, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 111237534}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1678141208
 MonoBehaviour:
@@ -4256,6 +4261,3 @@ SceneRoots:
   - {fileID: 830486338}
   - {fileID: 561318935}
   - {fileID: 1167388330}
-  - {fileID: 1272303788}
-  - {fileID: 1182029866}
-  - {fileID: 1653767974}
