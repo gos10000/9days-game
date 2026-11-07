@@ -232,13 +232,14 @@ namespace NineDays
 
             TurnResolved?.Invoke(result);
             GameEvents.RaiseTurnEnded(finished);
-
-            if (autoAdvance)
-            {
-                Team next = OpponentOf(finished);
-                if (repeatWhenOpponentMissing && GetCharacter(next) == null) next = finished;
-                BeginTurn(next);
-            }
+            
+            if (autoAdvance) BeginTurn(OpponentOf(finished));
+            // if (autoAdvance)
+            // {
+            //     Team next = OpponentOf(finished);
+            //     if (repeatWhenOpponentMissing && GetCharacter(next) == null) next = finished;
+            //     BeginTurn(next);
+            // }
         }
 
         /// <summary>结算完成：场上没有子弹，且双方都停稳。</summary>

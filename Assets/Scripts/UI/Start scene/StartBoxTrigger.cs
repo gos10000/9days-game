@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 /// <summary>
 /// 进入触发区就切场景（开始界面用：把石头丢进盒子 → 进主场景）。
@@ -7,15 +8,10 @@ using UnityEngine;
 /// </summary>
 public class StartBoxTrigger : MonoBehaviour
 {
-    /// <summary>开始盒：子弹进入后通知 StartScene 更新页面并进入战斗场景。</summary>
-    public class StartBoxTrigger : MonoBehaviour
-    {
-        private static int ProjectileLayer;
+    [Header("目标场景")]
+    public string targetScene;
 
-        void Awake()
-        {
-            ProjectileLayer = LayerMask.NameToLayer("Projectile");
-        }
+    private bool isLoading;
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
