@@ -114,17 +114,25 @@ namespace NineDays.EditorTools
             return p;
         }
 
+        /// <summary>在同一个 SerializedObject 上取属性，字段名写错时报明确错误而不是 NRE。</summary>
+        private static SerializedProperty Require(SerializedObject so, UnityEngine.Object target, string property)
+        {
+            SerializedProperty p = so.FindProperty(property);
+            if (p == null) throw new InvalidOperationException($"{target.GetType().Name}.{property} 不存在");
+            return p;
+        }
+
         internal static void SetRef(UnityEngine.Object target, string property, UnityEngine.Object value)
         {
             var so = new SerializedObject(target);
-            so.FindProperty(property).objectReferenceValue = value;
+            Require(so, target, property).objectReferenceValue = value;
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 
         internal static void SetObjectArray(UnityEngine.Object target, string property, UnityEngine.Object[] values)
         {
             var so = new SerializedObject(target);
-            SerializedProperty p = so.FindProperty(property);
+            SerializedProperty p = Require(so, target, property);
             p.arraySize = values.Length;
             for (int i = 0; i < values.Length; i++)
                 p.GetArrayElementAtIndex(i).objectReferenceValue = values[i];
@@ -134,42 +142,42 @@ namespace NineDays.EditorTools
         internal static void SetInt(UnityEngine.Object target, string property, int value)
         {
             var so = new SerializedObject(target);
-            so.FindProperty(property).intValue = value;
+            Require(so, target, property).intValue = value;
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 
         internal static void SetFloat(UnityEngine.Object target, string property, float value)
         {
             var so = new SerializedObject(target);
-            so.FindProperty(property).floatValue = value;
+            Require(so, target, property).floatValue = value;
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 
         internal static void SetBool(UnityEngine.Object target, string property, bool value)
         {
             var so = new SerializedObject(target);
-            so.FindProperty(property).boolValue = value;
+            Require(so, target, property).boolValue = value;
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 
         internal static void SetString(UnityEngine.Object target, string property, string value)
         {
             var so = new SerializedObject(target);
-            so.FindProperty(property).stringValue = value;
+            Require(so, target, property).stringValue = value;
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 
         internal static void SetVector2(UnityEngine.Object target, string property, Vector2 value)
         {
             var so = new SerializedObject(target);
-            so.FindProperty(property).vector2Value = value;
+            Require(so, target, property).vector2Value = value;
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 
         internal static void SetRect(UnityEngine.Object target, string property, Rect value)
         {
             var so = new SerializedObject(target);
-            so.FindProperty(property).rectValue = value;
+            Require(so, target, property).rectValue = value;
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 

@@ -3,7 +3,8 @@
     "rootNamespace": "NineDays",
     "references": [
         "NineDays.Game",
-        "NineDays.Input"
+        "NineDays.Input",
+        "Unity.InputSystem"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

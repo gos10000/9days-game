@@ -25,6 +25,10 @@ namespace NineDays
         private readonly List<Vector2> points = new List<Vector2>();
         private bool overview;
 
+        // 临时缩放覆盖：开场介绍等「单目标特写」用，常规逻辑下为 false
+        private bool sizeOverride;
+        private float overrideSize;
+
         public CameraRig Rig => rig;
         public ArenaBounds Bounds => bounds;
         public int TargetCount => targets.Count;
@@ -38,7 +42,8 @@ namespace NineDays
 
         private void Start()
         {
-            if (bounds != null) ShowOverview(true);
+            // 若开场介绍已经抢先设置了特写目标，就不要再用全景覆盖它
+            if (bounds != null && targets.Count == 0 && !sizeOverride) ShowOverview(true);
         }
 
         /// <summary>显示整个场地；snap 为 true 时立即到位。</summary>
@@ -46,12 +51,14 @@ namespace NineDays
         {
             targets.Clear();
             overview = true;
+            sizeOverride = false;
             RefreshPose(snap);
         }
 
         /// <summary>替换目标列表；列表为空时自动回全景。</summary>
         public void SetTargets(IReadOnlyList<Transform> newTargets, bool snap = false)
         {
+            sizeOverride = false;
             targets.Clear();
             if (newTargets != null)
             {
@@ -87,6 +94,31 @@ namespace NineDays
             RefreshPose(snap);
         }
 
+        /// <summary>
+        /// 用指定缩放聚焦单个目标（中心精确对准目标，不受场地边界钳制）。
+        /// 用于开场介绍这类特写；snap 为 false 时由 CameraRig 平滑过渡。
+        /// 调用 <see cref="ClearSizeOverride"/> 或任意 SetTargets / ShowOverview 恢复常规取景。
+        /// </summary>
+        public void FocusSingle(Transform target, float orthographicSize, bool snap = false)
+        {
+            targets.Clear();
+            if (target != null) targets.Add(target);
+
+            overview = target == null;
+            overrideSize = Mathf.Max(0.01f, orthographicSize);
+            sizeOverride = target != null;
+
+            RefreshPose(snap);
+        }
+
+        /// <summary>清除特写缩放覆盖，回到 min/max 常规取景。</summary>
+        public void ClearSizeOverride()
+        {
+            if (!sizeOverride) return;
+            sizeOverride = false;
+            RefreshPose(false);
+        }
+
         /// <summary>增加镜头震动，转发给 CameraRig。</summary>
         public void AddShake(float strength)
         {
@@ -106,7 +138,16 @@ namespace NineDays
 
         private void RefreshPose(bool snap)
         {
-            if (rig == null || rig.TargetCamera == null || bounds == null) return;
+            if (rig == null || rig.TargetCamera == null) return;
+
+            // 特写：单目标 + 固定缩放，中心精确对准目标；不依赖场地边界，也不做边界钳制
+            if (sizeOverride && targets.Count == 1 && targets[0] != null)
+            {
+                rig.SetPose(new CameraPose(targets[0].position, overrideSize), snap);
+                return;
+            }
+
+            if (bounds == null) return;
 
             Rect area = CameraFramer.Expand(bounds.PlayArea, boundsPadding);
             float aspect = Mathf.Max(0.01f, rig.TargetCamera.aspect);

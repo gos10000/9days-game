@@ -21,6 +21,58 @@ namespace NineDays
         /// <summary>子类只描述“这颗子弹在这里受到什么影响”。</summary>
         public abstract void Accumulate(Projectile projectile, ref ProjectileInfluence influence, float deltaTime);
 
+        [Header("音频")]
+        [Tooltip("场存在期间循环播放的环境音；留空则完全静音")]
+        [SerializeField] private AudioClip ambienceClip;
+
+        [Tooltip("环境音音量")]
+        [SerializeField, Range(0f, 1f)] private float ambienceVolume = 0.6f;
+
+        [Tooltip("0 = 2D 全局音，1 = 完全 3D 定位")]
+        [SerializeField, Range(0f, 1f)] private float spatialBlend = 0.85f;
+
+        [Tooltip("音高随机范围，避免同类场叠在一起听感发闷")]
+        [SerializeField] private Vector2 pitchRange = new Vector2(0.94f, 1.06f);
+
+        private AudioSource ambienceSource;
+
+        protected virtual void OnEnable()
+        {
+            StartAmbience();
+        }
+
+        protected virtual void OnDisable()
+        {
+            if (ambienceSource != null) ambienceSource.Stop();
+        }
+
+        /// <summary>没有配置音频就什么都不做，不影响原有逻辑。</summary>
+        private void StartAmbience()
+        {
+            if (ambienceClip == null) return;
+
+            if (ambienceSource == null)
+            {
+                ambienceSource = GetComponent<AudioSource>();
+                if (ambienceSource == null) ambienceSource = gameObject.AddComponent<AudioSource>();
+            }
+
+            ambienceSource.clip = ambienceClip;
+            ambienceSource.loop = true;
+            ambienceSource.playOnAwake = false;
+            ambienceSource.volume = Mathf.Clamp01(ambienceVolume);
+            ambienceSource.spatialBlend = Mathf.Clamp01(spatialBlend);
+            ambienceSource.rolloffMode = AudioRolloffMode.Linear;
+            ambienceSource.minDistance = 2f;
+            ambienceSource.maxDistance = 30f;
+
+            float minPitch = Mathf.Min(pitchRange.x, pitchRange.y);
+            float maxPitch = Mathf.Max(pitchRange.x, pitchRange.y);
+            ambienceSource.pitch = Random.Range(minPitch, maxPitch);
+
+            ambienceSource.Play();
+        }
+
         protected virtual void Reset()
         {
             Collider2D fieldCollider = GetComponent<Collider2D>();

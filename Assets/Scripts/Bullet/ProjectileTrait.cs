@@ -17,6 +17,9 @@ namespace NineDays
         /// <summary>飞行中每帧调用。</summary>
         public virtual void OnTick(Projectile projectile, float deltaTime) { }
 
+        /// <summary>进入 Trigger 时调用（道具场、破坏区等非实体碰撞）。</summary>
+        public virtual void OnTrigger(Projectile projectile, Collider2D other) { }
+
         /// <summary>命中时投票；返回 null 表示不参与决策。</summary>
         public virtual HitDisposition? OnHit(Projectile projectile, in ProjectileHit hit) => null;
 

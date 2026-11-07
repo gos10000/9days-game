@@ -1,21 +1,24 @@
-    using UnityEngine;
+using UnityEngine;
 
 namespace NineDays
 {
     /// <summary>
-    /// 回合提示横幅（占位 UI）：显示当前轮次与行动方，只订阅事件、不影响战斗逻辑。
-    /// 以后换正式 UI（Canvas / TMP）时只改这个组件。
+    /// 回合信息常驻 HUD（占位实现）：屏幕正上方固定显示「第 X / N 轮」与当前行动方。
+    /// 只订阅事件、不影响战斗逻辑；以后换正式 UI（Canvas / TMP）时只改这个组件。
     /// </summary>
     public class TurnBanner : MonoBehaviour
     {
         [Header("显示")]
         [SerializeField] private bool showBanner = true;
 
-        [Tooltip("完全显示后的停留时间（秒）")]
-        [SerializeField] private float holdSeconds = 1.2f;
+        [Tooltip("面板距屏幕顶部的像素距离")]
+        [SerializeField] private float topMargin = 12f;
 
-        [Tooltip("淡入 / 淡出时长（秒）")]
-        [SerializeField] private float fadeSeconds = 0.25f;
+        [Tooltip("面板宽度（像素）")]
+        [SerializeField] private float panelWidth = 380f;
+
+        [Tooltip("面板高度（像素）")]
+        [SerializeField] private float panelHeight = 66f;
 
         [Header("颜色")]
         [SerializeField] private Color player1Color = new Color(0.95f, 0.95f, 0.95f);
@@ -23,13 +26,13 @@ namespace NineDays
         [SerializeField] private Color neutralColor = new Color(0.85f, 0.85f, 0.85f);
         [SerializeField] private Color drawColor = new Color(1f, 0.85f, 0.4f);
 
-        private string title = string.Empty;
-        private string subtitle = string.Empty;
-        private Color color = Color.white;
-        private float timer;
-        private float alpha;
         private int round;
         private int totalRounds;
+        private Team currentTeam = Team.None;
+        private bool resolving;
+        private bool battleRunning;
+        private string resultText = string.Empty;
+        private Color resultColor = Color.white;
 
         private void OnEnable()
         {
@@ -49,33 +52,14 @@ namespace NineDays
             GameEvents.BattleEnded -= OnBattleEnded;
         }
 
-        private void Update()
-        {
-            if (timer <= 0f)
-            {
-                alpha = 0f;
-                return;
-            }
-
-            timer -= Time.unscaledDeltaTime;
-            float elapsed = holdSeconds + fadeSeconds - timer;
-            float fadeIn = fadeSeconds > 0f ? Mathf.Clamp01(elapsed / fadeSeconds) : 1f;
-            float fadeOut = fadeSeconds > 0f ? Mathf.Clamp01(timer / fadeSeconds) : 1f;
-            alpha = Mathf.Min(fadeIn, fadeOut);
-        }
-
-        private void Show(string titleText, string subtitleText, Color textColor)
-        {
-            title = titleText;
-            subtitle = subtitleText;
-            color = textColor;
-            timer = holdSeconds + fadeSeconds;
-        }
-
         private void OnBattleStarted(int rounds)
         {
             totalRounds = rounds;
-            Show("BATTLE START", $"共 {rounds} 轮", neutralColor);
+            round = 0;
+            currentTeam = Team.None;
+            resolving = false;
+            battleRunning = true;
+            resultText = string.Empty;
         }
 
         private void OnRoundStarted(int roundIndex, Team firstActor)
@@ -85,20 +69,101 @@ namespace NineDays
 
         private void OnTurnStarted(Team team)
         {
-            string who = team == Team.Player1 ? "Player1" : team == Team.Player2 ? "Player2" : "-";
-            Show($"第 {round} / {totalRounds} 轮", $"{who} 的回合 · 拖拽松开发射", TeamColor(team));
+            currentTeam = team;
+            resolving = false;
         }
 
         private void OnTurnResolved(TurnResult result)
         {
-            if (!string.IsNullOrEmpty(title) && timer > 0f) return;   // 不打断「轮到谁」提示
-            Show($"第 {round} 轮", "结算中…", neutralColor);
+            resolving = true;
         }
 
         private void OnBattleEnded(BattleResult result)
         {
-            if (result.Winner == Team.None) Show("DRAW", $"共 {result.RoundsPlayed} 轮", drawColor);
-            else Show($"WINNER: {result.Winner}", $"共 {result.RoundsPlayed} 轮", TeamColor(result.Winner));
+            battleRunning = false;
+            resolving = false;
+
+            resultText = result.Winner == Team.None ? "DRAW" : $"WINNER: {TeamName(result.Winner)}";
+            resultColor = result.Winner == Team.None ? drawColor : TeamColor(result.Winner);
+        }
+
+        private void OnGUI()
+        {
+            if (!showBanner) return;
+
+            ResolveLines(out string title, out string subtitle, out Color color);
+
+            float width = Mathf.Min(Mathf.Max(120f, panelWidth), Screen.width - 24f);
+            float height = Mathf.Max(40f, panelHeight);
+            var rect = new Rect((Screen.width - width) * 0.5f, topMargin, width, height);
+
+            GUI.color = new Color(0f, 0f, 0f, 0.55f);
+            GUI.DrawTexture(rect, Texture2D.whiteTexture);
+            GUI.color = Color.white;
+
+            var titleStyle = new GUIStyle(GUI.skin.label)
+            {
+                alignment = TextAnchor.MiddleCenter,
+                fontSize = 22,
+                fontStyle = FontStyle.Bold,
+            };
+            titleStyle.normal.textColor = color;
+
+            var subtitleStyle = new GUIStyle(titleStyle)
+            {
+                fontSize = 15,
+                fontStyle = FontStyle.Normal,
+            };
+
+            float titleHeight = Mathf.Round(height * 0.52f);
+            GUI.Label(new Rect(rect.x, rect.y, width, titleHeight), title, titleStyle);
+
+            if (!string.IsNullOrEmpty(subtitle))
+                GUI.Label(new Rect(rect.x, rect.y + titleHeight - 4f, width, height - titleHeight), subtitle, subtitleStyle);
+        }
+
+        private void ResolveLines(out string title, out string subtitle, out Color color)
+        {
+            if (!battleRunning && !string.IsNullOrEmpty(resultText))
+            {
+                title = resultText;
+                subtitle = totalRounds > 0 ? $"共 {totalRounds} 轮" : string.Empty;
+                color = resultColor;
+                return;
+            }
+
+            if (round <= 0)
+            {
+                title = "准备中";
+                subtitle = totalRounds > 0 ? $"共 {totalRounds} 轮" : string.Empty;
+                color = neutralColor;
+                return;
+            }
+
+            title = totalRounds > 0 ? $"第 {round} / {totalRounds} 轮" : $"第 {round} 轮";
+
+            if (resolving)
+            {
+                subtitle = "结算中…";
+                color = neutralColor;
+            }
+            else if (currentTeam != Team.None)
+            {
+                subtitle = $"{TeamName(currentTeam)} 的回合 · 拖拽松开发射";
+                color = TeamColor(currentTeam);
+            }
+            else
+            {
+                subtitle = "准备中…";
+                color = neutralColor;
+            }
+        }
+
+        private static string TeamName(Team team)
+        {
+            if (team == Team.Player1) return "Player1";
+            if (team == Team.Player2) return "Player2";
+            return "-";
         }
 
         private Color TeamColor(Team team)
@@ -106,35 +171,6 @@ namespace NineDays
             if (team == Team.Player1) return player1Color;
             if (team == Team.Player2) return player2Color;
             return neutralColor;
-        }
-
-        private void OnGUI()
-        {
-            if (!showBanner || alpha <= 0.01f) return;
-
-            float width = Mathf.Min(720f, Screen.width - 40f);
-            var rect = new Rect((Screen.width - width) * 0.5f, Screen.height * 0.16f, width, 130f);
-
-            GUI.color = new Color(0f, 0f, 0f, 0.35f * alpha);
-            GUI.DrawTexture(rect, Texture2D.whiteTexture);
-            GUI.color = Color.white;
-
-            GUIStyle titleStyle = new GUIStyle(GUI.skin.label)
-            {
-                alignment = TextAnchor.MiddleCenter,
-                fontSize = 34,
-                fontStyle = FontStyle.Bold,
-            };
-            titleStyle.normal.textColor = new Color(color.r, color.g, color.b, alpha);
-
-            GUIStyle subtitleStyle = new GUIStyle(titleStyle)
-            {
-                fontSize = 20,
-                fontStyle = FontStyle.Normal,
-            };
-
-            GUI.Label(new Rect(rect.x, rect.y + 16f, width, 48f), title, titleStyle);
-            GUI.Label(new Rect(rect.x, rect.y + 70f, width, 34f), subtitle, subtitleStyle);
         }
     }
 }

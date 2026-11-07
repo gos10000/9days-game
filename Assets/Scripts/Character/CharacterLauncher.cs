@@ -52,7 +52,19 @@ namespace NineDays
         /// <summary>由 BattleInputController 在按下左键时调用；只允许当前可操作角色进入瞄准。</summary>
         public void BeginAim(Vector2 pointerWorld)
         {
-            if (aiming || character == null || !character.CanAct) return;
+            if (character == null) return;
+
+            // 暂停只停物理与 timeScale，Update 仍会跑，所以这里必须显式挡掉瞄准与发射
+            if (GamePause.IsPaused)
+            {
+                if (aiming) CancelAim();
+                return;
+            }
+
+            if (targetCamera == null) targetCamera = Camera.main;
+
+            // 只有当前回合可操作、且尚未处于瞄准中的角色才能起手
+            if (aiming || !character.CanAct) return;
 
             this.pointerWorld = pointerWorld;
             aiming = true;

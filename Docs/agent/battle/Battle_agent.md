@@ -23,9 +23,9 @@
 |---|---|
 | `Scripts/Battle/BattleRules.cs` | 纯静态：先手判定（血少优先/同血随机）、轮数用尽胜负 |
 | `Scripts/Battle/TurnQueue.cs` | 轮内行动队列：默认 2 动、追加队尾/插队、`maxTurnsPerRound` 上限（含已消耗） |
-| `Scripts/Battle/BattleSession.cs` | **纯逻辑**对局：轮循环、事件、额外行动、胜负；含 `IBattleParticipant` / `ITurnActionRunner` |
+| `Scripts/Battle/BattleSession.cs` | **纯逻辑**对局：轮循环、开局抽先手后整场沿用、事件、额外行动、胜负；含 `IBattleParticipant` / `ITurnActionRunner` |
 | `Scripts/Battle/BattleController.cs` | MonoBehaviour 接入：连 `TurnController`、转发 `GameEvents`、行动/轮间停顿、`RestartBattle` |
-| `Scripts/UI/TurnBanner.cs` | 回合提示横幅（OnGUI 占位）：轮次 + 行动方 + 操作提示，只订阅事件 |
+| `Scripts/UI/TurnBanner.cs` | 回合信息**常驻 HUD**（OnGUI 占位）：顶部居中固定面板，轮次 + 行动方 + 结算/胜负，只订阅事件 |
 | `Scripts/Character/CharacterHealth.cs` | HP、扣血、战败事件 |
 | `Scripts/Config/BattleConfig.cs` | 轮数 / 种子 / 行动上限 / 节奏 |
 | `Assets/Tests/EditMode/BattleRulesTests.cs` | 先手与胜负 |
@@ -58,8 +58,9 @@
 状态推进：
 
 ```
-Start()             round = 0 → BeginRound()
-BeginRound()        round++；first = DecideFirstActor(hpA,hpB,rng)
+Start()             round = 0；battleFirstActor = None → BeginRound()
+BeginRound()        round++；仅 battleFirstActor==None 时抽（DecideFirstActor(hpA,hpB,rng)），
+                    之后每轮沿用同一值
                     queue.Reset([first, opponent])；RoundStarted
 NextTurn()          queue.TryDequeue → runner.BeginTurn(actor, OnTurnResolved)
                     队列空 → EndRound()
@@ -79,6 +80,9 @@ ContinueAfterTurn()  等待行动后间隔 → NextTurn()
 - `RequestExtraTurn`：`running && !awaiting && queue != null` 才生效；`immediate` → `TryInsertNext`，否则 `TryAppend`；超过 `maxTurnsPerRound` 截断；每次成功发 `ExtraTurnGranted`。
 - `Abort`：置 `running=false` 并调用 `runner.Abort()`；不会发 `BattleEnded`。
 - 双败/同时归零按平局处理。
+- **先手只抽一次**：新增字段 `battleFirstActor`，`Start()` 里清空，`BeginRound()` 仅在它为 `Team.None` 时调 `BattleRules.DecideFirstActor`，之后每轮直接复用。
+  理由：`Docs/plan/需求与玩法最小循环.md` 写的是「**随机决定先手**」；旧实现每轮按血量重算，导致同一方可能连续两轮先动（实测日志 `P2,P1,P1,P2`），玩家会读成「顺序错乱」，也让「谁的回合」难以预期。
+  现在开局满血 → 等价于随机；整场恒为 `A,B,A,B…`。`BattleRules` 未改动，`BattleRulesTests` 仍覆盖静态判定。
 
 ## 3. 血量与角色相关改动
 
@@ -108,8 +112,10 @@ ContinueAfterTurn()  等待行动后间隔 → NextTurn()
 | `autoAdvance` | 默认 true（旧行为）；被 `BattleController` 接管时 false |
 | `TurnResolved` 事件 | 结算完成时带 `TurnResult` |
 | 统计字段 | `shotFiredThisTurn / hitLandedThisTurn / damageThisTurn / targetDefeatedThisTurn`（订阅 `GameEvents.CharacterHit`，只统计对方） |
-| `AbortTurn()` | 强制结束当前行动 |
+| `AbortTurn()` | 强制结束当前行动（走 `EndTurn`，`autoAdvance` 为真时会换人） |
 | `UseExternalDriver()` | `autoStart=false; autoAdvance=false`（`BattleController.Awake` 调用，早于 `TurnController.Start`） |
+| `CancelShot()` | 取消本回合的这次发射：停结算计时、清四个战果标志、把发射权还给当前队并 `CancelAim`；**不换人、不推进 `TurnIndex`、不动角色 Transform**（开始界面 `RockReset` 用） |
+| `logTurns`（序列化，默认 true） | `BeginTurn` 末尾打印 `[Turn] 第 N 次 BeginTurn → 行动方 X（firstTeam=…，autoAdvance=…） \| 角色=队伍 …`；排查先手/队伍用，发布前可关 |
 
 `EndTurn` 现在会先把 `CurrentTeam = Team.None`，再发 `TurnResolved` / `TurnEnded`，最后按 `autoAdvance` 决定是否自己开下一回合。
 
@@ -138,7 +144,7 @@ ContinueAfterTurn()  等待行动后间隔 → NextTurn()
 |---|---|
 | `Editor/EditorAssets.cs` | 新增 `BattleConfigPath = Assets/Data/Battle/BattleConfig_Default.asset` |
 | `Editor/PrefabFactory.cs` | `CreateBattleConfig`（9 轮 / 种子 0 / 上限 6 / 行动后 0.6s / 轮间 1s / 超时 3s）；`Character_Base` 增加 `CharacterHealth`，并连 `Character.health`、`CharacterCombat.health`、`CharacterHealth.character/config` |
-| `Editor/ArenaBuilder.cs` | `TurnController` 设 `autoStart=false`、`autoAdvance=false`；新增 `BattleController`（`config` / `turnController` / 两个角色 / `autoStart`）；HUD 连 `battleController`；HUD 物体上挂 `TurnBanner` |
+| `Editor/ArenaBuilder.cs` | `TurnController` 设 `autoStart=false`、`autoAdvance=false`；新增 `BattleController`（`config` / `turnController` / 两个角色 / `autoStart`）；HUD 连 `battleController`；HUD 物体上挂 `TurnBanner` 并设 `showBanner` / `topMargin` / `panelWidth` / `panelHeight` |
 | `Editor/BuildCheck.cs` | 角色必须含 `CharacterHealth` 且引用非空；`BattleConfig` 必须存在、`roundsToPlay > 0`、`maxTurnsPerRound >= 2` |
 
 生成顺序（`PrefabFactory.BuildAll`）新增一步：皮肤 → 角色配置 → **战斗配置** → 子弹配置 → 子弹 → 材质 → 角色 prefab → 变体。
@@ -195,6 +201,9 @@ Unity.exe -batchmode -projectPath <项目> ^
 | 子弹配置是私有序列化 | 测试无法注入伤害 | 增加 `Projectile.Configure(ProjectileConfig)`（对象池也会用到） |
 | `BattleController` 与 `TurnController.Start` 顺序 | 可能自动开一回合 | `BattleController.Awake` 调 `UseExternalDriver()`（Awake 早于所有 Start） |
 | `TurnResolved` 早于等待标志 | 控制器读到 `IsAwaitingTurnAdvance=false`，不启动行动间隔 | 先置 `awaitingTurnAdvance`，再发 `TurnResolved` |
+| 改了 `TurnController.firstTeam` 却不生效 | 场景里加了 `BattleController` 后，先手始终「随机」，`First Team` 怎么改都没反应 | `BattleController.Awake` → `UseExternalDriver()` 关掉自动开局，先手改由 `BattleSession` 决定；`firstTeam` 只在无 `BattleController` 的场景（`StartScene`）生效 |
+| 按 guid 搜场景找不到某组件 | 误判「场景里没有 `BattleController`」 | 组件可能挂在后来新增的物体上；遍历场景所有 `!u!114` 反查脚本名更可靠，不要只 `grep guid` |
+| 移除/改名序列化字段后生成器空引用 | 跑 `9Days/Build/Scenes` 报 NRE | `EditorAssets.SetBool/SetFloat/...` 内部直接 `FindProperty(...)` 无空判断，改字段要同步改 `ArenaBuilder` |
 
 ## 8. 已知限制与待办
 
@@ -202,7 +211,8 @@ Unity.exe -batchmode -projectPath <项目> ^
 - [ ] PlayMode 只覆盖「命中→扣血」；完整 9 轮 PlayMode 冒烟可后续补
 - [ ] `Defeated` 的美术表现未实现（皮肤 Animator State=5 缺省，无动画时停在当前姿态）
 - [ ] 额外行动接口尚无玩法调用（等技能/道具）
-- [ ] 没有正式 UI，信息只在 Debug HUD；`TurnBanner` 目前是 OnGUI 占位，后续替换为 Canvas/TMP
+- [ ] 没有正式 UI，信息只在 Debug HUD；`TurnBanner` 已改为**常驻顶部 HUD**（OnGUI 占位，无淡入淡出），后续替换为 Canvas/TMP
+- [ ] `TurnBanner` 仍有每帧 `new GUIStyle` 的分配，正式 UI 落地时一并去掉
 - [ ] `RestartBattle` 不重建障碍物（当前场景是静态障碍）
 - [ ] 同步 FakeRunner 会产生递归（最多 6 动/轮），真实 runner 是异步，无风险
 

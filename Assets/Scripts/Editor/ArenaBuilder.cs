@@ -106,9 +106,9 @@ namespace NineDays.EditorTools
             EditorAssets.SetBool(hud, "verboseImpactLog", false);
 
             var banner = hudGo.AddComponent<TurnBanner>();
-            EditorAssets.SetBool(banner, "showBanner", true);
-            EditorAssets.SetFloat(banner, "holdSeconds", 1.2f);
-            EditorAssets.SetFloat(banner, "fadeSeconds", 0.25f);
+            EditorAssets.SetBool(banner, "showBanner", false);   // 回合信息已交给 UICanvas 的 BattleHud
+
+            BattleUIBuilder.Build(battle);
 
             GameObject uiRootPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(EditorAssets.UIRootPrefabPath);
             if (uiRootPrefab == null) throw new System.InvalidOperationException("找不到 UIRoot prefab，请先跑 Build/Prefabs");
@@ -116,7 +116,8 @@ namespace NineDays.EditorTools
             uiInstance.name = "UIRoot";
             var uiRoot = uiInstance.GetComponent<UIRoot>();
             if (uiRoot == null) throw new System.InvalidOperationException("UIRoot prefab 缺 UIRoot 组件");
-            EditorAssets.SetString(uiRoot, "startupPageId", "Placeholder");
+            // 留空：不显示占位页，避免挡住战斗画面（页面需要时按 id 打开）
+            EditorAssets.SetString(uiRoot, "startupPageId", string.Empty);
 
             var poolGo = new GameObject("ProjectilePool");
             var pool = poolGo.AddComponent<ProjectilePool>();

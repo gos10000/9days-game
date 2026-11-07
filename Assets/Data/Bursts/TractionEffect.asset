@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6c1a9e4b7d2f8503a6c1e9b4d7f28035, type: 3}
+  m_Name: TractionEffect
+  m_EditorClassIdentifier: 
+  radius: 4
+  duration: 2
+  pullAcceleration: 25
+  tickInterval: 0.5
+  damagePerTick: 2.5
+  finalBurst: {fileID: 11400000, guid: 3b8f1c6d9e2a4705f8c1e3b7d6a92504, type: 2}
+  hitAllies: 0
+  hitOwner: 0
+  ringColor: {r: 0.35, g: 0.95, b: 0.85, a: 1}
+  ringCount: 4
+  ringLifetime: 0.9
+  ringWidth: 0.07

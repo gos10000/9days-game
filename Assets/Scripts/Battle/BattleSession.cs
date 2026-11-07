@@ -12,7 +12,8 @@ namespace NineDays
 
     /// <summary>
     /// 战斗轮会话（纯逻辑，不依赖 MonoBehaviour）：
-    /// 每轮先手（血少优先 / 同血随机）→ 行动队列 → 额外行动 → 轮结束 → 血量胜负。
+    /// 开局抽一次先手（血少优先 / 同血随机）→ 之后每轮沿用同一顺序，不再重算
+    /// → 行动队列 → 额外行动 → 轮结束 → 血量胜负。
     /// </summary>
     public class BattleSession
     {
@@ -24,6 +25,7 @@ namespace NineDays
         private TurnQueue queue;
         private int round;
         private bool running;
+        private Team battleFirstActor = Team.None;
         private bool awaitingRoundAdvance;
         private bool awaitingTurnAdvance;
         private Action<TurnResult> pendingCallback;
@@ -66,6 +68,7 @@ namespace NineDays
             if (running) return;
             running = true;
             round = 0;
+            battleFirstActor = Team.None;
             BeginRound();
         }
 
@@ -116,7 +119,11 @@ namespace NineDays
             IBattleParticipant a = participants[0];
             IBattleParticipant b = participants[1];
 
-            Team first = BattleRules.DecideFirstActor(a.Team, a.CurrentHealth, b.Team, b.CurrentHealth, rng);
+            // 先手只在开局抽一次；之后每一轮都沿用同一顺序，不再按血量重算
+            if (battleFirstActor == Team.None)
+                battleFirstActor = BattleRules.DecideFirstActor(a.Team, a.CurrentHealth, b.Team, b.CurrentHealth, rng);
+
+            Team first = battleFirstActor;
 
             queue = new TurnQueue(config.maxTurnsPerRound);
             queue.Reset(new[] { first, OpponentOf(first) });

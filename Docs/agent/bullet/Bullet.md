@@ -151,6 +151,21 @@ TestBall (Layer = Projectile)
 
 角色侧：`Character_Base.prefab` 挂有 `ProjectileModifierSource`（默认空列表），装备/道具系统以后往这里加修改器即可。
 
+`Assets/Prefabs/Rock.prefab`（开始界面专用，取代原来的弹弓 Demo 版本）：
+
+```
+Rock (Layer = Projectile, Scale 0.2)
+├─ Rigidbody2D        Dynamic（原来是 Kinematic，拖拽用）
+├─ CircleCollider2D   radius 1.25 → 世界半径 0.25（与 TestBall 一致）
+├─ Projectile         config = RockConfig
+├─ TrailRenderer      Sorting Layer = Projectile, Order = 20
+└─ RockReset          按 R 收回石头 + CancelShot
+```
+
+与 `TestBall` 的差异全部在配置里：`RockConfig` 把 `destroyOnHit` 设为 0、`lifeTime` 设为 999。
+原因是 `RockReset` 的按键监听挂在石头自己身上，而池化对象一旦 `Despawn` 就 `SetActive(false)`、`Update` 不再执行，
+石头必须「撞了也不消失、不超时」才能让 R 一直可用。同时移除了旧版的 `SpringJoint2D` 与 `rock.cs`（会和 `CharacterLauncher` 抢鼠标）。
+
 ---
 
 ## 6. 特性：穿透
