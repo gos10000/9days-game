@@ -15,6 +15,10 @@ namespace NineDays
         [SerializeField] private BattleConfig config;
         [SerializeField] private TurnController turnController;
         [SerializeField] private ArenaController arena;
+        [Tooltip("战斗场景初始化器；为空时保持原有场景布置")]
+        [SerializeField] private BattleSceneInitializer sceneInitializer;
+        [Tooltip("回合开始门（选弹等）；为空时直接开始回合")]
+        [SerializeField] private MonoBehaviour turnStartGateSource;
         [SerializeField] private List<Character> characters = new List<Character>();
 
         [Header("启动")]
@@ -27,18 +31,49 @@ namespace NineDays
         private Action<TurnResult> pendingCallback;
         private Coroutine roundDelayRoutine;
         private Coroutine turnDelayRoutine;
+        private ITurnStartGate turnStartGate;
 
         public BattleSession Session => session;
         public int Round => session != null ? session.Round : 0;
         public int TotalRounds => config != null ? config.roundsToPlay : 0;
         public Team CurrentActor => session != null ? session.CurrentActor : Team.None;
         public bool IsRunning => session != null && session.IsRunning;
+        public BattleSceneInitializer SceneInitializer => sceneInitializer;
+
+        /// <summary>测试/流程层注入回合门；传 null 恢复直接开始回合。</summary>
+        public void SetTurnStartGate(ITurnStartGate gate)
+        {
+            turnStartGate = gate;
+        }
+
+        /// <summary>优先用 Inspector 引用，其次自动找场景里的实现者。</summary>
+        private void ResolveTurnStartGate()
+        {
+            if (turnStartGateSource != null)
+            {
+                turnStartGate = turnStartGateSource as ITurnStartGate;
+                if (turnStartGate != null) return;
+            }
+
+            MonoBehaviour[] behaviours = FindObjectsByType<MonoBehaviour>(
+                FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+            for (int i = 0; i < behaviours.Length; i++)
+            {
+                if (behaviours[i] is ITurnStartGate gate)
+                {
+                    turnStartGate = gate;
+                    return;
+                }
+            }
+        }
 
         private void Awake()
         {
             if (turnController == null) turnController = FindAnyObjectByType<TurnController>();
             if (turnController != null) turnController.UseExternalDriver();
             if (arena == null) arena = FindAnyObjectByType<ArenaController>();
+            if (sceneInitializer == null) sceneInitializer = FindAnyObjectByType<BattleSceneInitializer>();
+            ResolveTurnStartGate();
 
             EnsureTurnBanner();
             BurstViewSpawner.EnsureExists();
@@ -60,6 +95,7 @@ namespace NineDays
         private void OnDisable()
         {
             if (turnController != null) turnController.TurnResolved -= HandleTurnControllerResolved;
+            turnStartGate?.Cancel();
         }
 
         private void Start()
@@ -71,6 +107,7 @@ namespace NineDays
         public void BeginBattle()
         {
             if (session != null && session.IsRunning) return;
+            turnStartGate?.Cancel();
 
             if (config == null || turnController == null)
             {
@@ -88,7 +125,13 @@ namespace NineDays
                 return;
             }
 
-            arena?.BuildForBattle();
+            sceneInitializer?.Apply();
+
+            // 使用 prefab 场地时清掉可能残留的程序地形；否则保持原有 ArenaController 流程
+            if (sceneInitializer != null && sceneInitializer.HasArenaPrefab)
+                arena?.ClearRuntime();
+            else
+                arena?.BuildForBattle();
 
             for (int i = 0; i < characters.Count; i++)
                 if (characters[i] != null) characters[i].ResetForBattle();
@@ -145,6 +188,7 @@ namespace NineDays
         public void Abort()
         {
             pendingCallback = null;
+            turnStartGate?.Cancel();
             turnController?.AbortTurn();
         }
 
@@ -153,7 +197,11 @@ namespace NineDays
         public void BeginTurn(Team actor, Action<TurnResult> onResolved)
         {
             pendingCallback = onResolved;
-            turnController.BeginTurn(actor);
+
+            if (turnStartGate != null)
+                turnStartGate.BeginTurn(actor, () => turnController.BeginTurn(actor));
+            else
+                turnController.BeginTurn(actor);
         }
 
         private void HandleTurnControllerResolved(TurnResult result)

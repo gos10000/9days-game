@@ -9,13 +9,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: badf4ce9440237449acc1008d8580a38, type: 3}
-  m_Name: StartPage
+  m_Script: {fileID: 11500000, guid: 2c64b24019232f447b9b7f2983047ce8, type: 3}
+  m_Name: UIPageCatalog_Start_Scene
   m_EditorClassIdentifier: 
-  pageId: StartPage
-  prefab: {fileID: 0}
-  layer: 1
-  cachePolicy: 0
-  closeOnBack: 1
-  modal: 1
-  transition: {fileID: 0}
+  pages: []
