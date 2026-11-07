@@ -43,6 +43,16 @@ namespace NineDays
         [Tooltip("是否打自己人")]
         public bool friendlyFire = false;
 
+        [Header("地形破坏")]
+        [Tooltip("碰撞时是否尝试破坏地形")]
+        public bool breakTerrain = true;
+
+        [Tooltip("破坏力；低于地形层门槛时不生效")]
+        [Min(0f)] public float terrainBreakPower = 1f;
+
+        [Tooltip("破坏半径（世界单位）")]
+        [Min(0f)] public float terrainBreakRadius = 0.5f;
+
         [Header("特性")]
         [Tooltip("可组合的子弹特性，按列表顺序生效")]
         public List<ProjectileTrait> traits = new List<ProjectileTrait>();
@@ -68,6 +78,8 @@ namespace NineDays
             lifeTime = Mathf.Max(0.01f, lifeTime);
             ignoreOwnerTime = Mathf.Max(0f, ignoreOwnerTime);
             damage = Mathf.Max(0f, damage);
+            terrainBreakPower = Mathf.Max(0f, terrainBreakPower);
+            terrainBreakRadius = Mathf.Max(0f, terrainBreakRadius);
             // 允许负值：反重力弹药（AntigravityTrait）用它把重力方向翻转为向上
             if (float.IsNaN(gravityScale)) gravityScale = 0f;
             linearDamping = Mathf.Max(0f, linearDamping);

@@ -3,6 +3,21 @@
 > 面向后续 agent：记录本次改了什么、为什么、涉及文件与函数、坑与待办、验证方式。
 > 人读版见 `Bullet.md`；设计原则见 `Docs/program/summary.md`（`Docs/program/bullet.md` 当前为空，未改动）。
 
+## 0. 2026-11-07 子弹地形破坏接入
+
+| 文件 | 类型 | 内容 |
+|---|---|---|
+| `Scripts/Config/ProjectileConfig.cs` | 修改 | 新增 `breakTerrain`、`terrainBreakPower`、`terrainBreakRadius`；`Validate` 钳制后两者 |
+| `Scripts/Bullet/Projectile.cs` | 修改 | `OnCollisionEnter2D` 构建 `ProjectileHit` 后立即调用 `ApplyTerrainBreak`；新增私有方法走 `ArenaController.ApplyTerrainBreak` |
+| `Scripts/Editor/PrefabFactory.cs` | 修改 | 生成 `TestBallConfig` 时写入地形破坏默认值 |
+| `Assets/Data/Projectiles/*.asset` | 修改 | 为 11 个 `ProjectileConfig` 显式补 `breakTerrain: 1`、`terrainBreakPower: 1`、`terrainBreakRadius: 0.5` |
+| `Docs/agent/bullet/Bullet.md` | 修改 | 配置表、命中流程与“地形破坏”章节 |
+| `Docs/agent/arena/Arena.md` | 修改 | 更新“子弹尚未接地形破坏”的旧说明 |
+
+**决策**：数据挂在 `ProjectileConfig` 而不是 `AmmoDefinition`，因为子弹 prefab 已经引用 `ProjectileConfig`，选弹系统只负责决定用哪个 prefab；同一 prefab 被多个 `AmmoDefinition` 复用时不会出现数值分叉。碰撞处理放在友军/穿透过滤之前，满足“碰撞就触发”；没有 `ArenaController` 或配置关闭时安全跳过。
+
+**未做**：未跑 EditMode/PlayMode 全量测试（按本次要求），只做了 Unity 脚本编译检查；没有新增测试用例。
+
 ## 1. 本次改动清单
 
 | 文件 | 类型 | 内容 |
@@ -60,7 +75,7 @@
 | `Launch` | 记录 owner、重置寿命/影响、清 trail、设初速、忽略 owner 碰撞、依次 `OnLaunch` |
 | `Update` | 寿命、忽略 owner 倒计时、`OnTick`、超时 `Despawn(Lifetime)` |
 | `FixedUpdate` | `ProjectileInfluenceSolver.Integrate` → `body.linearVelocity`；记录 `lastVelocity`；清空 `pendingInfluence` |
-| `OnCollisionEnter2D` | 过滤 owner/友军 → `traits.OnHit` 投票 → `Resolve` → 穿透则忽略碰撞并恢复速度 → `ReceiveHit` + `ProjectileHitLanded` → `Consume` 时 `Despawn(Hit)`。注意 `target != null && target == owner`，否则无 owner 时 `null == null` 会把撞墙误判成打到自己 |
+| `OnCollisionEnter2D` | 构建 `ProjectileHit` → `ApplyTerrainBreak`（任何碰撞都尝试，见 §0）→ 过滤 owner/友军 → `traits.OnHit` 投票 → `Resolve` → 穿透则忽略碰撞并恢复速度 → `ReceiveHit` + `ProjectileHitLanded` → `Consume` 时 `Despawn(Hit)`。注意 `target != null && target == owner`，否则无 owner 时 `null == null` 会把撞墙误判成打到自己 |
 | `Despawn` | `despawning` 防重入、`IsLaunched=false`、`OnExpire`、`ProjectileExpired`、`Destroy`（编辑模式 `DestroyImmediate`） |
 
 ### 3.2 命中决策
@@ -125,6 +140,9 @@ foreach trait:
 - [ ] `ProjectileField` 不会自动补 Collider2D；场景里需要手动加 Trigger
 - [ ] 穿透只忽略“命中的那个 Collider”；目标有多个 Collider 时，其余 Collider 仍可能挡住子弹
 - [ ] `ProjectileHitLanded` 只在命中角色时触发；撞墙/障碍不触发（只有 `ProjectileExpired`）
+- [ ] 地形破坏当前按每次 `OnCollisionEnter2D` 触发，没有“每发一次”锁；穿透/反弹子弹可能多次挖洞
+- [ ] 地形破坏在友军/穿透过滤之前调用；命中友军或穿透目标时也会尝试挖洞，若只想对地形/敌人生效需调整调用位置
+- [ ] 现有 11 个 `ProjectileConfig` 统一为默认开启、破坏力 1、半径 0.5；平衡值仍需逐种子弹调
 - [ ] `ProjectileBuildContext.Traits` 允许 modifier 追加特性，但追加特性的 `ApplyStats` 在 modifier 之后执行；若某 modifier 依赖该特性带来的数值，顺序不满足
 - [ ] `Projectile.Config` 与 `Projectile.Stats` 可能不一致（运行时被 modifier 改过），HUD 读 `Config` 只用于初始速度显示
 
@@ -137,6 +155,8 @@ Unity.exe -batchmode -quit -projectPath <项目> -executeMethod NineDays.EditorT
 Unity.exe -batchmode -nographics -projectPath <项目> -runTests -testPlatform EditMode
 Unity.exe -batchmode -projectPath <项目> -runTests -testPlatform PlayMode
 ```
+
+2026-11-07 地形破坏改动按本次要求未跑 EditMode/PlayMode 全量测试；执行了 Unity 批量脚本编译检查，无 `error CS`，日志 `Logs/bullet_terrain_compile.log`。下文为 2026-11-05 的历史基线。
 
 2026-11-05 实测：
 

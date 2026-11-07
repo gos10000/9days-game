@@ -31,7 +31,7 @@
 | `Assets/Tests/EditMode/DefaultArenaConfigTests.cs` | 新增 | 默认配置遮罩可读、可搭建 |
 | `Assets/Tests/PlayMode/TerrainTests.cs` | 新增 | 搭建/门槛/范围/追加/重开/射线 |
 
-**未修改** `Projectile` / `ProjectileConfig` / 爆发相关代码，场景模块只留接口。
+**场景模块首次落地时未修改** `Projectile` / `ProjectileConfig` / 爆发相关代码，只留接口；后续子弹地形破坏接入见 `Docs/agent/bullet/Bullet_agent.md` §0。
 
 ---
 
