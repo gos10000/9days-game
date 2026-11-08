@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7e634e886395b7047be6a6a48701172b, type: 3}
   m_Name: AudioTable_Default
   m_EditorClassIdentifier: 
-  hoverClick: {fileID: 8300000, guid: 54ca0330efd563c4c843f992e0272e4b, type: 3}
+  hoverClick: {fileID: 8300000, guid: f4adad33b57973a48a00ac9e1228f3f3, type: 3}
   hoverVolume: 0.5
   throwClip: {fileID: 8300000, guid: 73418bbd1a64bcf48b152f5187307964, type: 3}
   throwVolume: 0.2

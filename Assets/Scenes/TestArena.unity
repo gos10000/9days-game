@@ -226,6 +226,12 @@ MonoBehaviour:
   - {fileID: 381756783}
   - {fileID: 322300754}
   followProjectiles: 1
+  playIntro: 1
+  introFirstTeam: 1
+  introOrthographicSize: 3.2
+  winnerFocusSize: 3.2
+  introHoldSeconds: 0.9
+  introMoveSeconds: 0.8
   hitShakeBase: 0.12
   hitShakePerImpulse: 0.02
   strongImpactShakeBase: 0.2
@@ -451,6 +457,7 @@ MonoBehaviour:
   autoStart: 0
   autoAdvance: 0
   resolveTimeout: 3
+  logTurns: 1
 --- !u!4 &502024716
 Transform:
   m_ObjectHideFlags: 0
@@ -708,8 +715,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   showBanner: 1
-  holdSeconds: 1.2
-  fadeSeconds: 0.25
+  topMargin: 12
+  panelWidth: 380
+  panelHeight: 66
   player1Color: {r: 0.95, g: 0.95, b: 0.95, a: 1}
   player2Color: {r: 0.45, g: 0.78, b: 1, a: 1}
   neutralColor: {r: 0.85, g: 0.85, b: 0.85, a: 1}
@@ -831,10 +839,13 @@ MonoBehaviour:
   config: {fileID: 11400000, guid: 69d94a66e1518674080d9c9f2b1affe5, type: 2}
   turnController: {fileID: 502024715}
   arena: {fileID: 566823486}
+  sceneInitializer: {fileID: 0}
+  turnStartGateSource: {fileID: 0}
   characters:
   - {fileID: 381756783}
   - {fileID: 322300754}
   autoStart: 1
+  autoCreateTurnBanner: 0
 --- !u!4 &1634303557
 Transform:
   m_ObjectHideFlags: 0

@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cb91770c17374df45b0a22c82a54d63c, type: 3}
+  m_Name: BgmTable_Default
+  m_EditorClassIdentifier: 
+  rows:
+  - track: 1
+    clip: {fileID: 8300000, guid: 84d55088c2adfe44da31eac3cec6a9c4, type: 3}
+    volume: 0.55
+    loop: 1
+    fadeIn: 1
+    fadeOut: 0.6
+  - track: 2
+    clip: {fileID: 8300000, guid: 6ce55b4638a31da43a08bb20a28c588b, type: 3}
+    volume: 0.55
+    loop: 1
+    fadeIn: 1
+    fadeOut: 0.6
+  - track: 3
+    clip: {fileID: 8300000, guid: ea6797e7943abf04fa4806e3acae926f, type: 3}
+    volume: 0.55
+    loop: 1
+    fadeIn: 1
+    fadeOut: 0.6

@@ -44,7 +44,10 @@ namespace NineDays.EditorTools
 
         private static AudioTable BuildTable()
         {
+            // 点击音：优先 Assets/Audio/Click.wav；缺失时退回远端带来的 UI 确认音
             AudioClip click = LoadClip("Click.wav");
+            if (click == null) click = LoadClip("interface/confirmation_001.ogg");
+
             AudioClip throwClip = LoadClip("Throw.wav");
             AudioClip boom = LoadClip("Boom.wav");
             AudioClip clear = LoadClip("Clear.wav");
@@ -53,12 +56,16 @@ namespace NineDays.EditorTools
             AudioClip blackHole = LoadClip("BlackHole.wav");
             AudioClip whiteHole = LoadClip("WhiteHole.wav");
 
-            if (click == null || throwClip == null || boom == null || clear == null || traction == null ||
+            // click 不算必需：缺了只跳过，不要因此中断整张表的重建
+            if (throwClip == null || boom == null || clear == null || traction == null ||
                 gravity == null || blackHole == null || whiteHole == null)
             {
-                Debug.LogError($"[AudioSetup] {AudioRoot} 里的音效没找齐（需要 Click / Throw / Boom / Clear / Traction / Gravity / BlackHole / WhiteHole 八个 wav）");
+                Debug.LogError($"[AudioSetup] {AudioRoot} 里的音效没找齐（需要 Throw / Boom / Clear / Traction / Gravity / BlackHole / WhiteHole 七个 wav）");
                 return null;
             }
+
+            if (click == null)
+                Debug.LogWarning("[AudioSetup] 没找到点击音（Click.wav 或 interface/confirmation_001.ogg），保留配置表里原有的 hoverClick");
 
             AudioTable table = AssetDatabase.LoadAssetAtPath<AudioTable>(TablePath);
             if (table == null)
@@ -68,7 +75,7 @@ namespace NineDays.EditorTools
                 AssetDatabase.CreateAsset(table, TablePath);
             }
 
-            table.hoverClick = click;
+            if (click != null) table.hoverClick = click;
             table.throwClip = throwClip;
             table.burstClip = boom;
             table.clearClip = clear;
