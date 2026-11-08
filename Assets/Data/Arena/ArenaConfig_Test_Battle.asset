@@ -14,21 +14,33 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   worldRect:
     serializedVersion: 2
-    x: 0
-    y: 0
-    width: 32
-    height: 10
+    x: -19.875
+    y: -5.6875
+    width: 38.75
+    height: 2
   pixelsPerUnit: 16
   layers:
-  - layerId: test_battle
+  - layerId: Ground_Soil
     destructible: 1
     requiredBreakPower: 0
     collisionEnabled: 1
     alphaThreshold: 0.5
-    initialMask: {fileID: 2800000, guid: 0bf2dda5bb48e284d8f30444d2ed6607, type: 2}
+    initialMask: {fileID: 2800000, guid: d72d2099b2724a20ba78c25a58ed7902, type: 2}
     art:
+    - sprite: {fileID: -3878557786174838139, guid: 15f2531155d1e9d4782fa6acf16097c6, type: 3}
+      position: {x: -0.5, y: -4.65, z: 0}
+      eulerAngles: {x: -0, y: 0, z: 0}
+      scale: {x: 6, y: 8, z: 1}
+      color: {r: 1, g: 1, b: 1, a: 1}
+      sortingLayerName: Background
+      sortingOrder: 4
+      flipX: 0
+      flipY: 0
+      drawMode: 0
+      size: {x: 6.4, y: 0.22}
+      tileMode: 0
     - sprite: {fileID: 7932798033344189819, guid: 7aa3d6bd5085b374abf9ac1cd815e010, type: 3}
-      position: {x: 4.056, y: 0.8, z: 0}
+      position: {x: -0.5, y: -3.88, z: 0}
       eulerAngles: {x: -0, y: 0, z: 0}
       scale: {x: 6, y: 1, z: 1}
       color: {r: 1, g: 1, b: 1, a: 1}
@@ -39,15 +51,34 @@ MonoBehaviour:
       drawMode: 0
       size: {x: 6.4, y: 0.11}
       tileMode: 0
+  - layerId: Ground_Rock
+    destructible: 0
+    requiredBreakPower: 0
+    collisionEnabled: 1
+    alphaThreshold: 0.5
+    initialMask: {fileID: 2800000, guid: 7b6742e52bce46c8993182b3de4c5417, type: 2}
+    art:
     - sprite: {fileID: -3878557786174838139, guid: 15f2531155d1e9d4782fa6acf16097c6, type: 3}
-      position: {x: 4, y: 0, z: 0}
+      position: {x: -0.5, y: -4.65, z: 0}
       eulerAngles: {x: -0, y: 0, z: 0}
       scale: {x: 6, y: 8, z: 1}
-      color: {r: 1, g: 1, b: 1, a: 1}
+      color: {r: 0.55, g: 0.58, b: 0.64, a: 1}
       sortingLayerName: Background
       sortingOrder: 4
       flipX: 0
       flipY: 0
       drawMode: 0
       size: {x: 6.4, y: 0.22}
+      tileMode: 0
+    - sprite: {fileID: 7932798033344189819, guid: 7aa3d6bd5085b374abf9ac1cd815e010, type: 3}
+      position: {x: -0.5, y: -3.88, z: 0}
+      eulerAngles: {x: -0, y: 0, z: 0}
+      scale: {x: 6, y: 1, z: 1}
+      color: {r: 0.55, g: 0.58, b: 0.64, a: 1}
+      sortingLayerName: Background
+      sortingOrder: 5
+      flipX: 0
+      flipY: 0
+      drawMode: 0
+      size: {x: 6.4, y: 0.11}
       tileMode: 0

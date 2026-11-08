@@ -43,3 +43,8 @@ MonoBehaviour:
     displayName: "\u53CD\u91CD\u529B\u573A"
     description: "\n\u533A\u57DF\u5185\u91CD\u529B\u53CD\u8F6C\uFF0C\u5B50\u5F39\u5411\u4E0A\u6F02\u6D6E"
     count: 1
+  - icon: {fileID: 4160635012330822537, guid: 69342c2670266b24cabdd4c1ff370188, type: 3}
+    prefab: {fileID: 8140000000000000001, guid: 8a219537073c400fa02720752fae48d7, type: 3}
+    displayName: "\u6728\u677F\u969C\u788D"
+    description: "\n\u4EFB\u4F55\u5B50\u5F39\u649E\u4E0A\u90FD\u4F1A\u88AB\u6253\u788E\uFF1B\u53EF\u4EE5\u6321\u5B50\u5F39\u3001\u642D\u8DF3\u677F\uFF0C\u4E5F\u80FD\u7528\u6765\u56F4\u51FA\u4E00\u5757\u5B89\u5168\u533A"
+    count: 1
