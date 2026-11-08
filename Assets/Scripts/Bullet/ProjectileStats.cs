@@ -15,6 +15,10 @@ namespace NineDays
         public float damage = 10f;
         public bool destroyOnHit = true;
         public bool friendlyFire;
+
+        /// <summary>免疫场上所有道具场（ProjectileField）的作用。</summary>
+        public bool ignoreFields;
+
         public float gravityScale = 1f;
         public float linearDamping;
         public int pierceCount;
@@ -34,6 +38,7 @@ namespace NineDays
             stats.damage = config.damage;
             stats.destroyOnHit = config.destroyOnHit;
             stats.friendlyFire = config.friendlyFire;
+            stats.ignoreFields = config.ignoreFields;
             stats.gravityScale = config.gravityScale;
             stats.linearDamping = config.linearDamping;
             return stats;

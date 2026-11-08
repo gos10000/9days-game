@@ -1,0 +1,95 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &3094126700000000001
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3094126700000000002}
+  - component: {fileID: 3094126700000000003}
+  - component: {fileID: 3094126700000000004}
+  - component: {fileID: 3094126700000000005}
+  m_Layer: 0
+  m_Name: PropPlacementSystem
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3094126700000000002
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3094126700000000001}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3094126700000000003
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3094126700000000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a7c3e8b01d9f6547c3a8e1b4d7f02695, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  steps:
+  - {fileID: 3094126700000000005}
+--- !u!114 &3094126700000000004
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3094126700000000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f6b2d7a90c8e5436b2f7d0a3c6e91584, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  inputController: {fileID: 0}
+  worldCamera: {fileID: 0}
+  cursorView: {fileID: 0}
+  blockOnCharacters: 1
+  blockOnProps: 1
+  showCursorIcon: 1
+  arenaMargin: 0.3
+  maxClearance: 2
+  showBlockedZones: 1
+  logPlacement: 1
+--- !u!114 &3094126700000000005
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3094126700000000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5e1b7d9f3a6c0482e5b8d0f2a4c79361, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ammoTable: {fileID: 11400000, guid: 7b1c4d8e2f5a9036b1c4d7e8f2a50613, type: 2}
+  propTable: {fileID: 11400000, guid: 8c2d5e9f3a6b0147c2d5e8f9a3b61724, type: 2}
+  drawCount: 3
+  randomSeed: 0
+  presenterSource: {fileID: 0}
+  inputController: {fileID: 0}
+  turnController: {fileID: 0}
+  placement: {fileID: 3094126700000000004}
+  uiRootPrefab: {fileID: 5124307615975835551, guid: 033d493a6980697479c9b5aedb91d1dc, type: 3}
+  uiCatalog: {fileID: 11400000, guid: 3712f33ea2a36c24f9edb1c01f7aa787, type: 2}
+  logFlow: 1

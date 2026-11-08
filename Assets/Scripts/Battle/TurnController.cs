@@ -74,7 +74,17 @@ namespace NineDays
             if (!IsResolving) return;
 
             resolveTimer += Time.deltaTime;
-            if (HasSettled() || resolveTimer >= resolveTimeout) EndTurn();
+
+            if (HasSettled())
+            {
+                EndTurn();
+                return;
+            }
+
+            // 时长型效果还在演时不吃超时（牵引区 2 秒），只在异常情况用硬上限兜底
+            bool timedOut = resolveTimer >= resolveTimeout && !ActiveEffects.Any;
+            bool hardTimeout = resolveTimer >= resolveTimeout * 4f;
+            if (timedOut || hardTimeout) EndTurn();
         }
 
         public void BeginTurn(Team team)
@@ -242,9 +252,11 @@ namespace NineDays
             // }
         }
 
-        /// <summary>结算完成：场上没有子弹，且双方都停稳。</summary>
+        /// <summary>结算完成：时长型效果结束、场上没有子弹，且双方都停稳。</summary>
         private bool HasSettled()
         {
+            if (ActiveEffects.Any) return false;
+
             if (FindObjectsByType<Projectile>(FindObjectsSortMode.None).Length > 0) return false;
 
             for (int i = 0; i < characters.Count; i++)

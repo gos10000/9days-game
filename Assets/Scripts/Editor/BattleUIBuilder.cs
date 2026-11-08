@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -17,11 +17,10 @@ namespace NineDays.EditorTools
         internal const string CanvasName = "UICanvas";
         internal const string FontPath = "Assets/Art/Fonts/sarasa-gothic-sc-regular.ttf";
 
-        private static readonly Vector2 ReferenceResolution = new Vector2(1920f, 1080f);
+        /// <summary>暂停界面（含 PauseMenu 组件）；美术与布局都在这份预制体里改。</summary>
+        internal const string PauseMenuPrefabPath = "Assets/Prefabs/UI/PauseMenuCanvas.prefab";
 
-        // 面板布局
-        private static readonly Vector2 PanelSize = new Vector2(580f, 420f);
-        private static readonly Vector2 ButtonSize = new Vector2(460f, 72f);
+        private static readonly Vector2 ReferenceResolution = new Vector2(1920f, 1080f);
 
         // 「谁的回合」用亮绿色强调，需与 BattleHud.actorColor 的默认值保持一致
         private static readonly Color ActorHighlight = new Color(0.42f, 1f, 0.55f);
@@ -51,26 +50,32 @@ namespace NineDays.EditorTools
                     new Vector2(1000f, 44f), new Vector2(0f, -100f));
             AddShadow(actorText.gameObject);
 
-            GameObject pausePanel = BuildPausePanel(root, font,
-                out Button resumeButton, out Button restartButton, out Button quitButton);
+            SpawnPausePrefab();
 
             var hud = canvasGo.AddComponent<BattleHud>();
             EditorAssets.SetRef(hud, "roundText", roundText);
             EditorAssets.SetRef(hud, "actorText", actorText);
 
-            var pause = canvasGo.AddComponent<PauseMenu>();
-            EditorAssets.SetRef(pause, "panelRoot", pausePanel);
-            EditorAssets.SetRef(pause, "resumeButton", resumeButton);
-            EditorAssets.SetRef(pause, "restartButton", restartButton);
-            EditorAssets.SetRef(pause, "quitButton", quitButton);
-            if (battleController != null) EditorAssets.SetRef(pause, "battleController", battleController);
-            EditorAssets.SetString(pause, "startSceneName", "StartScene");
-            EditorAssets.SetBool(pause, "toggleWithEscape", true);
-
             return canvasGo;
         }
 
         // ---- 构建步骤 ----
+
+        /// <summary>
+        /// 暂停界面用预制体，不再在场景里逐块搭：
+        /// 美术（panel1 + 三个按钮的常态/选中图）都在预制体里，改一次两个场景都生效。
+        /// </summary>
+        private static GameObject SpawnPausePrefab()
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(PauseMenuPrefabPath);
+            if (prefab == null)
+            {
+                Debug.LogError($"[BattleUI] 找不到暂停界面预制体：{PauseMenuPrefabPath}，暂停菜单不会生成");
+                return null;
+            }
+
+            return (GameObject)PrefabUtility.InstantiatePrefab(prefab);
+        }
 
         private static GameObject CreateCanvas()
         {
@@ -89,85 +94,6 @@ namespace NineDays.EditorTools
             scaler.matchWidthOrHeight = 0.5f;
 
             return go;
-        }
-
-        private static GameObject BuildPausePanel(Transform parent, Font font,
-                                                  out Button resume, out Button restart, out Button quit)
-        {
-            var panelGo = new GameObject("PausePanel", typeof(RectTransform), typeof(Image));
-            panelGo.transform.SetParent(parent, false);
-            panelGo.layer = LayerMask.NameToLayer("UI");
-
-            var dimmer = panelGo.GetComponent<Image>();
-            dimmer.sprite = EditorAssets.LoadSquareSprite();
-            dimmer.type = Image.Type.Simple;
-            dimmer.color = new Color(0.03f, 0.04f, 0.07f, 0.72f);
-            dimmer.raycastTarget = true;   // 挡住面板外的点击
-            Stretch(panelGo.GetComponent<RectTransform>());
-
-            var boxGo = new GameObject("Panel", typeof(RectTransform), typeof(Image));
-            boxGo.transform.SetParent(panelGo.transform, false);
-            boxGo.layer = LayerMask.NameToLayer("UI");
-
-            var boxImage = boxGo.GetComponent<Image>();
-            boxImage.sprite = EditorAssets.LoadSquareSprite();
-            boxImage.type = Image.Type.Sliced;
-            boxImage.color = new Color(0.10f, 0.12f, 0.18f, 0.98f);
-            boxImage.raycastTarget = true;
-            SetRect(boxGo.GetComponent<RectTransform>(), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f),
-                    PanelSize, Vector2.zero);
-
-            Text title = CreateText(boxGo.transform, "Title", "暂停", 40, font,
-                                    new Color(0.95f, 0.96f, 1f), TextAnchor.MiddleCenter, FontStyle.Bold);
-            SetRect(title.rectTransform, new Vector2(0.5f, 1f), new Vector2(0.5f, 1f),
-                    new Vector2(520f, 64f), new Vector2(0f, -34f));
-
-            Color primary = new Color(0.18f, 0.26f, 0.40f, 1f);
-            Color danger = new Color(0.38f, 0.16f, 0.18f, 1f);
-
-            resume = CreateButton(boxGo.transform, "ResumeButton", "回到游戏", font, primary,
-                                  new Vector2(0f, -118f));
-            restart = CreateButton(boxGo.transform, "RestartButton", "重新开始", font, primary,
-                                   new Vector2(0f, -206f));
-            quit = CreateButton(boxGo.transform, "QuitButton", "回到开始界面", font, danger,
-                                new Vector2(0f, -294f));
-
-            panelGo.SetActive(false);
-            return panelGo;
-        }
-
-        private static Button CreateButton(Transform parent, string name, string label, Font font,
-                                           Color background, Vector2 position)
-        {
-            var go = new GameObject(name, typeof(RectTransform), typeof(Image), typeof(Button));
-            go.transform.SetParent(parent, false);
-            go.layer = LayerMask.NameToLayer("UI");
-
-            var image = go.GetComponent<Image>();
-            image.sprite = EditorAssets.LoadSquareSprite();
-            image.type = Image.Type.Sliced;
-            image.color = background;
-
-            var button = go.GetComponent<Button>();
-            button.targetGraphic = image;
-
-            var colors = button.colors;
-            colors.normalColor = Color.white;
-            colors.highlightedColor = new Color(1.25f, 1.25f, 1.25f, 1f);
-            colors.pressedColor = new Color(1.5f, 1.5f, 1.5f, 1f);
-            colors.selectedColor = Color.white;
-            colors.disabledColor = new Color(0.5f, 0.5f, 0.5f, 0.5f);
-            colors.fadeDuration = 0.08f;
-            button.colors = colors;
-
-            SetRect(go.GetComponent<RectTransform>(), new Vector2(0.5f, 1f), new Vector2(0.5f, 1f),
-                    ButtonSize, position);
-
-            Text text = CreateText(go.transform, "Label", label, 30, font, Color.white,
-                                   TextAnchor.MiddleCenter);
-            Stretch(text.rectTransform);
-
-            return button;
         }
 
         private static Text CreateText(Transform parent, string name, string value, int fontSize,

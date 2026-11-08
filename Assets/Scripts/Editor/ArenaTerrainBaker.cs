@@ -84,6 +84,65 @@ namespace NineDays.EditorTools
             Debug.Log($"[ArenaTerrainBaker] Bake 完成: {config.layers.Count} 层");
         }
 
+        /// <summary>
+        /// 只用 ArenaConfig 里已有的 art 重烘遮罩，不需要当前场景里有 ArenaAuthoring。
+        /// 场景里没摆 authoring 对象、或 worldRect 被改过之后，用这个重烘不会动到其它配置。
+        /// </summary>
+        [MenuItem("9Days/Arena/Rebake Mask From Config")]
+        public static void RebakeFromConfig()
+        {
+            ArenaConfig config = Selection.activeObject as ArenaConfig;
+            if (config == null)
+            {
+                string[] guids = AssetDatabase.FindAssets("t:ArenaConfig");
+                if (guids.Length == 1)
+                    config = AssetDatabase.LoadAssetAtPath<ArenaConfig>(AssetDatabase.GUIDToAssetPath(guids[0]));
+            }
+
+            if (config == null)
+            {
+                Debug.LogError("[ArenaTerrainBaker] 请先在 Project 窗口选中一个 ArenaConfig 再执行");
+                return;
+            }
+
+            int solidLayers = 0;
+            int emptyLayers = 0;
+
+            for (int i = 0; i < config.layers.Count; i++)
+            {
+                TerrainLayerData data = config.layers[i];
+                if (data == null) continue;
+
+                try
+                {
+                    Texture2D mask = BakeMask(config, data);
+                    Color32[] pixels = mask != null ? mask.GetPixels32() : null;
+
+                    int solid = 0;
+                    if (pixels != null)
+                        for (int p = 0; p < pixels.Length; p++)
+                            if (pixels[p].r >= 128) solid++;
+
+                    if (solid > 0) solidLayers++;
+                    else emptyLayers++;
+
+                    Debug.Log($"[ArenaTerrainBaker] {data.layerId}: {mask.width}x{mask.height}，" +
+                              $"实心像素 {solid}，art {data.art?.Count ?? 0} 件");
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError($"[ArenaTerrainBaker] {data.layerId} 烘焙失败: {e.Message}");
+                }
+            }
+
+            EditorUtility.SetDirty(config);
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+
+            Debug.Log($"[ArenaTerrainBaker] 完成：{solidLayers} 层有内容、{emptyLayers} 层为空；" +
+                      $"世界矩形 {config.worldRect}，遮罩 {config.MaskWidth}x{config.MaskHeight}");
+        }
+
         /// <summary>把层根下所有 SpriteRenderer 收集成运行时可用数据。</summary>
         private static List<TerrainArtPiece> CollectArt(Transform root)
         {

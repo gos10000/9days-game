@@ -66,6 +66,47 @@ namespace NineDays.Tests
         }
 
         [Test]
+        public void Frame_EdgeMargin_KeepsTargetAwayFromScreenEdge()
+        {
+            var arena = new Rect(-12f, -5f, 24f, 10f);
+            var actor = new List<Vector2> { new Vector2(11f, -3.7f) };
+            const float aspect = 16f / 9f;
+
+            CameraPose pose = CameraFramer.Frame(actor, 2.5f, 5.6f, 8.5f, aspect, arena, 0f, 3f, actor);
+
+            float halfWidth = pose.OrthographicSize * aspect;
+            Assert.GreaterOrEqual(pose.Center.x + halfWidth - 11f, 2.99f);
+            Assert.GreaterOrEqual(-3.7f - (pose.Center.y - pose.OrthographicSize), 2.99f);
+            Assert.AreEqual(0f, pose.Center.y, 0.001f);
+        }
+
+        [Test]
+        public void Frame_EdgeMargin_OnlyUsesMarginPoints()
+        {
+            var arena = new Rect(-12f, -5f, 24f, 10f);
+            var actor = new List<Vector2> { new Vector2(0f, -3.7f) };
+            var all = new List<Vector2> { new Vector2(0f, -3.7f), new Vector2(11f, -3.7f) };
+            const float aspect = 16f / 9f;
+
+            CameraPose characterOnly = CameraFramer.Frame(all, 2.5f, 5.6f, 8.5f, aspect, arena, 0f, 3f, actor);
+            CameraPose includingBullet = CameraFramer.Frame(all, 2.5f, 5.6f, 8.5f, aspect, arena, 0f, 3f, null);
+
+            Assert.Less(characterOnly.OrthographicSize, includingBullet.OrthographicSize);
+        }
+
+        [Test]
+        public void Frame_EdgeMargin_StopsAtMaxSize()
+        {
+            var arena = new Rect(-12f, -5f, 24f, 10f);
+            var actor = new List<Vector2> { new Vector2(11f, -4f) };
+            const float aspect = 16f / 9f;
+
+            CameraPose pose = CameraFramer.Frame(actor, 2.5f, 5.6f, 8.5f, aspect, arena, 0f, 20f, actor);
+
+            Assert.AreEqual(8.5f, pose.OrthographicSize, 0.001f);
+        }
+
+        [Test]
         public void ClampCenter_CentersWhenViewIsLargerThanArena()
         {
             Vector2 center = CameraFramer.ClampCenter(new Vector2(20f, 20f), 10f, 16f / 9f, Bounds);

@@ -136,9 +136,9 @@ MonoBehaviour:
   layersRoot: {fileID: 3159823946447278226}
   worldRect:
     serializedVersion: 2
-    x: 0
-    y: 0
-    width: 32
+    x: -12
+    y: -5
+    width: 24
     height: 10
   pixelsPerUnit: 16
 --- !u!1 &6443504096107857161

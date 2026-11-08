@@ -29,6 +29,7 @@ namespace NineDays
         private readonly List<TerrainLayer> layers = new List<TerrainLayer>();
         private Transform terrainRoot;
         private TerrainPhysics physics;
+        private bool warnedObstacleLayer;
 
         public static ArenaController Instance { get; private set; }
         public ArenaConfig Config => config;
@@ -203,11 +204,14 @@ namespace NineDays
             int width = config.MaskWidth;
             int height = config.MaskHeight;
             var solid = new bool[width * height];
+            int collisionLayers = 0;
 
             for (int i = 0; i < layers.Count; i++)
             {
                 TerrainLayer layer = layers[i];
                 if (layer == null || !layer.CollisionEnabled) continue;
+
+                collisionLayers++;
 
                 Color32[] source = layer.MaskPixels;
                 if (source == null) continue;
@@ -222,8 +226,34 @@ namespace NineDays
             List<Vector2[]> contours = TerrainColliderBuilder.BuildContours(
                 solid, width, height, config.worldRect.min, config.PixelSize, simplifyTolerance);
 
+            int solidCount = 0;
+            for (int p = 0; p < solid.Length; p++)
+                if (solid[p]) solidCount++;
+
+            // 遮罩全空 = 一条轮廓都生成不出来，角色会直接穿过地面；这里明确报出来，
+            // 否则表现只是「角色一直往下掉」，很难判断是数据问题。
+            if (solidCount == 0 && contours.Count == 0 && collisionLayers > 0)
+            {
+                Debug.LogError(
+                    $"[Arena] {config.name} 的地形遮罩全为空，没有生成任何碰撞体。" +
+                    "检查各层 initialMask 是否为空/尺寸是否匹配，可用 9Days/Arena/Rebake Mask From Config 重烘。",
+                    this);
+            }
+
             int obstacleLayer = LayerMask.NameToLayer(obstacleLayerName);
-            if (obstacleLayer < 0) obstacleLayer = 0;
+            if (obstacleLayer < 0)
+            {
+                obstacleLayer = 0;
+                if (!warnedObstacleLayer)
+                {
+                    warnedObstacleLayer = true;
+                    Debug.LogWarning(
+                        $"[Arena] 层 \"{obstacleLayerName}\" 不存在，地形碰撞体将落在 Default(0) 层；" +
+                        "角色的 Ground Mask 必须包含实际使用的层，否则 IsGrounded 永远为 false。",
+                        this);
+                }
+            }
+
             physics.Rebuild(contours, obstacleLayer, edgeRadius);
         }
     }

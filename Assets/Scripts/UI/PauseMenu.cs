@@ -16,6 +16,9 @@ namespace NineDays
         [SerializeField] private Button restartButton;
         [SerializeField] private Button quitButton;
 
+        [Tooltip("屏幕上额外的「暂停 / 停止」按钮；点它等同于按 ESC。留空则只响应 ESC")]
+        [SerializeField] private Button stopButton;
+
         [Header("目标")]
         [Tooltip("留空则自动查找场景里的 BattleController")]
         [SerializeField] private BattleController battleController;
@@ -41,6 +44,7 @@ namespace NineDays
             if (resumeButton != null) resumeButton.onClick.AddListener(Resume);
             if (restartButton != null) restartButton.onClick.AddListener(RestartBattle);
             if (quitButton != null) quitButton.onClick.AddListener(ReturnToStartScene);
+            if (stopButton != null) stopButton.onClick.AddListener(Toggle);
 
             if (panelRoot != null) panelRoot.SetActive(false);
         }
@@ -50,6 +54,7 @@ namespace NineDays
             if (resumeButton != null) resumeButton.onClick.RemoveListener(Resume);
             if (restartButton != null) restartButton.onClick.RemoveListener(RestartBattle);
             if (quitButton != null) quitButton.onClick.RemoveListener(ReturnToStartScene);
+            if (stopButton != null) stopButton.onClick.RemoveListener(Toggle);
 
             // 场景切换 / 停止播放时不要把 timeScale 留在 0
             if (IsPaused) RestoreTimeScale();
@@ -77,6 +82,9 @@ namespace NineDays
             Time.timeScale = 0f;
 
             if (panelRoot != null) panelRoot.SetActive(true);
+
+            // 暂停面板遮住全屏时，把角落的停止键收起来，避免它盖在面板上面
+            if (stopButton != null) stopButton.gameObject.SetActive(false);
         }
 
         public void Resume()
@@ -87,6 +95,7 @@ namespace NineDays
             RestoreTimeScale();
 
             if (panelRoot != null) panelRoot.SetActive(false);
+            if (stopButton != null) stopButton.gameObject.SetActive(true);
         }
 
         /// <summary>重新开始：先恢复时间，再让 BattleController 重开一局。</summary>

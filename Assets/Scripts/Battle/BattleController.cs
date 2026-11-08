@@ -46,9 +46,18 @@ namespace NineDays
             turnStartGate = gate;
         }
 
-        /// <summary>优先用 Inspector 引用，其次自动找场景里的实现者。</summary>
+        /// <summary>优先用链式门，其次 Inspector 引用，最后自动找场景里的实现者。</summary>
         private void ResolveTurnStartGate()
         {
+            // 多步骤流程（选弹 → 放道具）统一交给 TurnGateChain 编排，
+            // 否则两个 ITurnStartGate 实现会争抢单槽，顺序取决于场景遍历。
+            TurnGateChain chain = FindAnyObjectByType<TurnGateChain>();
+            if (chain != null && chain.HasSteps)
+            {
+                turnStartGate = chain;
+                return;
+            }
+
             if (turnStartGateSource != null)
             {
                 turnStartGate = turnStartGateSource as ITurnStartGate;
@@ -145,6 +154,8 @@ namespace NineDays
             session.ExtraTurnGranted += GameEvents.RaiseExtraTurnGranted;
             session.BattleEnded += HandleBattleEnded;
 
+            // 上一局残留的时长型效果（牵引区）在新一局开始前清掉，避免把结算卡住
+            ActiveEffects.Clear();
             GameEvents.RaiseBattleStarted(config.roundsToPlay);
             session.Start();
         }

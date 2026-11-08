@@ -3,8 +3,9 @@ using UnityEngine;
 namespace NineDays
 {
     /// <summary>
-    /// 拖拽瞄准 + 发射（两人轮流用鼠标）。只有当前回合角色（CanAct）才能操作。
-    /// 瞄准方向 = 从鼠标指向角色的反方向（拉弓手感），力度 = 拖拽距离。
+    /// 弹弓式拖拽瞄准 + 发射（两人轮流用鼠标）。只有当前回合角色（CanAct）才能操作。
+    /// 手感参照弹弓：往哪边拉，子弹就往反方向飞；拖拽距离决定力度。
+    /// 瞄准时会画出「后方实线（拉的方向）+ 前方虚线抛物线（脱手后的前段路径）」。
     /// </summary>
     public class CharacterLauncher : MonoBehaviour, IAimInputReceiver
     {
@@ -27,11 +28,29 @@ namespace NineDays
         [Tooltip("瞄准线满力时的长度")]
         [SerializeField] private float aimLineLength = 3f;
 
+        [Header("弹道预览")]
+        [Tooltip("预览覆盖的飞行时长（秒）；越大画得越长")]
+        [SerializeField] private float previewDuration = 0.35f;
+
+        [Tooltip("单个虚线段长度（世界单位）")]
+        [SerializeField] private float previewDashLength = 0.22f;
+
+        [Tooltip("预览线宽")]
+        [SerializeField] private float previewWidth = 0.07f;
+
+        [Tooltip("预览线颜色（纯黑、不透明）；末端会自动淡出")]
+        [SerializeField] private Color previewColor = new Color(0f, 0f, 0f, 1f);
+
         private bool aiming;
         private Vector2 dragOrigin;
         private Vector2 pointerWorld;
         private float aimPower;
         private Projectile selectedPrefab;
+
+        private AimTrajectoryPreview preview;
+        private ProjectileLoadout cachedLoadout;
+        private Projectile cachedPrefab;
+        private float cachedSpeed = -1f;
 
         public bool IsAiming => aiming;
         public float AimPower => aimPower;
@@ -43,12 +62,14 @@ namespace NineDays
         public void SetProjectilePrefab(Projectile prefab)
         {
             selectedPrefab = prefab;
+            cachedLoadout = null;
         }
 
         /// <summary>清除选弹覆盖，下一发使用 Inspector 默认 prefab。</summary>
         public void ResetProjectilePrefab()
         {
             selectedPrefab = null;
+            cachedLoadout = null;
         }
 
         private void Awake()
@@ -85,6 +106,7 @@ namespace NineDays
             aiming = true;
             dragOrigin = pointerWorld;
             aimPower = 0f;
+            cachedSpeed = -1f;
             character.BeginAim();
         }
 
@@ -105,9 +127,11 @@ namespace NineDays
             aimPower = Mathf.Clamp01(distance / Mathf.Max(maxDragDistance, 0.01f));
 
             character.SetAimPower(aimPower);
-            character.FaceTo((Vector2)character.AimPivot.position - pull);
+            // pull 指向「发射方向」（拉的反方向），所以朝向 = 支点 + pull
+            character.FaceTo((Vector2)character.AimPivot.position + pull);
 
             UpdateAimLine(pull);
+            UpdatePreview(pull);
         }
 
         /// <summary>松开左键时调用；距离过短或没有子弹 prefab 会取消瞄准。</summary>
@@ -129,6 +153,7 @@ namespace NineDays
         {
             aiming = false;
             HideAimLine();
+            HidePreview();
 
             Projectile prefab = ActiveProjectilePrefab;
             if (prefab == null)
@@ -144,7 +169,8 @@ namespace NineDays
                 return;
             }
 
-            Vector2 direction = -pull.normalized;
+            // 弹弓：pull 是「拉的反方向」，也就是子弹实际飞行的方向
+            Vector2 direction = pull.normalized;
             float speed = Mathf.Lerp(minLaunchSpeed, maxLaunchSpeed, aimPower);
 
             Projectile projectile = ShotSpawner.Spawn(prefab, character, direction, speed);
@@ -190,6 +216,88 @@ namespace NineDays
             if (aimLine != null) aimLine.enabled = false;
         }
 
+        // ---------------- 弹道预览（虚线抛物线） ----------------
+
+        /// <summary>
+        /// 沿发射方向画一段虚线抛物线。用与发射完全相同的数值（特性、道具修改器都算进去），
+        /// 所以提示和实际弹道是一致的。
+        /// </summary>
+        private void UpdatePreview(Vector2 pull)
+        {
+            if (pull.sqrMagnitude < 0.0001f)
+            {
+                HidePreview();
+                return;
+            }
+
+            Projectile prefab = ActiveProjectilePrefab;
+            if (prefab == null || prefab.Config == null)
+            {
+                HidePreview();
+                return;
+            }
+
+            EnsurePreview();
+            if (preview == null) return;
+
+            float speed = Mathf.Lerp(minLaunchSpeed, maxLaunchSpeed, aimPower);
+            ProjectileStats stats = ResolvePreviewStats(prefab, speed);
+            if (stats == null)
+            {
+                HidePreview();
+                return;
+            }
+
+            LayerMask obstacleMask = character != null && character.Config != null
+                ? character.Config.obstacleMask
+                : default;
+
+            preview.Draw(
+                ShotSpawner.GetOrigin(character),
+                pull.normalized,
+                stats.speed,
+                stats.gravityScale,
+                stats.linearDamping,
+                previewDuration,
+                previewDashLength,
+                previewWidth,
+                previewColor,
+                obstacleMask);
+        }
+
+        /// <summary>
+        /// 复用上一次的构建结果：只有速度变化足够大才重算，
+        /// 避免每帧都跑一遍特性 / 修改器（它们可能有副作用或分配）。
+        /// </summary>
+        private ProjectileStats ResolvePreviewStats(Projectile prefab, float speed)
+        {
+            if (cachedLoadout != null && cachedPrefab == prefab && Mathf.Abs(cachedSpeed - speed) < 0.08f)
+                return cachedLoadout.Stats;
+
+            cachedPrefab = prefab;
+            cachedSpeed = speed;
+
+            var modifiers = ShotSpawner.CollectModifiers(character);
+            cachedLoadout = ProjectileBuild.Build(prefab.Config, modifiers, character, speed);
+            return cachedLoadout != null ? cachedLoadout.Stats : null;
+        }
+
+        private void EnsurePreview()
+        {
+            if (preview != null) return;
+            preview = AimTrajectoryPreview.Create();
+        }
+
+        private void HidePreview()
+        {
+            if (preview != null) preview.Hide();
+        }
+
+        private void OnDestroy()
+        {
+            if (preview != null) Destroy(preview.gameObject);
+        }
+
         /// <summary>取消当前瞄准并清理角色瞄准状态和瞄准线。</summary>
         public void CancelAim()
         {
@@ -203,6 +311,7 @@ namespace NineDays
             }
 
             HideAimLine();
+            HidePreview();
         }
     }
 }

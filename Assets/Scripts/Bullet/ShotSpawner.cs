@@ -61,8 +61,8 @@ namespace NineDays
             return projectile;
         }
 
-        /// <summary>收集角色及其子物体上的所有修改器来源。</summary>
-        private static List<ProjectileModifier> CollectModifiers(Character shooter)
+        /// <summary>收集角色及其子物体上的所有修改器来源（弹道预览也需要同一份结果）。</summary>
+        public static List<ProjectileModifier> CollectModifiers(Character shooter)
         {
             var modifiers = new List<ProjectileModifier>();
             IProjectileModifierSource[] sources = shooter.GetComponentsInChildren<IProjectileModifierSource>(true);

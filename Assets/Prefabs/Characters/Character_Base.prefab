@@ -161,7 +161,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   character: {fileID: 4532481266830092108}
-  projectilePrefab: {fileID: 8207526128195810767, guid: 471d47ad96264054b9b1c42f08be9df3, type: 3}
+  projectilePrefab: {fileID: 3227756951177577933, guid: 5ff835739c2da5f40a8f697a4c73ed57, type: 3}
   aimLine: {fileID: 2264235535299392537}
   targetCamera: {fileID: 0}
   maxDragDistance: 3

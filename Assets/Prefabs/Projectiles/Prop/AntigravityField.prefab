@@ -97,6 +97,7 @@ MonoBehaviour:
     m_Bits: 4294967295
   affectPlayer1: 1
   affectPlayer2: 1
+  placementBlockRadius: 1.0
   ambienceClip: {fileID: 8300000, guid: a6f9d2170c8e3451a6f9d2170c8e3451, type: 3}
   ambienceVolume: 0.5
   direction: {x: 0, y: 1}

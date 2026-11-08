@@ -16,6 +16,22 @@ PrefabInstance:
       propertyPath: team
       value: 2
       objectReference: {fileID: 0}
+    - target: {fileID: 6053314858678698817, guid: f093658c1fcb2cf4797774c611889a89, type: 3}
+      propertyPath: previewColor.a
+      value: 0.78431374
+      objectReference: {fileID: 0}
+    - target: {fileID: 6053314858678698817, guid: f093658c1fcb2cf4797774c611889a89, type: 3}
+      propertyPath: previewColor.b
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6053314858678698817, guid: f093658c1fcb2cf4797774c611889a89, type: 3}
+      propertyPath: previewColor.g
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6053314858678698817, guid: f093658c1fcb2cf4797774c611889a89, type: 3}
+      propertyPath: previewColor.r
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 6722247406343517918, guid: f093658c1fcb2cf4797774c611889a89, type: 3}
       propertyPath: initialSkinIndex
       value: 1
