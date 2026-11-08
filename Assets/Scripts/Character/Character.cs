@@ -29,12 +29,22 @@ namespace NineDays
         [SerializeField] private LayerMask groundMask = 1;
         [SerializeField] private float groundCheckRadius = 0.12f;
 
+        [Header("击飞兜底")]
+        [Tooltip("击飞状态超过这个时长且几乎不动（速度低于 settleSpeed）视为卡住，强制走倒地流程")]
+        [Min(0.1f)]
+        [SerializeField] private float wedgedTimeout = 1.2f;
+
+        [Tooltip("击飞状态最长持续时间；超过就送回出生点。防止掉出地形/卡在缝里永远不落地")]
+        [Min(0.5f)]
+        [SerializeField] private float airborneTimeout = 5f;
+
         private readonly List<Collider2D> groundHits = new List<Collider2D>();
         private ContactFilter2D groundFilter;
         private Vector3 spawnPoint;
         private float controlLockTimer;
         private float settleTimer;
         private float stateTimer;
+        private float airborneTimer;
         private bool turnPermission;
         private bool isGrounded;
 
@@ -155,7 +165,30 @@ namespace NineDays
                     break;
 
                 case CharacterState.Airborne:
-                    if (isGrounded && Mathf.Abs(Velocity.y) <= LandedSpeed) EnterDowned();
+                    airborneTimer += Time.deltaTime;
+
+                    if (isGrounded && Mathf.Abs(Velocity.y) <= LandedSpeed)
+                    {
+                        EnterDowned();
+                        break;
+                    }
+
+                    // 兜底 1：明显卡在几何/缝里——几乎不动，却一直判定不到地面。
+                    // 没有这一条时，被击退后落在被挖掉的地形边缘或轮廓缝隙里会永久停在 Airborne，
+                    // 动画定格在 HeaveHit，回合也因为 IsSettled 一直 false 而推不下去。
+                    if (airborneTimer >= wedgedTimeout && Velocity.magnitude <= SettleSpeed)
+                    {
+                        Debug.LogWarning($"[Character] {name} 击飞 {airborneTimer:F2}s 仍未落地但几乎静止（{Velocity.magnitude:F3}），强制结束击飞", this);
+                        EnterDowned();
+                        break;
+                    }
+
+                    // 兜底 2：长时间不落地（掉进坑里 / 掉出地形）
+                    if (airborneTimer >= airborneTimeout)
+                    {
+                        Debug.LogWarning($"[Character] {name} 击飞超时 {airborneTimeout:F1}s，送回出生点", this);
+                        ResetToSpawn();
+                    }
                     break;
 
                 case CharacterState.Downed:
@@ -199,6 +232,7 @@ namespace NineDays
         public void EnterAirborne()
         {
             stateTimer = 0f;
+            airborneTimer = 0f;
             SetState(CharacterState.Airborne);
         }
 

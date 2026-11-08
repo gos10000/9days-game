@@ -98,11 +98,40 @@ namespace NineDays
             if (stopButton != null) stopButton.gameObject.SetActive(true);
         }
 
-        /// <summary>重新开始：先恢复时间，再让 BattleController 重开一局。</summary>
+        /// <summary>
+        /// 重新开始：**重新加载当前战斗场景**，而不是就地重置。
+        ///
+        /// 为什么必须重载：就地重开只会重建地形 / 复位角色，场景里手摆的东西（比如可破坏木板、
+        /// 被推开的箱子、已消耗的道具）会保持被破坏后的状态。重载场景等于把整局恢复到初始状态。
+        ///
+        /// 场景不在 Build Settings 里时无法按名字加载，退回 BattleController 的就地重开并给出警告。
+        /// </summary>
         public void RestartBattle()
         {
-            Resume();
+            // 先恢复时间和暂停状态，否则新场景一进来就是冻结的。
+            // 暂停中走 Resume()：它顺带把面板收起、把停止键放回来；
+            // 从结算界面进来时通常不是「暂停」状态，但 timeScale 可能被压成 0，所以再兜一层。
+            if (IsPaused) Resume();
+            Time.timeScale = 1f;
+            GamePause.IsPaused = false;
+            cachedTimeScale = 1f;
 
+            if (panelRoot != null) panelRoot.SetActive(false);
+
+            Scene active = SceneManager.GetActiveScene();
+
+            if (!string.IsNullOrEmpty(active.name) && Application.CanStreamedLevelBeLoaded(active.name))
+            {
+                Debug.Log($"[PauseMenu] 重新开始：重新加载场景 \"{active.name}\"");
+                SceneManager.LoadScene(active.name, LoadSceneMode.Single);
+                return;
+            }
+
+            Debug.LogWarning($"[PauseMenu] 场景 \"{active.name}\" 不在 Build Settings 里，无法重载；" +
+                             "退回就地重开（场景里摆放的障碍物不会恢复）。" +
+                             "要完整重置请把该场景勾进 File > Build Settings > Scenes In Build");
+
+            if (battleController == null) battleController = FindAnyObjectByType<BattleController>();
             if (battleController == null)
             {
                 Debug.LogError("[PauseMenu] 找不到 BattleController，无法重新开始", this);
