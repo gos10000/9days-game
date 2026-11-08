@@ -297,10 +297,13 @@ namespace NineDays
             if (!IsLaunched || despawning || collision.collider == null) return;
 
             Character target = collision.collider.GetComponentInParent<Character>();
+            ProjectileHit hit = BuildProjectileHit(collision, target);
+
+            // 碰撞即尝试破坏地形，友军/穿透规则只影响角色结算
+            ApplyTerrainBreak(hit);
+
             if (target != null && target == owner) return;
             if (target != null && owner != null && target.Team == owner.Team && (stats == null || !stats.friendlyFire)) return;
-
-            ProjectileHit hit = BuildProjectileHit(collision, target);
             HitDisposition disposition = ProjectileHitResolver.Resolve(
                 stats == null || stats.destroyOnHit, traits, this, hit);
 
@@ -389,6 +392,24 @@ namespace NineDays
                 normal,
                 CharacterCombat.SumImpulse(collision),
                 collision.relativeVelocity.magnitude);
+        }
+
+        /// <summary>按配置在碰撞点调用场景破坏接口；未启用或场景没有地形时跳过。</summary>
+        private void ApplyTerrainBreak(in ProjectileHit hit)
+        {
+            if (config == null || !config.breakTerrain || config.terrainBreakPower <= 0f ||
+                config.terrainBreakRadius <= 0f)
+                return;
+
+            ArenaController arena = ArenaController.Instance;
+            if (arena == null) return;
+
+            arena.ApplyTerrainBreak(TerrainBreakRequest.Circle(
+                config.terrainBreakPower,
+                config.terrainBreakRadius,
+                hit.Point,
+                gameObject,
+                TerrainBreakKind.Impact));
         }
 
         private HitInfo BuildHitInfo(in ProjectileHit hit)

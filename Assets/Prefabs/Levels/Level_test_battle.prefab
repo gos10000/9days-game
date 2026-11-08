@@ -44,7 +44,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e2e2b3ab646303e45aec74643c584f5b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  backgroundPrefab: {fileID: 5553518128957197495, guid: 772bda8f9fb7cbd46af170c134f8ec10, type: 3}
-  arenaPrefab: {fileID: 8299187673436548594, guid: 986ad772011cd474e969b72de753266d, type: 3}
-  player1Spawn: {x: -5, y: -3.7}
-  player2Spawn: {x: 5, y: -3.7}
+  backgroundPrefab: {fileID: 8299187673436548594, guid: 986ad772011cd474e969b72de753266d, type: 3}
+  arenaPrefab: {fileID: 0}
+  player1Spawn: {x: -5, y: 0}
+  player2Spawn: {x: 5, y: 0}

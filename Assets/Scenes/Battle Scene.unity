@@ -164,7 +164,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   catalog: {fileID: 11400000, guid: 15ed855ff1549114c833ce3d0f4736d1, type: 2}
   drawCount: 3
-  showAllBulletsForTesting: 0
+  showAllBulletsForTesting: 1
   randomSeed: 0
   presenterSource: {fileID: 38440656}
   turnController: {fileID: 1853841568}
@@ -287,7 +287,7 @@ MonoBehaviour:
   bounds: {fileID: 1397334035}
   terrainMaterial: {fileID: 0}
   obstacleLayerName: Obstacle
-  simplifyTolerance: 0.02
+  simplifyTolerance: 0
   edgeRadius: 0.01
   maxBreakRadius: 6
   logBuild: 0

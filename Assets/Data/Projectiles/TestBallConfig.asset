@@ -22,5 +22,8 @@ MonoBehaviour:
   damage: 10
   destroyOnHit: 1
   friendlyFire: 0
+  breakTerrain: 1
+  terrainBreakPower: 1
+  terrainBreakRadius: 0.5
   traits: []
   bursts: []
